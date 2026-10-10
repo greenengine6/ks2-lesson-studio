@@ -92,3 +92,38 @@
   .symc-lang button{padding:5px 9px}
 }
 @media (prefers-reduced-motion:reduce){.fab-orb::after{display:none}}
+
+/* ---------- voice mode: full screen, only Symphony's words and the glow ---------- */
+.vmode{position:fixed;inset:0;z-index:400;display:flex;flex-direction:column;overflow:hidden;color:#EEF1F8;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 18px calc(14px + env(safe-area-inset-bottom,0px));
+  background:radial-gradient(120% 70% at 50% 112%,#121a3a 0%,#070913 52%,#020308 100%)}
+.vmode[hidden]{display:none}
+body.vmode-on{overflow:hidden}
+body.vmode-on > :not(.vmode):not(.toast){visibility:hidden}
+.vm-top{position:relative;z-index:2;display:flex;align-items:center;gap:10px;max-width:980px;width:100%;margin:0 auto}
+.vm-ava{width:36px;height:36px;flex:none}
+.vm-ava .sym{width:36px;height:36px}
+.vm-top b{font-family:var(--f-display);font-weight:800;font-size:16px;letter-spacing:.01em}
+.vm-lang{margin-left:auto;background:rgb(255 255 255 / .06);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .14)}
+.vm-lang button{color:#AEB7CA}
+.vm-lang button[aria-pressed="true"]{background:rgb(255 255 255 / .16);color:#fff;box-shadow:none}
+.vm-x{flex:none;width:42px;height:42px;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#EEF1F8;background:rgb(255 255 255 / .08);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .18)}
+.vm-x .i{width:18px;height:18px}
+.vm-mid{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:22px;max-width:820px;width:100%;margin:0 auto;padding:10px 4px 0}
+.vm-heard{margin:0;min-height:1.5em;text-align:center;font-size:clamp(15px,2.1vw,19px);line-height:1.5;color:rgb(238 241 248 / .62);transition:color .3s}
+.vm-heard.final{color:rgb(238 241 248 / .42)}
+.vm-said{margin:0;max-height:46vh;overflow:hidden;text-align:center;font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;font-size:clamp(23px,4.4vw,40px);line-height:1.28;scroll-behavior:smooth}
+.vm-said span{opacity:.1;transition:opacity .28s ease,color .28s ease,text-shadow .28s ease}
+.vm-said span.on{opacity:1}
+.vm-said span.now{color:#fff;text-shadow:0 0 22px rgb(157 151 255 / .95),0 0 6px rgb(255 255 255 / .6)}
+.vm-foot{position:relative;z-index:2;display:grid;justify-items:center;gap:14px;padding:6px 0 22px}
+.vm-st{margin:0;font-family:var(--f-display);font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:rgb(238 241 248 / .72)}
+.vm-mic{position:relative;width:78px;height:78px;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#fff;
+  background:rgb(255 255 255 / .1);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .26),0 14px 44px -12px rgb(124 92 255 / .85);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);transition:background .25s,color .25s,transform .15s}
+.vm-mic:active{transform:scale(.96)}
+.vm-mic .i{width:30px;height:30px}
+.vmode[data-state="listen"] .vm-mic{background:#F5F7FC;color:#141828}
+.vmode[data-state="listen"] .vm-mic::after{content:"";position:absolute;inset:-8px;border-radius:50%;box-shadow:0 0 0 2px rgb(255 255 255 / .5);animation:vmring 1.6s ease-out infinite}
+@keyframes vmring{from{transform:scale(.9);opacity:1}to{transform:scale(1.35);opacity:0}}
+.vm-beam{position:absolute;left:0;right:0;bottom:0;width:100%;height:60vh;z-index:1;pointer-events:none;filter:blur(26px) saturate(1.35);mix-blend-mode:screen}
+@media (prefers-reduced-motion:reduce){.vmode[data-state="listen"] .vm-mic::after{animation:none}}

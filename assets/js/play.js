@@ -3,11 +3,12 @@
    something to do with the mouse: starlings that dodge a falcon, fireflies that slowly learn to flash together,
    the planets at their real relative speeds, and the northern lights over snowy mountains. All drawn live
    (no images or videos to download). */
-import { $, $$, esc, el, icon, bus, reduceMotion, toast } from './core.js?v=f3cc728c';
-import { Ambient, Speech } from './fx/sound.js?v=f3cc728c';
-import { track } from './track.js?v=f3cc728c';
-import { MINI } from './fx/symphony.js?v=f3cc728c';
-import { settings } from './settings.js?v=f3cc728c';
+import { $, $$, esc, el, icon, bus, reduceMotion, toast } from './core.js?v=51f31f48';
+import { Sound, sfx } from './fx/audio.js?v=51f31f48';
+import { Ambient, Speech } from './fx/sound.js?v=51f31f48';
+import { track } from './track.js?v=51f31f48';
+import { MINI } from './fx/symphony.js?v=51f31f48';
+import { settings } from './settings.js?v=51f31f48';
 
 const TAU = Math.PI * 2;
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -384,8 +385,8 @@ const Pad = {
   ctx: null, out: null, on: false, timer: 0,
   start() {
     try {
-      if (!this.ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return; this.ctx = new C(); this.out = this.ctx.createGain(); this.out.gain.value = 0; this.out.connect(this.ctx.destination); }
-      if (this.ctx.state === 'suspended') this.ctx.resume();
+      if (!this.ctx) { const c = Sound.ctx(); if (!c) return; this.ctx = c; this.out = c.createGain(); this.out.gain.value = 0; this.out.connect(Sound.ambience()); }
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
       this.on = true;
       this.out.gain.cancelScheduledValues(this.ctx.currentTime); this.out.gain.linearRampToValueAtTime(0.11, this.ctx.currentTime + 2.5);
       if (!this.timer) { this.chord(); this.timer = setInterval(() => this.chord(), 7000); }
@@ -448,6 +449,7 @@ function size() {
 }
 function choose(id) {
   const s = SCENES.find((x) => x.id === id) || SCENES[0];
+  if (scene && scene.id !== s.id) sfx('whoosh');
   if (scene && startedAt) track('play', { scene: scene.id, ms: Date.now() - startedAt });
   scene = s; startedAt = Date.now();
   W = 0; size(); scene.init(W, H);

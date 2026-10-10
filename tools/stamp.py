@@ -8,7 +8,7 @@ import hashlib, os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VQ = re.compile(r'\?v=[0-9a-f]{8}')
-IMPORT = re.compile(r'''((?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)['"])(\.{1,2}/[^'"?]+?\.js)(?:\?v=[0-9a-f]{8})?(['"])''')
+IMPORT = re.compile(r'''((?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)['"])(\.{1,2}/(?![^'"]*vendor/)[^'"?]+?\.js)(?:\?v=[0-9a-f]{8})?(['"])''')   # vendor files keep their own versioned folders
 ASSET = re.compile(r'''((?:href|src)=")(assets/(?:js|css)/[^"?]+?\.(?:js|css))(?:\?v=[0-9a-f]{8})?(")''')
 
 def walk(sub, ext):

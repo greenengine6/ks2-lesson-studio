@@ -1,15 +1,19 @@
 /* Symphony, the chat pop-up. Ask anything by typing or speaking (English or Malay); she answers in text and, when
    her voice is on, out loud. Her words also appear one at a time on a bright stage with a blinking marker and an
-   underline that fits each word. On phones, tapping the mic starts a spoken conversation: after she answers she
-   listens again, until the mic is tapped or nothing is heard. Questions about her, the site, greetings and language
-   changes are answered on the device; everything else needs the device to be connected. */
-import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP } from './core.js?v=f3cc728c';
-import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=f3cc728c';
-import { settings, paintSwitches } from './settings.js?v=f3cc728c';
-import { isAdmin, ADMIN_NAME } from './people.js?v=f3cc728c';
-import { briefing, downloadReport } from './admin.js?v=f3cc728c';
-import { track } from './track.js?v=f3cc728c';
-import { Voice } from './fx/voice.js?v=f3cc728c';
+   underline that fits each word. Tapping the mic opens voice mode: everything else disappears, a glow along the
+   bottom of the screen follows your voice while she listens, sweeps while she thinks and follows her words while she
+   speaks, and her answer appears word by word as she says it. After she answers she listens again, until the mic is
+   tapped or nothing is heard. Questions about her, the site, greetings and language changes are answered on the
+   device; everything else needs the device to be connected. */
+import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP } from './core.js?v=51f31f48';
+import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=51f31f48';
+import { settings, paintSwitches } from './settings.js?v=51f31f48';
+import { isAdmin, ADMIN_NAME } from './people.js?v=51f31f48';
+import { briefing, downloadReport } from './admin.js?v=51f31f48';
+import { track } from './track.js?v=51f31f48';
+import { Voice } from './fx/voice.js?v=51f31f48';
+import { Beam } from './fx/beam.js?v=51f31f48';
+import { sfx } from './fx/audio.js?v=51f31f48';
 
 const LANG_KEY = 'ks2-engine.symlang.v1';
 const T = {
@@ -27,6 +31,7 @@ const T = {
     noSpeech: 'I did not hear anything. Tap the mic and try again.',
     micNet: 'Voice needs an internet connection. You can type instead.',
     talkHint: 'Tap the mic to talk. She answers out loud, then listens again.',
+    vmTap: 'Tap to talk', vmIdle: 'Say anything. I am listening when the glow moves.',
     voiceTrouble: 'This device would not let me speak just then. Tap “Say again” to hear it.',
     copy: 'Copy', again: 'Say again', copied: 'Copied. Paste it anywhere.', newChat: 'New chat',
     chips: [['Who are you?', 'ask'], ['Brainstorm a lesson', 'fill:Brainstorm a fun KS2 lesson about '], ['A fun fact about space', 'ask'], ['Explain fractions to a Year 3 class', 'ask'], ['What can this site do?', 'ask'], ['Cakap Melayu', 'lang:ms']]
@@ -45,6 +50,7 @@ const T = {
     noSpeech: 'Saya tidak dengar apa-apa. Tekan mikrofon dan cuba lagi.',
     micNet: 'Suara memerlukan sambungan internet. Anda boleh menaip.',
     talkHint: 'Tekan mikrofon untuk bercakap. Dia menjawab dengan suara, kemudian mendengar semula.',
+    vmTap: 'Tekan untuk bercakap', vmIdle: 'Cakap apa sahaja. Saya mendengar apabila cahaya bergerak.',
     voiceTrouble: 'Peranti ini tidak membenarkan saya bercakap tadi. Tekan “Ulang” untuk mendengarnya.',
     copy: 'Salin', again: 'Ulang', copied: 'Disalin.', newChat: 'Sembang baharu',
     chips: [['Siapa awak?', 'ask'], ['Idea pelajaran', 'fill:Beri idea pelajaran KS2 yang seronok tentang '], ['Fakta menarik tentang angkasa', 'ask'], ['Apa yang laman ini boleh buat?', 'ask'], ['Speak English', 'lang:en']]
@@ -82,7 +88,7 @@ function say(text) {
   lastSay = Voice.say(text, {
     lang: lang === 'ms' ? 'ms' : 'en-GB', rate: lang === 'ms' ? 0.95 : 1, silent: !settings.voice,
     onStart: () => { if (g === sayGen && state !== 'listen') setState('speak'); },
-    onWord: (w) => { if (g === sayGen) showWord(w); },
+    onWord: (w) => { if (g === sayGen) { showWord(w); vmWord(w); } },
     onTrouble: () => { if (g === sayGen && troubled !== g) { troubled = g; addMsg('sym', T[lang].voiceTrouble, { muted: true }); } }
   });
 }
@@ -95,7 +101,7 @@ async function afterSpeaking() {
   setTimeout(() => {
     if (g !== sayGen || busy) return;
     if (state === 'speak') { setState('idle'); showWord(''); }
-    if (talk && lastFrom === 'voice' && panel && !panel.hidden) listen();
+    if (talk && lastFrom === 'voice' && (vmOn || (panel && !panel.hidden))) listen();
   }, 350);
 }
 
@@ -121,6 +127,111 @@ function setState(s) {
   mic.setAttribute('aria-label', s === 'listen' ? T[lang].stopMic : T[lang].mic);
   if (s === 'think') showWord(lang === 'ms' ? 'Berfikir' : 'Thinking');
   if (s === 'listen') showWord(lang === 'ms' ? 'Mendengar' : 'Listening');
+  vmPaint();
+}
+
+/* ---------------- voice mode: everything else hidden; her voice, the words and the glow ---------------- */
+let vm = null, vmOn = false, vmIdx = 0, vmPulse = 0, vmPulseAt = 0, vmMeter = null;
+const vmClean = (x) => String(x).toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+function vmLevel() {
+  const now = performance.now();
+  if (state === 'listen' && vmMeter) return vmMeter.level();
+  if (state !== 'listen' && state !== 'speak') return 0;
+  const p = Math.max(0, vmPulse - (now - vmPulseAt) / (state === 'speak' ? 420 : 700));
+  return state === 'speak' ? p * (0.78 + 0.22 * Math.sin(now / 48)) : p;
+}
+function vmBuild() {
+  if (vm) return;
+  vm = el('div', 'vmode');
+  vm.id = 'vmode'; vm.hidden = true;
+  vm.setAttribute('role', 'dialog'); vm.setAttribute('aria-modal', 'true'); vm.setAttribute('aria-label', 'Talk to Symphony');
+  vm.innerHTML = '<div class="vm-top"><span class="vm-ava">' + MINI() + '</span><b>Symphony</b>' +
+    '<div class="seg vm-lang" role="group" aria-label="Language"><button type="button" data-vlang="en">English</button><button type="button" data-vlang="ms">Melayu</button></div>' +
+    '<button type="button" class="vm-x" aria-label="Close voice mode">' + icon('close') + '</button></div>' +
+    '<div class="vm-mid"><p class="vm-heard"></p><p class="vm-said" aria-live="polite"></p></div>' +
+    '<div class="vm-foot"><p class="vm-st"></p><button type="button" class="vm-mic"><span class="vm-mic-i"></span></button></div>' +
+    '<canvas class="vm-beam" aria-hidden="true"></canvas>';
+  document.body.appendChild(vm);
+  vm.beam = new Beam($('.vm-beam', vm), { type: 'mobile', level: vmLevel, sensitivity: 1, threshold: 0.03 });
+  $('.vm-x', vm).addEventListener('click', vmClose);
+  $('.vm-mic', vm).addEventListener('click', () => {
+    if (state === 'listen' && rec) { try { rec.stop(); } catch (e) { /* ignore */ } return; }   // done talking: send it
+    listen();                                                                                      // talk, or interrupt her
+  });
+  vm.addEventListener('click', (e) => { const b = e.target.closest('[data-vlang]'); if (b) { setLang(b.dataset.vlang); vmPaint(); } });
+  vm.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); vmClose(); } });
+}
+function vmPaint() {
+  if (!vm || !vmOn) return;
+  vm.dataset.state = state;
+  $('.vm-st', vm).textContent = state === 'idle' ? T[lang].vmTap : (T[lang][state] || '');
+  const b = $('.vm-mic', vm);
+  b.setAttribute('aria-label', state === 'listen' ? T[lang].stopMic : T[lang].mic);
+  $('.vm-mic-i', vm).innerHTML = icon(state === 'listen' ? 'stop' : 'mic');
+  $$('[data-vlang]', vm).forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.vlang === lang)));
+  vm.beam.set({ processing: state === 'think' });
+}
+function vmHeard(t, final) { if (!vm || !vmOn) return; const h = $('.vm-heard', vm); h.textContent = t || ''; h.classList.toggle('final', !!final); }
+function vmText(t) {
+  if (!vm || !vmOn) return;
+  const words = String(t || '').split(/\s+/).filter(Boolean);
+  $('.vm-said', vm).innerHTML = words.map((w, i) => '<span class="' + (i < vmIdx ? 'on' : '') + (i === vmIdx - 1 ? ' now' : '') + '">' + esc(w) + '</span>').join(' ');
+}
+function vmWord(w) {
+  vmPulse = 0.5 + Math.min(0.45, String(w).length * 0.055); vmPulseAt = performance.now();
+  if (!vm || !vmOn) return;
+  const box = $('.vm-said', vm), spans = box.children, c = vmClean(w);
+  for (let j = vmIdx; j < Math.min(spans.length, vmIdx + 5); j++) {
+    if (vmClean(spans[j].textContent) !== c) continue;
+    for (let k = vmIdx; k <= j; k++) spans[k].classList.add('on');
+    if (spans[vmIdx - 1]) spans[vmIdx - 1].classList.remove('now');
+    spans[j].classList.add('now');
+    vmIdx = j + 1;
+    const top = spans[j].offsetTop - box.clientHeight * 0.45;
+    if (top > box.scrollTop) box.scrollTop = top;
+    return;
+  }
+}
+/* On laptops the glow follows the microphone's real loudness; on phones (where the microphone belongs to speech
+   recognition) it follows what the recogniser hears. */
+async function vmMeterStart() {
+  const ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod|Android/i.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua)) || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    if (!vmOn) { stream.getTracks().forEach((t) => t.stop()); return; }
+    const C = window.AudioContext || window.webkitAudioContext, ac = new C(), an = ac.createAnalyser();
+    an.fftSize = 1024; ac.createMediaStreamSource(stream).connect(an);
+    const buf = new Float32Array(an.fftSize);
+    vmMeter = { stream, ac, level() { an.getFloatTimeDomainData(buf); let s = 0; for (let i = 0; i < buf.length; i++) s += buf[i] * buf[i]; return Math.min(1, Math.sqrt(s / buf.length) * 5); } };
+  } catch (e) { vmMeter = null; }
+}
+function vmMeterStop() { if (!vmMeter) return; vmMeter.stream.getTracks().forEach((t) => t.stop()); vmMeter.ac.close().catch(() => {}); vmMeter = null; }
+function vmOpen() {
+  if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) { note(T[lang].noMic); return false; }
+  vmBuild();
+  if (vmOn) return true;
+  vmOn = true; vm.hidden = false;
+  document.body.classList.add('vmode-on');
+  bus.emit('vmode', true);
+  vmIdx = 0; vmHeard(''); vmText('');
+  vm.beam.resize(); vm.beam.start();
+  vmPaint();
+  vmMeterStart();
+  return true;
+}
+function vmClose() {
+  if (!vmOn) return;
+  vmOn = false; talk = false;
+  if (rec) { try { rec.abort(); } catch (e) { /* ignore */ } rec = null; }
+  if (busy) { busy.abort(); busy = null; }
+  hush();
+  setState('idle');
+  vm.hidden = true; vm.beam.stop(); vmMeterStop();
+  document.body.classList.remove('vmode-on');
+  bus.emit('vmode', false);
+  sfx('close');
+  if (panel && !panel.hidden && input) setTimeout(() => input.focus({ preventScroll: true }), 60);
 }
 
 /* ---------------- the log ---------------- */
@@ -150,6 +261,7 @@ function addMsg(who, text, o) {
 function speakAll(text) { say(text); afterSpeaking(); }
 function reply(text, o) {
   o = o || {};
+  vmIdx = 0; vmText(text);
   addMsg('sym', text, { muted: o.muted, action: o.action });
   if (!o.muted) history.push({ role: 'assistant', content: text });
   if (o.silent) { stageLine(text.split(/\s+/).slice(0, 8).join(' ')); return; }
@@ -182,6 +294,8 @@ async function ask(text, from) {
   hush();
   if (busy) { busy.abort(); busy = null; }
   addMsg('me', text);
+  vmHeard(text, true); vmIdx = 0; vmText('');
+  if (!vmOn) sfx('send');
   history.push({ role: 'user', content: text });
   track('chat', { via: lastFrom, lang });
   if (isAdmin()) {
@@ -203,6 +317,7 @@ async function ask(text, from) {
   const feed = (raw) => {
     const t = clean(raw);
     m.update(t);
+    vmText(t);
     const re = /[^.!?…]+[.!?…]+["”’)]*\s+/g;
     re.lastIndex = said;
     let mm, end = said;
@@ -213,7 +328,7 @@ async function ask(text, from) {
     const r = await askClaude('', { model: CONFIG.quickModel, maxTokens: 700, system: systemPrompt(), messages: history.slice(-14), signal: ctl.signal, onText: feed });
     if (busy !== ctl) return;
     const out = clean(r.text);
-    m.update(out); m.done();
+    m.update(out); m.done(); vmText(out);
     history.push({ role: 'assistant', content: out });
     busy = null;
     if (out.length > said) say(out.slice(said));
@@ -245,26 +360,28 @@ function listen() {
     rec.lang = lang === 'ms' ? 'ms-MY' : 'en-GB';
     rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = false;
   } catch (e) { note(T[lang].noMic); return; }
-  rec.onstart = () => setState('listen');
+  rec.onstart = () => { setState('listen'); sfx('listen'); vmHeard(''); vmIdx = 0; vmText(''); };
+  rec.onspeechstart = () => { vmPulse = 0.55; vmPulseAt = performance.now(); };
   rec.onresult = (e) => {
     let interim = '';
     for (let i = e.resultIndex; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) finalText += r[0].transcript; else interim += r[0].transcript; }
     input.value = (finalText + ' ' + interim).replace(/\s+/g, ' ').trim();
     const w = input.value.split(' '); showWord(w[w.length - 1] || '');
+    vmHeard(input.value); vmPulse = 0.7 + Math.random() * 0.3; vmPulseAt = performance.now();
   };
   rec.onerror = (e) => {
     talk = false;
     Voice.hold(700);
-    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') note(T[lang].micDenied);
-    else if (e.error === 'no-speech') note(T[lang].noSpeech);
-    else if (e.error === 'network') note(T[lang].micNet);
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { note(T[lang].micDenied); vmHeard(T[lang].micDenied); }
+    else if (e.error === 'no-speech') { note(T[lang].noSpeech); vmHeard(T[lang].noSpeech); }
+    else if (e.error === 'network') { note(T[lang].micNet); vmHeard(T[lang].micNet); }
   };
   rec.onend = () => {
     const t = (finalText || input.value).trim();
     rec = null;
     Voice.hold(700);                                  // phones need a moment to hand the sound back from the microphone
     if (state === 'listen') setState('idle');
-    if (t) { input.value = ''; ask(t, 'voice'); } else showWord('');
+    if (t) { input.value = ''; ask(t, 'voice'); } else { showWord(''); sfx('unlisten'); }
   };
   try { rec.start(); } catch (e) { talk = false; setState('idle'); }
 }
@@ -290,6 +407,7 @@ export function openChat(o) {
   build();
   const first = !opened;
   opened = true;
+  if (panel.hidden) sfx('open');
   panel.hidden = false;
   fab.setAttribute('aria-expanded', 'true');
   document.body.classList.add('symc-open');
@@ -299,7 +417,9 @@ export function openChat(o) {
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) setTimeout(() => input.focus(), 60);
 }
 export function closeChat() {
+  vmClose();
   if (!panel || panel.hidden) return;
+  sfx('close');
   panel.hidden = true;
   talk = false;
   if (rec) { try { rec.abort(); } catch (e) { /* ignore */ } rec = null; }
@@ -332,7 +452,7 @@ function build() {
   $('#symc-x').addEventListener('click', closeChat);
   $('#symc-new').addEventListener('click', () => { hush(); if (busy) { busy.abort(); busy = null; } history.length = 0; logEl.innerHTML = ''; addMsg('sym', T[lang].hello); stageLine(T[lang].stageHello, 300); setState('idle'); });
   $('#symc-form').addEventListener('submit', (e) => { e.preventDefault(); Voice.unlock(); const t = input.value; input.value = ''; ask(t, 'text'); });
-  mic.addEventListener('click', listen);
+  mic.addEventListener('click', () => { Voice.unlock(); if (vmOpen()) listen(); });
   panel.addEventListener('click', (e) => {
     const l = e.target.closest('[data-lang]');
     if (l) { setLang(l.dataset.lang); return; }

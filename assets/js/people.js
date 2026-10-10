@@ -3,8 +3,9 @@
    one-tap link once on their device). Rabinder has the only login: "Hello Admin", her name pre-filled, her
    password on a new device, then a passkey (Face ID, fingerprint or the screen lock) on each of her devices.
    Pupils never sign in. */
-import { $, $$, esc, el, icon, store, bus, CONFIG, setKey, toast } from './core.js?v=f3cc728c';
-import { cryptoOK, b64u, unb64u, utf8, unutf8, random, pbkdf2, sha256, sameBytes, aesKey, aesDecrypt, importAdminPrivate, passkeyOK, platformPasskey, createPasskey, checkPasskey, idbGet, idbSet, idbDel } from './crypto.js?v=f3cc728c';
+import { $, $$, esc, el, icon, store, bus, CONFIG, setKey, toast } from './core.js?v=51f31f48';
+import { cryptoOK, b64u, unb64u, utf8, unutf8, random, pbkdf2, sha256, sameBytes, aesKey, aesDecrypt, importAdminPrivate, passkeyOK, platformPasskey, createPasskey, checkPasskey, idbGet, idbSet, idbDel } from './crypto.js?v=51f31f48';
+import { sfx } from './fx/audio.js?v=51f31f48';
 
 const ME_KEY = 'ks2-engine.me.v1', ROSTER_KEY = 'ks2-engine.roster.v1', PASS_KEY = 'ks2-engine.passkey.v1', SES_KEY = 'ks2-engine.session.v1', LOCK_KEY = 'ks2-engine.pinlock.v1';
 const PIN_ITER = 150000, ADMIN_IDLE = 30 * 60 * 1000;
@@ -160,10 +161,11 @@ function teacherForm() {
     let ok = false;
     try { ok = await pinOK(p, pin); } catch (er) { ok = false; }
     go.disabled = false;
-    if (!ok) { miss(p.id); say(err, 'That PIN did not match. Ask Rabinder if you have forgotten it.'); $('#hg-pin').select(); return; }
+    if (!ok) { miss(p.id); sfx('error'); say(err, 'That PIN did not match. Ask Rabinder if you have forgotten it.'); $('#hg-pin').select(); return; }
     clearMiss(p.id); say(err, '');
     $('#hg-pin').value = '';
     start('teacher', p.id, p.n);
+    sfx('success');
     hideGate();
     toast('Hello, ' + p.n.split(' ')[0] + '. Have a lovely lesson.');
   });
@@ -220,10 +222,11 @@ function adminModal() {
     let ok = false;
     try { ok = await unlockWithPassword(pw); } catch (er) { ok = false; }
     btn.disabled = false; btn.textContent = 'Sign in';
-    if (!ok) { miss('admin'); say(n, 'That password did not match.'); $('#agate-pw').select(); return; }
+    if (!ok) { miss('admin'); sfx('error'); say(n, 'That password did not match.'); $('#agate-pw').select(); return; }
     clearMiss('admin'); say(n, '');
     $('#agate-pw').value = '';
     start('admin', 'admin', ADMIN_NAME);
+    sfx('success');
     if (!hasPasskey() && await platformPasskey()) { pane('passkey'); setTimeout(() => $('#agate-mk').focus(), 60); return; }
     finishAdmin();
   });
@@ -235,6 +238,7 @@ function adminModal() {
     } catch (er) { say(n, 'Passkey sign-in was cancelled. You can use your password instead.'); return; }
     adminPriv = (await idbGet('admin-priv')) || null;
     start('admin', 'admin', ADMIN_NAME);
+    sfx('success');
     if (adminPriv) bus.emit('admin-key');
     finishAdmin();
   });

@@ -1,13 +1,10 @@
 /* Ambient soundscapes made live with the Web Audio API (no audio files), plus read-aloud in Symphony's voice.
    Scenes: rain, ocean, wind, river, forest, birds, night, city, market. Crossfades between scenes. */
-import { Voice } from './voice.js?v=f3cc728c';
+import { Voice } from './voice.js?v=51f31f48';
+import { Sound } from './audio.js?v=51f31f48';
 
 let ctx = null;
-function ac() {
-  if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; ctx = new C(); }
-  if (ctx.state === 'suspended') ctx.resume();
-  return ctx;
-}
+function ac() { ctx = Sound.ctx(); return ctx; }          // the site's one sound engine (audio.js): one switch, quiet while Symphony speaks
 const buffers = {};
 function noise(c, type) {
   if (buffers[type]) return buffers[type];
@@ -147,7 +144,7 @@ export const Ambient = {
     this.fadeOutAll(1.2);
     this.kind = kind;
     if (kind === 'none') return;
-    const g = gain(c, 0); g.connect(c.destination);
+    const g = gain(c, 0); g.connect(Sound.ambience());
     const stop = SCENES[kind](c, g);
     g.gain.setValueAtTime(0, c.currentTime);
     g.gain.linearRampToValueAtTime(this.vol, c.currentTime + 1.6);

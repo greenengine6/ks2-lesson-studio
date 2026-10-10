@@ -1,9 +1,10 @@
 /* The engine framework: every engine is a small definition (fields, prompt, normaliser, class screens, notes).
    This file renders the engine page, talks to Claude, keeps saved activities, and runs Present mode. */
-import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG } from '../core.js?v=f3cc728c';
-import { Ribbons } from '../fx/ribbons.js?v=f3cc728c';
-import { Ambient, Speech } from '../fx/sound.js?v=f3cc728c';
-import { track } from '../track.js?v=f3cc728c';
+import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG } from '../core.js?v=51f31f48';
+import { Ribbons } from '../fx/ribbons.js?v=51f31f48';
+import { sfx } from '../fx/audio.js?v=51f31f48';
+import { Ambient, Speech } from '../fx/sound.js?v=51f31f48';
+import { track } from '../track.js?v=51f31f48';
 
 /* ---------------- how pupils respond (online or in class) ---------------- */
 export const RESPOND = {
@@ -202,6 +203,7 @@ async function generate(eng, input) {
   go.disabled = true; $('span', go).textContent = 'Making…';
   meter.hidden = false; stop.hidden = false; $('i', meter).style.width = '5%';
   say('<b>Thinking…</b> ' + esc(eng.sym.thinking || 'Planning it for your class.'), 'think');
+  sfx('send');
   const expected = JSON.stringify(eng.example.data).length * 1.05, t0 = Date.now();
   const topicOf = () => { const f = eng.fields.find((x) => x.type === 'text' || x.type === 'textarea'); return f ? String(input[f.id] || '').slice(0, 80) : ''; };
   const resEl = $('#eng-result');
@@ -225,6 +227,7 @@ async function generate(eng, input) {
     showItem(item);
     renderSavedList();
     say('<b>Ready!</b> ' + esc(eng.sym.done || 'Press Present to share it with your class.'), 'happy');
+    sfx('success');
     toast(eng.name + ': ready to teach.');
     $('#eng-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
@@ -232,6 +235,7 @@ async function generate(eng, input) {
     track('gen', { eng: eng.id, title: topicOf(), year: input.year || '', ok: 0, err: code || 'error', ms: Date.now() - t0 });
     if (code === 'cancelled') say('Stopped. Change anything you like and press the button again.', 'idle');
     else {
+      sfx('error');
       notice(esc(errorCopy(code, 'this activity')) + ((code === 'no_key' || code === 'bad_key') && document.documentElement.getAttribute('data-who') === 'admin' ? '<br><button type="button" class="btn small" data-connect>' + icon('key') + 'Connect this device</button>' : ''), true);
       if (code === 'no_key') bus.emit('need-key');
       say(esc(errorCopy(code, 'this activity')), 'idle');
@@ -330,6 +334,7 @@ export function leaveEngine() {
   page = null;
 }
 export function openPresent(eng, item, start) {
+  sfx('present');
   if (page && page.ctx && page.ctx.cleanup) { page.ctx.cleanup(); page.ctx = null; }
   Object.assign(P, { open: true, eng, item, i: start || 0, t0: Date.now(), seen: start || 0 });
   const el = $('#present');
@@ -373,7 +378,7 @@ function paintPresent() {
   $('#pr-prev').disabled = P.i === 0;
   $('#pr-next').disabled = P.i === screens.length - 1;
 }
-function go(delta) { const n = P.eng.screens(P.item.data).length, j = Math.max(0, Math.min(n - 1, P.i + delta)); if (j !== P.i) { P.i = j; paintPresent(); } }
+function go(delta) { const n = P.eng.screens(P.item.data).length, j = Math.max(0, Math.min(n - 1, P.i + delta)); if (j !== P.i) { sfx('page'); P.i = j; paintPresent(); } }
 function setPointer(on) {
   P.pointer = on;
   store.set(POINTER_KEY, on ? 'on' : '');
@@ -382,17 +387,7 @@ function setPointer(on) {
   bus.emit('pointer', on);
 }
 function fmt(sec) { const m = Math.floor(sec / 60), r = sec % 60; return m + ':' + String(r).padStart(2, '0'); }
-export function chime() {
-  try {
-    const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
-    const c = chime.ctx || (chime.ctx = new C());
-    [660, 880, 1320].forEach((f, k) => {
-      const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + k * 0.18;
-      o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
-      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 1);
-    });
-  } catch (e) { /* no audio */ }
-}
+export function chime() { sfx('chime'); }
 function startTimer(min) {
   stopTimer();
   const el = $('#pr-timer');

@@ -1,21 +1,21 @@
 /* KS2 Lesson Engine: start-up, routing, header, dock, landing page and the Connect dialog. */
-import './security.js?v=f3cc728c';
-import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=f3cc728c';
-import { Tubes } from './fx/tubes.js?v=f3cc728c';
-import { Dock } from './fx/dock.js?v=f3cc728c';
-import { CardSwap } from './fx/cardswap.js?v=f3cc728c';
-import { Symphony } from './fx/symphony.js?v=f3cc728c';
-import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=f3cc728c';
-import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=f3cc728c';
-import { initSlides, examplePreview, fitSlide, refitSlides, slidesPresentInfo } from './slides.js?v=f3cc728c';
-import { initSettings } from './settings.js?v=f3cc728c';
-import { initChat } from './chat.js?v=f3cc728c';
-import { track } from './track.js?v=f3cc728c';
-import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=f3cc728c';
-import { initFeedback } from './feedback.js?v=f3cc728c';
-import { renderAdmin } from './admin.js?v=f3cc728c';
-import { initPlay } from './play.js?v=f3cc728c';
-import { initSync } from './sync.js?v=f3cc728c';
+import './security.js?v=51f31f48';
+import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=51f31f48';
+import { Dock } from './fx/dock.js?v=51f31f48';
+import { CardSwap } from './fx/cardswap.js?v=51f31f48';
+import { Symphony } from './fx/symphony.js?v=51f31f48';
+import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=51f31f48';
+import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=51f31f48';
+import { initSlides, examplePreview, fitSlide, refitSlides, slidesPresentInfo } from './slides.js?v=51f31f48';
+import { initSettings } from './settings.js?v=51f31f48';
+import { initChat } from './chat.js?v=51f31f48';
+import { track } from './track.js?v=51f31f48';
+import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=51f31f48';
+import { initFeedback } from './feedback.js?v=51f31f48';
+import { renderAdmin } from './admin.js?v=51f31f48';
+import { initPlay } from './play.js?v=51f31f48';
+import { initSync } from './sync.js?v=51f31f48';
+import { sfx } from './fx/audio.js?v=51f31f48';
 
 const PLAY = { id: 'play', name: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'A play area for the whole class: starlings, fireflies, the planets and the northern lights, with facts Symphony reads aloud.', chips: ['Earth, nature and space', 'Shared screen'] };
 const SLIDES = { id: 'slides', name: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
@@ -43,7 +43,7 @@ menuBtn.addEventListener('click', () => { mnav.hidden = !mnav.hidden; menuBtn.se
 mnav.addEventListener('click', (e) => { if (e.target.closest('a')) { mnav.hidden = true; menuBtn.setAttribute('aria-expanded', 'false'); menuBtn.innerHTML = icon('menu'); } });
 
 /* ---------------- dock ---------------- */
-const go = (id) => { location.hash = id === 'home' ? '#/' : '#/' + id; };
+const go = (id) => { sfx('nav'); location.hash = id === 'home' ? '#/' : '#/' + id; };
 const dockItems = [{ id: 'home', label: 'Home', icon: icon('home'), color: 'violet', onClick: () => go('home') }, { sep: true },
   { id: 'slides', label: 'Slide Studio', icon: icon('slides'), color: 'violet', onClick: () => go('slides') }, { id: 'play', label: 'Wonder Window', icon: icon('globe'), color: 'cyan', onClick: () => go('play') }]
   .concat(ENGINES.map((e) => ({ id: e.id, label: e.name, icon: icon(e.icon), color: e.color, onClick: () => go(e.id) })));
@@ -78,21 +78,42 @@ function buildShowcase() {
   showcase = new CardSwap(root, { cardDistance: Math.round(Math.min(40, rw * 0.085)), verticalDistance: Math.round(Math.min(44, rw * 0.094)), delay: 4200, pauseOnHover: true, skewAmount: 4, easing: 'elastic', onCardClick: (i) => go(picks[i][0]) });
 }
 
-let tubes = null, tubesTried = false, heroVisible = true;
-function startTubes() {
-  if (!tubesTried) {
-    tubesTried = true;
-    try {
-      tubes = new Tubes($('#tubes'));
-      const hero = $('#hero');
-      new IntersectionObserver((en) => { heroVisible = en.some((x) => x.isIntersecting); if (current === 'home' && heroVisible) runTubes(); else if (tubes) tubes.stop(); }, { threshold: 0.02 }).observe(hero);
-      hero.addEventListener('click', (e) => { if (e.target.closest('a,button')) return; tubes.nextPalette(); });
-      document.addEventListener('visibilitychange', () => { if (document.hidden) tubes.stop(); else if (current === 'home' && heroVisible) runTubes(); });
-    } catch (e) { tubes = null; $('#tubes').hidden = true; $('#hero-hint').hidden = true; }
-  }
-  runTubes();
+/* ---------------- the Earth behind the landing page (fx/earth.js, loaded after the page is up) ---------------- */
+let earth = null, earthTried = false;
+function earthTip() {
+  const tip = $('#hero-hint');
+  if (!tip || !earth) return;
+  const span = $('span', tip), coarse = window.matchMedia('(pointer: coarse)').matches;
+  const say = (t, act) => { span.textContent = t; tip.hidden = false; tip.classList.toggle('act', !!act); };
+  if (!coarse) say('Drag to spin the Earth');
+  else if (earth.tiltNeedsTap) say('Tap here, then tilt your phone', true);
+  else if (earth.gyroOn) { say('Tilt your phone to look around'); setTimeout(() => { tip.hidden = true; }, 6000); }
+  else say('Swipe sideways to spin the Earth');
 }
-function runTubes() { if (!tubes || presentState.open) return; if (reduceMotion()) tubes.still(); else tubes.start(); }
+function startEarth() {
+  if (earthTried) { runEarth(); return; }
+  earthTried = true;
+  const hero = $('#hero'), fail = () => { earth = null; hero.classList.add('earth-off'); const t = $('#hero-hint'); if (t) t.hidden = true; };
+  import('./fx/earth.js?v=51f31f48').then(async (m) => {
+    earth = new m.Earth($('#earth'), { onFail: fail });
+    if (!(await earth.init())) return;
+    earthTip();
+    runEarth();
+  }).catch(fail);
+  $('#hero-hint').addEventListener('click', async () => {
+    if (!earth || !earth.tiltNeedsTap) return;
+    const ok = await earth.enable();
+    const span = $('#hero-hint span');
+    span.textContent = ok ? 'Tilt your phone to look around' : 'Swipe sideways to spin the Earth';
+    $('#hero-hint').classList.remove('act');
+    setTimeout(() => { $('#hero-hint').hidden = true; }, 5000);
+  });
+  $('#earth').addEventListener('click', () => { if (earth && earth.tiltNeedsTap) $('#hero-hint').click(); });
+}
+function runEarth() {
+  if (!earth || presentState.open || current !== 'home' || document.body.classList.contains('vmode-on')) return;
+  if (reduceMotion()) earth.render(0); else earth.loop();
+}
 
 /* ---------------- routing ---------------- */
 let current = '';
@@ -117,8 +138,8 @@ function show(id) {
   if (id === 'admin') renderAdmin($('#view-admin'));
   if (id === 'play' && changed) bus.emit('play', true);
   if (changed && who.role) track('view', { page: id });
-  if (id === 'home') { startTubes(); if (showcase && !reduceMotion()) showcase.start(); }
-  else { if (tubes) tubes.stop(); if (showcase) showcase.stopTimer(); }
+  if (id === 'home') { startEarth(); if (showcase && !reduceMotion()) showcase.start(); }
+  else { if (earth) earth.stop(); if (showcase) showcase.stopTimer(); }
   if (eng && changed) renderEngine($('#view-engine'), eng);
   if (id === 'slides') refitSlides();
   dock.setActive(id);
@@ -136,7 +157,8 @@ function route() {
   if (target) requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }));
 }
 window.addEventListener('hashchange', route);
-bus.on('present', (on) => { $('#dock').hidden = on; if (on && tubes) tubes.stop(); if (!on && current === 'home') runTubes(); });
+bus.on('present', (on) => { $('#dock').hidden = on; if (on && earth) earth.stop(); if (!on) runEarth(); });
+bus.on('vmode', (on) => { if (on && earth) earth.stop(); if (!on) runEarth(); });
 bus.on('who', (w) => { if (!w || !w.role) { if (current && ENGINE_BY_ID[current]) leaveEngine(); show('home'); } else route(); paintHeader(); });
 $('#pr-ticket').addEventListener('click', () => {
   const P = presentState; if (!P.open) return;

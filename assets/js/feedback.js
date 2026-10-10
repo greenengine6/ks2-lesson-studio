@@ -2,11 +2,12 @@
    the class feedback screen in Present mode, five big faces the teacher taps as answers come in ("type 1 to 5 in
    the chat"), plus "best bit". Both go to Rabinder's report by themselves (sync.js): teachers never download
    anything. download() is used by the admin dashboard only. */
-import { $, $$, esc, el, icon, bus, toast, prefs } from './core.js?v=f3cc728c';
-import { track } from './track.js?v=f3cc728c';
-import { who } from './people.js?v=f3cc728c';
-import { ENGINES } from './engines/registry.js?v=f3cc728c';
-import { confetti } from './fx/particles.js?v=f3cc728c';
+import { $, $$, esc, el, icon, bus, toast, prefs } from './core.js?v=51f31f48';
+import { track } from './track.js?v=51f31f48';
+import { who } from './people.js?v=51f31f48';
+import { ENGINES } from './engines/registry.js?v=51f31f48';
+import { confetti } from './fx/particles.js?v=51f31f48';
+import { sfx } from './fx/audio.js?v=51f31f48';
 
 export const FACE_NAMES = ['Lost', 'Tricky', 'OK', 'Good', 'Loved it'];
 export const FACE_COLOURS = ['#E5484D', '#F2804A', '#F2B84B', '#7CC24F', '#2BB673'];
@@ -61,6 +62,7 @@ function feedbackModal() {
     if (!rating) { n.textContent = 'Tap a star rating first.'; n.hidden = false; return; }
     n.hidden = true;
     track('fb', { rating, used, good, better, pupils });
+    sfx('success');
     $('.fb-done-t', fbm).textContent = who.role === 'admin' ? 'Your feedback is saved in your report.' : 'It goes to Rabinder by itself, locked so only she can read it. There is nothing to send or download.';
     $$('[data-fp]', fbm).forEach((s) => { s.hidden = s.dataset.fp !== 'done'; });
     setTimeout(() => { const b = $('[data-fp="done"] [data-fbm-x]', fbm); if (b) b.focus(); }, 60);
@@ -104,10 +106,10 @@ export function openTicket(o) {
     $('[data-tk-undo]', tk).disabled = !st.log.length;
     $('[data-tk-save]', tk).disabled = !n;
   };
-  const addFace = (i) => { st.faces[i]++; st.log.push(['f', i]); paint(); const b = $('.tk-face[data-face="' + i + '"]', tk); if (b) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); } };
+  const addFace = (i) => { st.faces[i]++; st.log.push(['f', i]); sfx('pop', i); paint(); const b = $('.tk-face[data-face="' + i + '"]', tk); if (b) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); } };
   tk.addEventListener('click', (e) => {
     const f = e.target.closest('[data-face]'); if (f) { addFace(Number(f.dataset.face)); return; }
-    const c = e.target.closest('[data-best]'); if (c) { st.best[c.dataset.best] = (st.best[c.dataset.best] || 0) + 1; st.log.push(['b', c.dataset.best]); paint(); return; }
+    const c = e.target.closest('[data-best]'); if (c) { st.best[c.dataset.best] = (st.best[c.dataset.best] || 0) + 1; st.log.push(['b', c.dataset.best]); sfx('pop', 3); paint(); return; }
     if (e.target.closest('[data-tk-undo]')) { const l = st.log.pop(); if (l) { if (l[0] === 'f') st.faces[l[1]]--; else st.best[l[1]]--; } paint(); return; }
     if (e.target.closest('[data-tk-x]')) { closeTicket(); return; }
     if (e.target.closest('[data-tk-save]')) {
@@ -116,6 +118,7 @@ export function openTicket(o) {
       const best = {}; Object.entries(st.best).forEach(([k, v]) => { if (v > 0) best[k] = v; });
       track('ticket', { eng: o.eng, title: o.title, faces: st.faces.slice(), best, total });
       confetti(host, { count: 120, y: 0.45 });
+      sfx('success');
       toast('Saved. Thank you, everyone!');
       closeTicket();
       if (o.onSaved) o.onSaved();

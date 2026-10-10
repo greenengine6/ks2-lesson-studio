@@ -1,10 +1,11 @@
 /* Engine 8: Escape Room. A story mission where every lock is a card in a CardSwap stack. The class works out
    each code, the teacher types the answer in, and a correct code drops the card away to reveal the next lock. */
-import { esc, str, arr, strs, num, clamp, icon, normAnswer } from '../core.js?v=f3cc728c';
-import { B, chime } from './shared.js?v=f3cc728c';
-import { buildPrompt } from './prompt.js?v=f3cc728c';
-import { CardSwap } from '../fx/cardswap.js?v=f3cc728c';
-import { confetti } from '../fx/particles.js?v=f3cc728c';
+import { esc, str, arr, strs, num, clamp, icon, normAnswer } from '../core.js?v=51f31f48';
+import { B, chime } from './shared.js?v=51f31f48';
+import { buildPrompt } from './prompt.js?v=51f31f48';
+import { CardSwap } from '../fx/cardswap.js?v=51f31f48';
+import { confetti } from '../fx/particles.js?v=51f31f48';
+import { sfx } from '../fx/audio.js?v=51f31f48';
 
 const EXAMPLE = {
   title: 'Escape from Space Station Orion',
@@ -138,7 +139,8 @@ const screens = (eng) => [
       const tryAnswer = (card, given) => {
         const i = Number(card.dataset.room), r = d.rooms[i], msg = card.querySelector('.lk-msg');
         if (!str(given)) { msg.className = 'lk-msg'; msg.textContent = 'Type the class’s code first.'; return; }
-        if (correct(r, given)) { unlock(card, i); return; }
+        if (correct(r, given)) { sfx('unlock'); unlock(card, i); return; }
+        sfx('error');
         st.tries[i] = (st.tries[i] || 0) + 1;
         card.classList.remove('wrong'); void card.offsetWidth; card.classList.add('wrong');
         msg.className = 'lk-msg bad';

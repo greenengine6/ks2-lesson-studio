@@ -1,9 +1,10 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
-import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP } from './core.js?v=f3cc728c';
-import { track } from './track.js?v=f3cc728c';
-import EXAMPLE_RAW from './slides-example.js?v=f3cc728c';
-import { Ribbons } from './fx/ribbons.js?v=f3cc728c';
+import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP } from './core.js?v=51f31f48';
+import { track } from './track.js?v=51f31f48';
+import EXAMPLE_RAW from './slides-example.js?v=51f31f48';
+import { Ribbons } from './fx/ribbons.js?v=51f31f48';
+import { sfx } from './fx/audio.js?v=51f31f48';
 
 const I = {
   flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
@@ -265,7 +266,7 @@ async function runLesson(prompt, params, title) {
   showNotice('#make-notice', '', false);
   if (!hasKey()) { needKey('#make-notice'); return; }
   const ctl = new AbortController();
-  state.busy = ctl; setBusy(true, title); scrollToLesson();
+  state.busy = ctl; setBusy(true, title); scrollToLesson(); sfx('send');
   const expected = 12, t0 = Date.now();
   try {
     const raw = await askJSON(prompt, {
@@ -280,11 +281,11 @@ async function runLesson(prompt, params, title) {
     if (!deck) throw { code: 'invalid_json' };
     state.deck = deck; state.deckId = addRecent(deck); state.tab = 'slides';
     track('deck', { eng: 'slides', title: deck.title, year: deck.year, subject: deck.subject, slides: deck.slides.length, ok: 1, ms: Date.now() - t0 });
-    renderLesson(); toast('Your lesson is ready.');
+    renderLesson(); sfx('success'); toast('Your lesson is ready.');
   } catch (e) {
     const code = e && e.code;
     track('deck', { eng: 'slides', title: params && params.topic || '', year: params && params.year || '', ok: 0, err: code || 'error', ms: Date.now() - t0 });
-    if (code !== 'cancelled') showNotice('#make-notice', errorCopy(code, 'the lesson'), true);
+    if (code !== 'cancelled') { sfx('error'); showNotice('#make-notice', errorCopy(code, 'the lesson'), true); }
   } finally { state.busy = null; setBusy(false); }
 }
 function readForm() { return { year: $('#f-year').value, subject: $('#f-subject').value, topic: str($('#f-topic').value), goal: str($('#f-goal').value), minutes: Number($('#f-min').value) || 45 }; }
@@ -536,6 +537,7 @@ async function exportPptx() {
 let ribbons = null;
 const POINTER_KEY = 'ks2-engine.pointer.v1';
 function openPresent(i) {
+  sfx('present');
   const pr = state.pr;
   pr.open = true; pr.i = Math.max(0, Math.min(i, state.deck.slides.length - 1)); pr.reveal = 0; pr.t0 = Date.now(); pr.seen = pr.i;
   stopTimer();
@@ -577,7 +579,7 @@ function renderPresent() {
   if (pr.notes) { const ans = answersLine(s).replace(/<p class="sans">|<\/p>/g, ''); nb.innerHTML = '<b>Say:</b> ' + esc(s.say || 'No notes for this slide.') + (ans ? '<br>' + ans : ''); }
   $('#spr-notes-btn').setAttribute('aria-pressed', String(pr.notes));
 }
-function go(delta) { const pr = state.pr, n = state.deck.slides.length, j = Math.max(0, Math.min(n - 1, pr.i + delta)); if (j === pr.i) return; pr.i = j; pr.reveal = 0; stopTimer(); renderPresent(); }
+function go(delta) { const pr = state.pr, n = state.deck.slides.length, j = Math.max(0, Math.min(n - 1, pr.i + delta)); if (j === pr.i) return; sfx('page'); pr.i = j; pr.reveal = 0; stopTimer(); renderPresent(); }
 function reveal() { const pr = state.pr, s = state.deck.slides[pr.i]; if (pr.reveal < maxReveal(s)) { pr.reveal += 1; renderPresent(); return true; } return false; }
 function fmt(sec) { const m = Math.floor(sec / 60), r = sec % 60; return m + ':' + String(r).padStart(2, '0'); }
 function stopTimer() { const t = state.pr.timer; if (t && t.id) clearInterval(t.id); state.pr.timer = null; const el = $('#spr-timer'); if (el) { el.hidden = true; el.classList.remove('done'); } }

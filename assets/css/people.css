@@ -11,13 +11,13 @@ body.gated .hero{padding-bottom:calc(30px + env(safe-area-inset-bottom,0px))}
   /* the landing page on a phone: first the open background with the title, credit and lede at the bottom;
      scroll once for "Who's teaching today?", with the privacy note at the very end */
   body.gated .hero{justify-content:flex-start;padding:0 20px calc(30px + env(safe-area-inset-bottom,0px))}
-  body.gated .hero .tubes,body.gated .hero-shade{bottom:auto;height:100vh;height:100svh}
+  body.gated .hero .earth,body.gated .hero-shade{bottom:auto;height:100vh;height:100svh}
   body.gated .hero-shade{background:linear-gradient(to top,#080A12 0%,rgb(8 10 18 / .86) 15%,rgb(8 10 18 / .5) 36%,rgb(8 10 18 / .12) 58%,rgb(8 10 18 / 0) 72%)}
   body.gated .hero-top{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
   body.gated .hg-down{display:inline-flex;align-items:center;gap:6px;align-self:center;margin-top:30px;padding:8px 16px;border:0;border-radius:999px;background:rgb(255 255 255 / .07);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .16);color:#D5DBE7;font-family:var(--f-display);font-weight:700;font-size:max(9px,calc(13px * var(--m,1)));cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
   body.gated .hg-down .i{width:16px;height:16px;animation:hgbob 1.8s ease-in-out infinite}
   body.gated .hero-gate{margin-top:0;min-height:100vh;min-height:100svh;align-content:start;padding-top:calc(96px + env(safe-area-inset-top,0px))}
-  body.gated .hero-hint{display:none}
+  body.gated .hero-hint{top:calc(33vh + min(49vw, 29vh) + 18px);top:calc(33svh + min(49vw, 29svh) + 18px);left:50%;right:auto;bottom:auto;transform:translateX(-50%);white-space:nowrap}
   body.gated .toast{bottom:auto;top:calc(86px + env(safe-area-inset-top,0px));transform:translate(-50%,-10px)}
   body.gated .toast.is-on{transform:translate(-50%,0)}
 }

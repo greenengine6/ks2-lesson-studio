@@ -1,7 +1,8 @@
-/* The luminous switches: Night mode, Symphony's voice, Magic pointer and Teaching online. Any element with
-   data-switch="night|voice|pointer|online" toggles that setting; every copy of the switch (header, menu, the
+/* The luminous switches: Night mode, Symphony's voice, Magic pointer, Teaching online and Sound. Any element with
+   data-switch="night|voice|pointer|online|sound" toggles that setting; every copy of the switch (header, menu, the
    lit cards on the home page) shows the same state, and lit cards glow when their switch is on. */
-import { $, $$, store, bus, prefs, toast } from './core.js?v=f3cc728c';
+import { $, $$, store, bus, prefs, toast } from './core.js?v=51f31f48';
+import { Sound, sfx } from './fx/audio.js?v=51f31f48';
 
 const THEME_KEY = 'ks2-engine.theme.v1', VOICE_KEY = 'ks2-engine.voice.v1', POINTER_KEY = 'ks2-engine.pointer.v1';
 let onHero = false;
@@ -18,14 +19,17 @@ export const settings = {
   get pointer() { return store.get(POINTER_KEY) === 'on'; },
   set pointer(v) { store.set(POINTER_KEY, v ? 'on' : ''); bus.emit('pointer-pref', !!v); },
   get online() { return prefs.mode === 'online'; },
-  set online(v) { prefs.mode = v ? 'online' : 'class'; }
+  set online(v) { prefs.mode = v ? 'online' : 'class'; },
+  get sound() { return Sound.on; },
+  set sound(v) { Sound.on = !!v; }
 };
 
 const SAY = {
   night: [ 'Night mode on. Class screens stay bright for your pupils.', 'Night mode off.' ],
   voice: [ 'Symphony will read her answers aloud.', 'Symphony will answer quietly, in text only.' ],
   pointer: [ 'Magic pointer will be on when you present. Press P to switch it.', 'Magic pointer off. Press P while presenting to switch it on.' ],
-  online: [ 'Teaching online: prompts say “type in the chat”.', 'Teaching in class: prompts say “show me on your whiteboard”.' ]
+  online: [ 'Teaching online: prompts say “type in the chat”.', 'Teaching in class: prompts say “show me on your whiteboard”.' ],
+  sound: [ 'Sound on: little sounds and the space sound. They go quiet while Symphony speaks.', 'Sound off. Symphony’s voice has its own switch.' ]
 };
 
 function themeColor() {
@@ -49,6 +53,7 @@ export function initSettings() {
     if (!(k in settings)) return;
     settings[k] = !settings[k];
     paintSwitches();
+    sfx(settings[k] ? 'on' : 'off');
     toast(SAY[k][settings[k] ? 0 : 1]);
   });
   bus.on('mode', paintSwitches);

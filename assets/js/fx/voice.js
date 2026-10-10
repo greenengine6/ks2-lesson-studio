@@ -152,6 +152,16 @@ const GAP = 250;                                      // phones ignore speech th
 let cur = null, unlocked = false, lastCancel = 0, blipAt = 0, simT = 0, holdUntil = 0;
 export const stats = { parts: 0, breaks: 0, mutes: 0 };
 
+/* Whether Symphony is speaking out loud right now, for the sound engine to turn everything else down. */
+const speakFns = [];
+let speakingNow = false, speakOffT = 0;
+function setSpeaking(v) {
+  clearTimeout(speakOffT);
+  if (v) { if (!speakingNow) { speakingNow = true; speakFns.forEach((fn) => call(fn, true)); } return; }
+  speakOffT = setTimeout(() => { if (speakingNow && !cur && !Q.length) { speakingNow = false; speakFns.forEach((fn) => call(fn, false)); } }, 400);
+}
+export function onSpeaking(fn) { speakFns.push(fn); }
+
 function hushBrowser() {
   if (!OK) return;
   try { synth.cancel(); lastCancel = Date.now(); } catch (e) { /* ignore */ }
@@ -169,7 +179,7 @@ function pump() {
   if (cur) return;
   let p = Q.shift();
   while (p && p.job.over) p = Q.shift();
-  if (!p) return;
+  if (!p) { setSpeaking(false); return; }
   cur = p;
   stats.parts++;
   if (!OK || p.job.silent || p.job.mute) simulate(p, true);
@@ -268,6 +278,7 @@ async function speakPart(p) {
   };
   u.onerror = (e) => { if (!mine()) return; if (p.started) broke(p); else failed(p, (e && e.error) || 'error'); };
   try { if (synth.paused) synth.resume(); } catch (e) { /* ignore */ }
+  setSpeaking(true);
   try { synth.speak(u); } catch (e) { failed(p, 'speak'); return; }
   p.wd = setTimeout(() => stalled(p, u), v && v.localService === false ? 6000 : 3000);
 }
@@ -315,6 +326,7 @@ export function stop() {
   if (cur) { jobs.add(cur.job); clear(cur); cur = null; }
   stopSim();
   jobs.forEach((j) => finish(j, false));
+  setSpeaking(false);
   let busy = false;
   try { busy = OK && (synth.speaking || synth.pending); } catch (e) { busy = false; }
   if (had || (busy && Date.now() - blipAt > 1500)) hushBrowser();   // leave the silent first-tap blip alone
@@ -337,7 +349,8 @@ if (OK) {
 
 export const Voice = {
   supported: OK,
-  say, stop, pick, hasVoice, unlock, hold, stats,
+  say, stop, pick, hasVoice, unlock, hold, stats, onSpeaking,
+  get speaking() { return speakingNow; },
   get busy() { return !!cur || Q.length > 0; },
   name(lang) { const v = pick(lang || 'en-GB'); return v ? v.name : ''; },
   kind(lang) { return kindOf(pick(lang || 'en-GB')); }

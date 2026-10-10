@@ -142,11 +142,16 @@ input[type=password]{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,mono
 .dock-item:hover .dock-tip,.dock-item:focus-visible .dock-tip{opacity:1;transform:translate(-50%,0)}
 .dock-sep{flex:none;align-self:center;width:2px;height:38px;margin:0 2px 6px;border-radius:2px;box-shadow:var(--in-sm)}
 
-/* ---------- landing: hero, a dark stage for the neon tubes; the words sit bottom left ---------- */
+/* ---------- landing: hero, the real-time Earth in space; the words sit bottom left ---------- */
 .hero{position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;overflow:hidden;isolation:isolate;
   padding:110px clamp(20px,5.2vw,84px) calc(120px + env(safe-area-inset-bottom,0px));background:#080A12;color:#EEF1F8}
-.hero .tubes{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;touch-action:pan-y;cursor:crosshair}
-.tubes-off{display:none!important}
+.hero .earth{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;touch-action:pan-y;cursor:grab;opacity:0;transition:opacity 1.6s ease}
+.hero .earth.on{opacity:1}
+.hero .earth:active{cursor:grabbing}
+.hero{background:radial-gradient(60% 55% at 72% 46%,rgb(40 92 170 / .22),rgb(8 10 18 / 0) 70%),#03040A}
+.hero.earth-off{background:radial-gradient(42% 46% at 72% 46%,rgb(77 178 255 / .2),rgb(77 178 255 / .05) 55%,rgb(3 4 10 / 0) 72%),#03040A}
+.hero.earth-off .earth{display:none}
+@media (max-aspect-ratio:23/20){.hero,.hero.earth-off{background:radial-gradient(70% 34% at 50% 33%,rgb(40 92 170 / .22),rgb(8 10 18 / 0) 72%),#03040A}}
 .hero-shade{position:absolute;inset:0;z-index:2;pointer-events:none;
   background:radial-gradient(85% 65% at 0% 100%,rgb(8 10 18 / .84) 0%,rgb(8 10 18 / .5) 40%,rgb(8 10 18 / 0) 72%),linear-gradient(to top,rgb(8 10 18 / .6),rgb(8 10 18 / 0) 28%)}
 .hero-in{position:relative;z-index:3;max-width:min(760px,100%);pointer-events:none;text-align:left}
@@ -168,6 +173,8 @@ input[type=password]{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,mono
 .hero-hint{position:absolute;right:clamp(20px,5.2vw,84px);bottom:calc(126px + env(safe-area-inset-bottom,0px));z-index:3;display:flex;align-items:center;gap:8px;margin:0;
   font-family:var(--f-display);font-weight:700;font-size:max(9px,calc(11.5px * var(--m,1)));letter-spacing:.16em;text-transform:uppercase;color:rgb(238 241 248 / .6);pointer-events:none;animation:hintpulse 3.2s ease-in-out infinite}
 .hero-hint .i{width:15px;height:15px}
+button.hero-hint{border:0;background:none;padding:0}
+.hero-hint.act{pointer-events:auto;cursor:pointer;padding:9px 15px;border-radius:999px;color:#EEF1F8;background:rgb(255 255 255 / .08);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .2);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:none}
 .hh-m{display:none}
 @keyframes hintpulse{0%,100%{opacity:.5}50%{opacity:1}}
 /* header while it floats over the dark hero */
@@ -418,7 +425,7 @@ details.more[open] summary{margin-bottom:10px}
   .hero .lede{font-size:max(9px,calc(15.5px * var(--m,1)))}
   .hero-cta{gap:12px;margin-top:22px}
   .hero-cta .btn.big{min-height:52px;padding:0 20px;font-size:max(9px,calc(15.5px * var(--m,1)))}
-  .hero-hint{top:88px;bottom:auto;right:16px}
+  .hero-hint{top:calc(33vh + min(49vw, 29vh) + 18px);top:calc(33svh + min(49vw, 29svh) + 18px);left:50%;right:auto;bottom:auto;transform:translateX(-50%);white-space:nowrap}
   .hh-d{display:none}.hh-m{display:inline}
   .hero-shade{background:linear-gradient(to top,rgb(8 10 18 / .9) 0%,rgb(8 10 18 / .72) 42%,rgb(8 10 18 / .25) 66%,rgb(8 10 18 / 0) 80%)}
   .row2{grid-template-columns:minmax(0,1fr)}

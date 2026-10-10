@@ -160,3 +160,10 @@
 @media (prefers-reduced-motion:reduce){.lcard,.lcard::before,.lsw,.lsw *{transition:none!important}}
 .lsw.hdr .lsw-tip{bottom:auto;top:calc(100% + .9em)}
 .top.on-hero .lsw.hdr{box-shadow:inset 0 -8px 8px .3em #0004,inset 0 0 1px .3em #8a90a0,inset 0 -2px 1px .3em #c9cdd8,inset 0 1px 2px .3em #0006,inset 0 0 1px .8em #6e7484}
+
+/* the small sound button in the header (on/off), and its luminous switch in the menu */
+.top-r .snd{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;border-radius:50%;flex:none;display:inline-grid;place-items:center}
+.snd .i{width:18px;height:18px}
+.snd[aria-checked="true"] .snd-off,.snd[aria-checked="false"] .snd-on{display:none}
+.snd[aria-checked="false"]{opacity:.72}
+.top.on-hero .snd{background:rgb(255 255 255 / .08);color:#EEF1F8;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .2)}

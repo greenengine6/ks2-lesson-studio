@@ -2,7 +2,7 @@
 
 Made with ♥ by Rabinder Kaur, Head of Key Stage 2.
 
-Ten lesson engines, a slide studio and a play area that turn one topic into a two-way online lesson for Years 3 to 6. Each engine makes a **class screen to share** on Teams, Zoom or Meet, plus **teacher notes** to keep. Every engine ships with a finished example, so it can be used before anything is generated.
+Ten lesson engines, a slide studio and a play area that turn one topic into a two-way online lesson for Years 3 to 6. The landing page opens on a real-time 3D Earth, lit by the Sun where it really is right now. Each engine makes a **class screen to share** on Teams, Zoom or Meet, plus **teacher notes** to keep. Every engine ships with a finished example, so it can be used before anything is generated.
 
 **Live site:** https://greenengine6.github.io/ks2-lesson-studio/
 
@@ -32,7 +32,8 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 | **Brain Break** | A timed calm-down led by Symphony, who breathes with the class. |
 | **Big Debate** | A news story becomes a fair debate with before-and-after votes. |
 | **Wonder Window** | A full-screen play area for the whole class: starlings dodging a falcon, fireflies that learn to flash together, the planets at their real relative speeds, and the northern lights. Symphony reads the facts, and wonder questions appear for the chat. |
-| **Symphony** | The helper. She is a girl who speaks English and Malay and was named for her musical voice. Click her, or tap **Ask Symphony**, to ask anything by text or by voice. On phones she answers out loud, then listens again. Every voice on the site is hers: Brain Break, Sound Journey and Wonder Window read in the same girl's voice. |
+| **Symphony** | The helper. She is a girl who speaks English and Malay and was named for her musical voice. Click her, or tap **Ask Symphony**, to ask anything by text. Tap the **mic** for voice mode: everything else disappears, a glow along the bottom follows your voice while she listens, sweeps while she thinks and follows her words while she speaks, and her answer appears word by word. She then listens again. Every voice on the site is hers: Brain Break, Sound Journey and Wonder Window read in the same girl's voice. |
+| **The Earth** | The landing page background: day colour, night lights, relief, sunlight glinting off the oceans, drifting clouds and a glowing atmosphere, lit for this exact moment. Drag to spin it on a laptop; tilt the phone to look around (iPhones ask once). Space sound pans around you as it turns. |
 
 **Present mode** (every engine and Slide Studio) gives you:
 - full screen;
@@ -40,6 +41,7 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 - **Class feedback** (C): five faces, keys 1–5 to count, and "best bit".
 
 **Switches** (header, menu and the lit cards on the home page):
+- Sound (the small speaker in the header): the little sounds and the space sound. Everything drops to a whisper while Symphony speaks;
 - Night mode;
 - Symphony’s voice;
 - Magic pointer;
@@ -114,12 +116,19 @@ inbox/Code.gs            the Apps Script inbox (stores locked activity only)
 tools/stamp.py           stamps one version on every script and style address; run before each commit
 assets/js/chat.js        Symphony chat (voice and text, English and Malay)
 assets/js/play.js        Wonder Window scenes
+assets/js/fx/earth.js    the landing Earth (three.js, real Sun position, tilt and drag, space sound)
+assets/js/fx/beam.js     Symphony's voice glow
+assets/js/fx/audio.js    the one sound engine: effects, sound switch, quiet while Symphony speaks
+assets/earth/            Earth textures, 2K for phones and 4K for laptops
+assets/vendor/           three.js
 assets/js/security.js    protection deterrents
 assets/js/crypto.js, idb.js, settings.js, theme.js, slides.js, engines/, fx/
 ```
 
 ## Credits
 
-- Visual effects are vanilla re-implementations (no libraries), inspired by Tubes cursor (Kevin Levron, threejs-components), CardSwap and Ribbons (React Bits), MagnificationDock and Interactive Waves.
+- The Earth: [three.js](https://threejs.org) r185, MIT licence (`assets/vendor/three-r185/LICENSE.txt`). Earth textures by [Solar System Scope](https://www.solarsystemscope.com/textures/) (CC BY 4.0), based on NASA imagery, as resized and packed by three.js. Shading after the three.js Earth example (Three.js Journey).
+- Voice glow: written for this site, after the idea of Libraries.dev's Voice (voice-glow).
+- Other visual effects are vanilla re-implementations (no libraries), inspired by CardSwap and Ribbons (React Bits), MagnificationDock and Interactive Waves.
 - PowerPoint export: [PptxGenJS](https://github.com/gitbrent/PptxGenJS) 4.0.1, MIT licence (`assets/PPTXGENJS-LICENSE.txt`).
 - Slide fonts: TeX Gyre Adventor and Schola, GUST Font Licence. Interface fonts: Plus Jakarta Sans, DM Sans and JetBrains Mono from Google Fonts.
