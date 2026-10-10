@@ -1,10 +1,11 @@
 /* The engine framework: every engine is a small definition (fields, prompt, normaliser, class screens, notes).
    This file renders the engine page, talks to Claude, keeps saved activities, and runs Present mode. */
-import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=5de985bf';
-import { Ribbons } from '../fx/ribbons.js?v=5de985bf';
-import { sfx } from '../fx/audio.js?v=5de985bf';
-import { Ambient, Speech } from '../fx/sound.js?v=5de985bf';
-import { track } from '../track.js?v=5de985bf';
+import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=5e78cc38';
+import { Ribbons } from '../fx/ribbons.js?v=5e78cc38';
+import { sfx } from '../fx/audio.js?v=5e78cc38';
+import { Ambient, Speech } from '../fx/sound.js?v=5e78cc38';
+import { track } from '../track.js?v=5e78cc38';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=5e78cc38';
 
 /* ---------------- how pupils respond (online or in class) ---------------- */
 export const RESPOND = {
@@ -91,6 +92,7 @@ const live = new Map();
 function liveState(item) { if (!live.has(item.id)) live.set(item.id, {}); return live.get(item.id); }
 
 /* ---------------- the engine page ---------------- */
+const SPARK = '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>';
 let page = null;           // { eng, root, item, screen, tab, busy }
 let symRef = null;
 export function setSymphony(l) { symRef = l; }
@@ -112,7 +114,7 @@ export function renderEngine(view, eng) {
     '<div class="eng-grid"><form class="card form" id="eng-form" novalidate>' +
     eng.fields.map((f) => fieldHTML(f, startInput[f.id], eng)).join('') +
     '<button type="submit" class="btn primary big wide" id="eng-go">' + icon('spark') + '<span>' + esc(eng.cta || 'Make it') + '</span></button>' +
-    '<p class="fine">Takes about a minute. Uses the key connected on this device. Everything is saved in this browser only.</p>' +
+    '<p class="fine" id="eng-fine"></p>' +
     '<div class="notice" id="eng-notice" hidden role="status"></div>' +
     '<div class="saved" id="eng-saved" hidden><span>Your saved ' + esc(eng.savedLabel || 'activities') + '</span><ul></ul></div>' +
     '</form>' +
@@ -124,6 +126,10 @@ export function renderEngine(view, eng) {
   if (symRef) { symRef.mount($('#sym-host', view)); symRef.setState('idle'); }
   say(eng.sym.hello, 'idle');
   wireForm(view, eng);
+  watch($('#eng-go', view), {
+    name: 'eng:' + eng.id, label: eng.cta || 'Make it', icon: SPARK, fine: $('#eng-fine', view), busy: () => !!(page && page.eng === eng && page.busy),
+    idle: 'Takes about a minute. Saved in this browser only. After each one this button rests for ' + LIMITS.restMin + ' minutes.'
+  });
   renderSavedList();
   const first = saved[0] ? Object.assign({ example: false }, saved[0]) : exampleItem(eng);
   showItem(first);
@@ -156,7 +162,11 @@ function wireForm(root, eng) {
     if (def && def.tip) say(esc(def.tip), 'listen');
   });
   form.addEventListener('focusout', () => { if (page && !page.busy && symRef && symRef.state === 'listen') symRef.setState('idle'); });
-  form.addEventListener('submit', (e) => { e.preventDefault(); generate(eng, readFields(root, eng)); });
+  // Only a real press on the Make button makes anything; Enter in a text box moves on to the next box.
+  const go = $('#eng-go', root);
+  form.addEventListener('submit', (e) => { e.preventDefault(); });
+  go.addEventListener('click', (e) => { e.preventDefault(); if (deliberate(e, go)) generate(eng, readFields(root, eng)); });
+  enterMovesOn(form);
   $('#eng-stop', root).addEventListener('click', () => { if (page && page.busy) page.busy.abort(); });
   eng.fields.forEach((f) => { if (f.onChange) f.onChange(readFields(root, eng), root); });
 }
@@ -191,6 +201,8 @@ async function generate(eng, input) {
     say(esc(missing.missing || 'I need a little more to go on.'), 'listen');
     return;
   }
+  const g = makeState('eng:' + eng.id);
+  if (!g.ok) { repaint(); notice(esc(waitText(g)), false); say(esc(waitText(g)), 'idle'); return; }
   if (!hasKey()) {
     notice(esc(errorCopy('no_key')), true);
     say(esc(errorCopy('no_key')), 'idle');
@@ -198,6 +210,8 @@ async function generate(eng, input) {
     return;
   }
   const ctl = new AbortController();
+  const ticket = makeStart('eng:' + eng.id);
+  let outcome = 'error';
   page.busy = ctl;
   const go = $('#eng-go'), meter = $('#eng-meter'), stop = $('#eng-stop');
   go.disabled = true; $('span', go).textContent = 'Making…';
@@ -222,6 +236,7 @@ async function generate(eng, input) {
     const data = eng.normalize(raw, input);
     if (!data) throw new AiError('invalid_json');
     const item = { id: uid(eng.id), at: Date.now(), input, data, example: false };
+    outcome = 'ok';
     track('gen', { eng: eng.id, title: eng.title(data), year: input.year || '', ok: 1, ms: Date.now() - t0 });
     putSaved(eng.id, item);
     showItem(item);
@@ -233,7 +248,7 @@ async function generate(eng, input) {
   } catch (e) {
     const code = e && e.code;
     track('gen', { eng: eng.id, title: topicOf(), year: input.year || '', ok: 0, err: code || 'error', ms: Date.now() - t0 });
-    if (code === 'cancelled') say('Stopped. Change anything you like and press the button again.', 'idle');
+    if (code === 'cancelled') { outcome = 'stopped'; say('Stopped. Change anything you like and press the button again.', 'idle'); }
     else {
       sfx('error');
       notice(esc(errorCopy(code, 'this activity')) + ((code === 'no_key' || code === 'bad_key') && document.documentElement.getAttribute('data-who') === 'admin' ? '<br><button type="button" class="btn small" data-connect>' + icon('key') + 'Connect this device</button>' : ''), true);
@@ -247,6 +262,7 @@ async function generate(eng, input) {
       go.disabled = false; $('span', go).textContent = eng.cta || 'Make it';
       meter.hidden = true; stop.hidden = true;
     }
+    makeEnd(ticket, outcome);
   }
 }
 

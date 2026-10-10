@@ -1,10 +1,10 @@
 /* Rabinder's numbers: everything is worked out here from the activity log (this device plus the locked activity
    that arrives by itself from teachers' devices). metrics() gives the figures, deviations() flags what needs a look, digest() is the short
    briefing Symphony uses, reportHTML() is the downloadable report and csv() the raw data. */
-import { ENGINES } from './engines/registry.js?v=5de985bf';
+import { ENGINES } from './engines/registry.js?v=5e78cc38';
 
 const DAY = 864e5;
-export const ENGINE_NAMES = Object.assign({ slides: 'Slide Studio', play: 'Wonder Window' }, Object.fromEntries(ENGINES.map((e) => [e.id, e.name])));
+export const ENGINE_NAMES = Object.assign({ slides: 'Slide Studio', play: 'Wonder Window', lkie: 'lkie.like' }, Object.fromEntries(ENGINES.map((e) => [e.id, e.name])));
 const FACES = ['Lost', 'Tricky', 'OK', 'Good', 'Loved it'];
 
 /* ---------------- periods ---------------- */
@@ -41,11 +41,11 @@ export function metrics(events, per, rosterList) {
   const evs = events.filter(inR);
   const by = (k) => evs.filter((e) => e.k === k);
   const sessions = by('session'), gens = evs.filter((e) => (e.k === 'gen' || e.k === 'deck') && e.err !== 'cancelled'),
-    presents = by('present'), tickets = by('ticket'), fbs = by('fb'), chats = by('chat'), plays = by('play'), ppts = by('ppt'), copies = by('copy'), views = by('view');
+    presents = by('present'), tickets = by('ticket'), fbs = by('fb'), chats = by('chat'), plays = by('play'), ppts = by('ppt'), copies = by('copy'), views = by('view'), limits = by('limit');
   const people = new Map();
   const person = (id, name, role) => {
     if (!people.has(id)) people.set(id, { id, name: name || 'Unknown', role: role || 'teacher', sessions: 0, act: 0, first: 0, last: 0, devices: new Set(), late: 0, weekend: 0, short: 0, long: 0,
-      gens: 0, ok: 0, fail: 0, genMs: [], presents: 0, presentMs: 0, tickets: 0, faces: [0, 0, 0, 0, 0], fb: [], chats: 0, plays: 0, enrolled: false, prevAct: 0 });
+      gens: 0, ok: 0, fail: 0, genMs: [], presents: 0, presentMs: 0, tickets: 0, faces: [0, 0, 0, 0, 0], fb: [], chats: 0, plays: 0, limits: [], enrolled: false, prevAct: 0 });
     const p = people.get(id);
     if (name && p.name === 'Unknown') p.name = name;
     return p;
@@ -68,6 +68,7 @@ export function metrics(events, per, rosterList) {
   fbs.forEach((x) => { const p = person(x.t, x.tn, x.r); p.fb.push(x); });
   chats.forEach((x) => { person(x.t, x.tn, x.r).chats++; });
   plays.forEach((x) => { person(x.t, x.tn, x.r).plays++; });
+  limits.forEach((x) => { person(x.t, x.tn, x.r).limits.push(x); });
   // previous window of the same length, for "less than usual"
   const len = per.to - per.from;
   if (per.kind === 'week') {
@@ -112,7 +113,7 @@ export function metrics(events, per, rosterList) {
     act: teach.reduce((a, s) => a + (s.act || 0), 0), gens: gens.length, ok: gens.filter((g) => g.ok).length, fail: gens.filter((g) => !g.ok).length,
     genAvg: avg(gens.filter((g) => g.ok && g.ms).map((g) => g.ms)), presents: presents.length, presentMs: presents.reduce((a, x) => a + (x.ms || 0), 0),
     tickets: tickets.length, votes: faces.reduce((a, b) => a + b, 0), mood: moodOf(faces), fb: fbs.length, rating: avg(fbs.map((f) => f.rating).filter(Boolean)),
-    chats: chats.length, plays: plays.length, playMs: plays.reduce((a, x) => a + (x.ms || 0), 0), ppts: ppts.length, copies: copies.length
+    chats: chats.length, plays: plays.length, playMs: plays.reduce((a, x) => a + (x.ms || 0), 0), ppts: ppts.length, copies: copies.length, limits: limits.length
   };
   const m = { per, people: list, totals, faces, best: Object.entries(best).sort((a, b) => b[1] - a[1]).slice(0, 6), engines: engineList, days, heat, lessons, feedback: fbs.slice().sort((a, b) => b.at - a.at), tickets: tickets.slice().sort((a, b) => b.at - a.at) };
   m.deviations = deviations(m, events);
@@ -135,6 +136,12 @@ export function deviations(m, events) {
     if (m.per.kind === 'week' && p.prevAct > 30 * 60000 && p.act < p.prevAct * 0.4) add('medium', 'drop', p.name, 'Teaching time fell to ' + fmtDur(p.act) + ' from about ' + fmtDur(p.prevAct) + ' a week.', p.last);
     if (p.presents >= 4 && p.tickets / p.presents < 0.3) add('low', 'noticket', p.name, 'Presented ' + p.presents + ' lessons but collected class feedback for ' + p.tickets + '.', p.last);
     p.fb.forEach((f) => { if (f.rating && f.rating <= 2) add('high', 'rating', p.name, 'Rated the engine ' + f.rating + ' out of 5' + (f.better ? ': “' + String(f.better).slice(0, 120) + '”' : '.'), f.at); });
+    if (p.limits.length) {
+      const kinds = { hour: 'the hourly limit', day: 'the daily limit', ten: 'the chat break', edit: 'the editing limit' };
+      const w = Array.from(new Set(p.limits.map((x) => (x.what === 'chat' && x.why === 'day' ? 'the daily chat limit' : kinds[x.why] || 'a limit'))));
+      const what = w.length > 1 ? w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1] : w[0];
+      add(p.limits.length >= 3 ? 'high' : 'medium', 'limits', p.name, 'Reached ' + what + (p.limits.length === 1 ? '' : ' (' + p.limits.length + ' times in all)') + '. Ask if they need more, or if someone else is using their sign-in.', p.limits.reduce((a, x) => Math.max(a, x.at), 0));
+    }
   });
   m.lessons.forEach((l) => { if (l.votes >= 5 && l.mood && l.mood < 3) add('high', 'mood', l.who, 'Class mood ' + round1(l.mood) + ' out of 5 for “' + (l.title || l.eng) + '” (' + l.eng + ', ' + fmtDay(l.at) + '). Pupils found it hard.', l.at); });
   m.engines.forEach((e) => { if (e.gens >= 4 && e.fail / e.gens >= 0.4) add('high', 'engine', '', e.name + ' failed ' + e.fail + ' of ' + e.gens + ' times. It may need attention.', now); });

@@ -1,5 +1,5 @@
 /* KS2 Lesson Engine: shared helpers, Claude connection, copying and small UI pieces. */
-import { sfx } from './fx/audio.js?v=5de985bf';
+import { sfx } from './fx/audio.js?v=5e78cc38';
 
 export const $ = (s, r) => (r || document).querySelector(s);
 export const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -33,6 +33,7 @@ export const I = {
   debate: '<path d="M4.8 4h8.4a2 2 0 0 1 2 2v5.2a2 2 0 0 1-2 2H8.6l-3.2 3v-3h-.6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M15.2 9h4a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-.6v2.8l-3-2.8h-4a2 2 0 0 1-2-2v-2.8"/>',
   key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/>',
   spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
+  pack: '<rect x="3" y="7" width="13" height="10" rx="2"/><path d="M7 21h10a2 2 0 0 0 2-2v-8"/><path d="M19.5 2.5v4M17.5 4.5h4"/>',
   wand: '<path d="M5 19l9-9M12 8l3 3"/><path d="M17 3v3M15.5 4.5h3M20 9v2M19 10h2M9 3v2M8 4h2"/>',
   play: '<path d="M8 5l11 7-11 7z" class="f"/>',
   pause: '<path d="M8 5v14M16 5v14"/>',

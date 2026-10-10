@@ -56,6 +56,12 @@ button{font:inherit;color:inherit}
 .btn.icon{width:48px;padding:0}
 .btn.small.icon{width:40px}
 .btn[disabled]{opacity:.55;cursor:default;transform:none}
+/* A Make button while the engine guard holds it (guard.js): raised, never pressed in; a clock, the time left and a bar
+   along the bottom that fills up. "waiting" is the one-thing-at-a-time state. */
+.btn.resting[disabled],.btn.waiting[disabled],.btn.primary.resting[disabled],.btn.primary.waiting[disabled]{opacity:1;cursor:default;transform:none;color:var(--accent);box-shadow:var(--ex-sm);font-variant-numeric:tabular-nums;
+  background:linear-gradient(90deg,var(--accent-2),var(--accent)) left bottom / calc(var(--rest,0) * 100%) 4px no-repeat,var(--surface)}
+.btn.waiting[disabled],.btn.primary.waiting[disabled]{color:var(--muted)}
+.btn.resting[disabled]:hover,.btn.resting[disabled]:active,.btn.waiting[disabled]:hover,.btn.waiting[disabled]:active{box-shadow:var(--ex-sm);transform:none}
 .btn.tint{color:var(--c)}
 .linkbtn{background:none;border:0;padding:4px 2px;color:var(--accent);font-weight:700;font-size:max(9px,calc(14px * var(--m,1)));cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-display);font-size:max(9px,calc(12.5px * var(--m,1)));font-weight:700;color:var(--muted);padding:6px 12px;border-radius:999px;box-shadow:var(--in-sm);white-space:nowrap}

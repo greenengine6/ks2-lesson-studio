@@ -1,5 +1,5 @@
 /* The common frame for every engine prompt. Each engine adds its own task and field rules. */
-import { ages, whereText, HOUSE_WORDS } from '../core.js?v=5de985bf';
+import { ages, whereText, HOUSE_WORDS } from '../core.js?v=5e78cc38';
 
 export function buildPrompt(o) {
   const year = o.year || 'Years 3 to 6';

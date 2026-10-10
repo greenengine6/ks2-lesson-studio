@@ -55,10 +55,6 @@
 .ss .menu-pop span{font-size:max(9px,calc(12.5px * var(--m,1)));color:var(--muted);line-height:1.35}
 .ss .menu-pop button[disabled]{opacity:.45;cursor:default;box-shadow:none}
 .ss .menu-note{margin:4px 6px 6px;padding:9px 12px;border-radius:13px;box-shadow:var(--in-sm);font-size:max(9px,calc(12.5px * var(--m,1)));color:var(--accent);font-weight:600;line-height:1.4}
-/* Make my slides while it rests: raised (never pressed in), a clock, the time left and a bar along the bottom that fills up */
-.ss .btn.primary.resting[disabled]{opacity:1;cursor:default;transform:none;color:var(--accent);box-shadow:var(--ex-sm);font-variant-numeric:tabular-nums;
-  background:linear-gradient(90deg,var(--accent-2),var(--accent)) left bottom / calc(var(--rest,0) * 100%) 4px no-repeat,var(--surface)}
-.ss .btn.primary.resting[disabled]:active,.ss .btn.primary.resting[disabled]:hover{box-shadow:var(--ex-sm);transform:none}
 .ss .unit-list .btn[disabled]{opacity:.45}
 .ss .sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 24px}
 .ss .scard{display:grid;gap:10px;min-width:0;align-content:start}

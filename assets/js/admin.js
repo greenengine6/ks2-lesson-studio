@@ -1,12 +1,13 @@
 /* Rabinder's dashboard (only after "Hello Admin"): teaching time, deviations, engines, class voice, teacher
    feedback, enrolment with personal links and PINs, teachers' activity arriving by itself from the inbox (sync.js),
    the downloadable report, CSV, Symphony's analysis, and this device's passkey. Only the admin downloads. */
-import { $, $$, esc, el, icon, store, bus, toast, copyOut, hasKey, askClaude, errorCopy, CONFIG } from './core.js?v=5de985bf';
-import { evAll, evClear, kvGet, kvSet } from './idb.js?v=5de985bf';
-import { roster, enrol, resetPin, unenrol, linkFor, newPin, isAdmin, adminKey, unlockWithPassword, hasPasskey, setUpPasskey, removePasskey, passkeyOK, platformPasskey, signOut, ADMIN_NAME, initials, forgetAdminKey } from './people.js?v=5de985bf';
-import { INBOX, pull, lastPull } from './sync.js?v=5de985bf';
-import { metrics, period, digest, spoken, reportHTML, csv, fmtDur, fmtDay, fmtDate, fmtTime, ENGINE_NAMES, moodOf } from './report.js?v=5de985bf';
-import { download, FACE_NAMES, FACE_COLOURS, faceSVG } from './feedback.js?v=5de985bf';
+import { $, $$, esc, el, icon, store, bus, toast, copyOut, hasKey, askClaude, errorCopy, CONFIG } from './core.js?v=5e78cc38';
+import { evAll, evClear, kvGet, kvSet } from './idb.js?v=5e78cc38';
+import { roster, enrol, resetPin, unenrol, linkFor, newPin, isAdmin, adminKey, unlockWithPassword, hasPasskey, setUpPasskey, removePasskey, passkeyOK, platformPasskey, signOut, ADMIN_NAME, initials, forgetAdminKey } from './people.js?v=5e78cc38';
+import { INBOX, pull, lastPull } from './sync.js?v=5e78cc38';
+import { metrics, period, digest, spoken, reportHTML, csv, fmtDur, fmtDay, fmtDate, fmtTime, ENGINE_NAMES, moodOf } from './report.js?v=5e78cc38';
+import { download, FACE_NAMES, FACE_COLOURS, faceSVG } from './feedback.js?v=5e78cc38';
+import { makeState, makeStart, makeEnd, deliberate, watch, waitText } from './guard.js?v=5e78cc38';
 
 const RANGE_KEY = 'ks2-engine.adminrange.v1';
 let range = store.get(RANGE_KEY) || 'week', lastM = null, analysis = '', view = null, busyAnalysis = null, pulledAt = 0;
@@ -67,7 +68,7 @@ export async function renderAdmin(host) {
   host.innerHTML = '<div class="wrap adm">' +
     '<header class="adm-head"><div><p class="kicker">' + icon('key') + 'Hello Admin</p><h1>' + esc(ADMIN_NAME) + '’s dashboard</h1><p>Everything your teachers did on the engine. It arrives by itself and is worked out on this device. ' + esc(m.per.label) + '.</p></div>' +
       '<div class="adm-tools"><div class="seg" role="group" aria-label="Period">' + [['week', '7 days'], ['month', '30 days'], ['term', 'School year'], ['all', 'All']].map(([k, l]) => '<button type="button" data-range="' + k + '" aria-pressed="' + (range === k) + '">' + l + '</button>').join('') + '</div>' +
-      '<div class="adm-btns"><button type="button" class="btn" data-enrol>' + icon('plus') + 'Enrol a teacher</button><button type="button" class="btn primary" data-dl-report>' + icon('download') + 'Download report</button><button type="button" class="btn" data-analysis>' + icon('spark') + (analysis ? 'Refresh analysis' : 'Symphony’s analysis') + '</button><button type="button" class="btn" data-ask>' + icon('chat') + 'Ask Symphony</button><button type="button" class="btn" data-csv>' + icon('download') + 'CSV</button></div></div></header>' +
+      '<div class="adm-btns"><button type="button" class="btn" data-enrol>' + icon('plus') + 'Enrol a teacher</button><button type="button" class="btn primary" data-dl-report>' + icon('download') + 'Download report</button><button type="button" class="btn" data-analysis>' + icon('spark') + '<span>' + (analysis ? 'Refresh analysis' : 'Symphony’s analysis') + '</span></button><button type="button" class="btn" data-ask>' + icon('chat') + 'Ask Symphony</button><button type="button" class="btn" data-csv>' + icon('download') + 'CSV</button></div></div></header>' +
     '<div class="akpis">' +
       kpi(fmtDur(T.act), 'Teaching time', pl(T.sessions, 'session', 'sessions')) + kpi(T.people + (T.enrolled ? ' / ' + T.enrolled : ''), 'Teachers active', T.enrolled ? 'of those enrolled' : 'enrol teachers below') +
       kpi(T.ok, 'Lessons made', T.fail ? T.fail + ' failed' : 'none failed', T.fail ? 'warn' : '') + kpi(T.presents, 'Presented', fmtDur(T.presentMs) + ' on screen') +
@@ -151,7 +152,9 @@ function wire(host, m) {
     toast('CSV downloaded. It opens in Excel and Google Sheets.');
   });
   $('[data-ask]', host).addEventListener('click', () => bus.emit('symphony', { brief: true }));
-  $('[data-analysis]', host).addEventListener('click', () => writeAnalysis());
+  const an = $('[data-analysis]', host);
+  an.addEventListener('click', (e) => { if (deliberate(e, an)) writeAnalysis(); });
+  watch(an, { name: 'analysis', label: analysis ? 'Refresh analysis' : 'Symphony’s analysis', icon: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>', busy: () => !!busyAnalysis });
   const un = $('#a-unlock', host);
   if (un) un.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -219,17 +222,22 @@ function showEnrolled(p, pin, repin) {
 export async function writeAnalysis() {
   if (!hasKey()) { toast('Connect this device first, then Symphony can write the analysis.'); return ''; }
   if (busyAnalysis) return '';
+  const g = makeState('analysis');
+  if (!g.ok) { toast(waitText(g)); return ''; }
   const b = await briefing();
   busyAnalysis = new AbortController();
+  const ticket = makeStart('analysis');
+  let outcome = 'error';
   if (view && !view.hidden) renderAdmin(view);
   try {
     const r = await askClaude('Here is the activity data for the KS2 Lesson Engine, the teaching website Rabinder Kaur (Head of Key Stage 2) gave her teachers.\n\n' + b.digest +
       '\n\nWrite a careful analysis for Rabinder in 6 to 9 short lines, one point per line, no headings, no markdown symbols. Start with the single most important finding. Use the exact numbers and names. Cover: how much teaching happened and by whom, anything unusual or worrying and what it might mean, what pupils said, what is going well, and finish with 2 or 3 specific actions for this week. Do not invent anything that is not in the data; if the data is thin, say so.',
       { model: CONFIG.mainModel, maxTokens: 900, signal: busyAnalysis.signal });
     analysis = r.text.trim();
+    outcome = 'ok';
     toast('Symphony’s analysis is ready. It will be in your next report download.');
-  } catch (e) { if (!(e && e.code === 'cancelled')) toast(errorCopy(e && e.code, 'the analysis')); }
-  finally { busyAnalysis = null; if (view && !view.hidden) renderAdmin(view); }
+  } catch (e) { if (e && e.code === 'cancelled') outcome = 'stopped'; else toast(errorCopy(e && e.code, 'the analysis')); }
+  finally { busyAnalysis = null; makeEnd(ticket, outcome); if (view && !view.hidden) renderAdmin(view); }
   return analysis;
 }
 export const currentAnalysis = () => analysis;

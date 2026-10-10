@@ -21,6 +21,7 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 | Part | What it does |
 |---|---|
 | **Slide Studio** | About 12 two-way slides with answers, a lesson plan, Adapt, unit planning and a PowerPoint download. |
+| **lkie.like** | One topic in, a whole lesson out, for every KS2 subject including Bahasa Melayu and Mandarin. A 3-step wizard (year and subject, topic with a curriculum match, length) makes a pack: 10 to 15 slides (recap, hook, key words, concept, worked example, check point, three-level task, talk, plenary, exit ticket) with exact diagrams drawn from the numbers (number lines, fraction bars, place value, timelines, cycles, bar charts, tables, word cards), picture and video ideas, key words, activities, teacher notes, a 2-minute spoken briefing, and a worksheet in three tiers (Scaffolded 6, Standard 8, Stretch 8) with nine question types that pupils can try on screen. Tap a slide and say what to change (“Make this simpler”, “Add a football analogy”); Undo is always there. A unit planner sequences up to 25 lessons with recaps and assessments, checks the plan, and steers recaps to lessons where the class mood was low. Packs open instantly from this device the second time. PowerPoint (with the diagrams and notes) and an editable Word worksheet. Calm slide style for readers who find colour busy. |
 | **Maths Reasoning** | “Which one doesn’t belong?” then an Open Middle puzzle the class tries live. The board checks every answer. |
 | **Story Spark** | A mystery scene revealed line by line, with see/think/wonder, a word bank and a model paragraph. |
 | **Reading Ladder** | One text at three reading levels, tap-to-define words, and VIPERS questions. |
@@ -68,7 +69,8 @@ After *Hello Admin*, the dashboard shows:
   - a big drop in weekly time;
   - class mood under 3;
   - few feedback screens;
-  - low ratings.
+  - low ratings;
+  - hitting the engine limits (see the engine guard).
 
 From the dashboard, Rabinder can:
 - **Download report:** a print-ready HTML report with a briefing, actions for the week, tables and charts. Open it, then *Print or save as PDF*.
@@ -78,9 +80,23 @@ From the dashboard, Rabinder can:
 - **Teachers and PINs:** enrol a teacher, copy their personal link, give a new PIN, or remove them.
 - **From your teachers:** teachers’ activity arrives by itself. Each teacher’s device locks it (ECDH P-256 + AES-GCM, sealed to this dashboard’s key) and sends it to the inbox every few minutes, when a lesson is made or presented, when feedback is saved, and when the page is closed. The dashboard fetches and opens it, and **Check now** fetches straight away. Offline devices keep it and send it later.
 
-Only Rabinder downloads anything (the report and the CSV). Teachers never see a download, apart from the PowerPoint of their own slides.
+Only Rabinder downloads reports (the report and the CSV). Teachers only download what they made: the PowerPoint of their own slides and lkie.like's Word worksheet.
 
 The activity log lives in each browser (IndexedDB) until it is sent. It never records pupils’ names or what anyone asks Symphony.
+
+## The engine guard (every button that uses the engine)
+
+Every press of a button that uses the engine is paid for, so one set of rules covers them all (`assets/js/guard.js`): Slide Studio, Plan the unit, the ten engines, lkie.like, Symphony and the dashboard analysis.
+
+- **Real presses only.** Nothing is pressed by a script, by a tap still travelling when a page opens (presses in the first 1.2 seconds are ignored, timed by when the finger actually touched), by a swipe or fling that ends on a button, or by the Enter key in a text box (Enter moves to the next box).
+- **Rest.** After a Make button makes something, that button rests for 5 minutes and shows a clock, the time left and a filling bar. A press that ends without a result gives the time back (the engine failed, or Stop was pressed in the first 15 seconds).
+- **Caps.** Everything one person makes on a device, together: 15 an hour and 40 a day. The button says when it is ready again; it shows how many are left when 5 or fewer remain.
+- **Small edits** (lkie.like's slide editor and worksheet rewrite): one every 8 seconds, 40 an hour.
+- **Symphony:** one question every 3 seconds, a short break after 20 in 10 minutes, and 150 a day. Her own replies (hello, who she is, the site) are free.
+- **One thing at a time.** While something is being made, in this tab or another, the other Make buttons wait.
+- **Rabinder sees it.** Reaching a cap is noted in the activity log, and her dashboard lists who keeps hitting the limits.
+
+The numbers are in `index.html` (`"limits"` in the config). These rules live on each device; the hard ceiling is the monthly spend limit on the key itself (console.anthropic.com, Limits).
 
 ## Setup
 
@@ -122,6 +138,9 @@ assets/js/fx/audio.js    the one sound engine: effects, sound switch, quiet whil
 assets/earth/            Earth textures, 2K for phones and 4K for laptops
 assets/vendor/           three.js
 assets/js/security.js    protection deterrents
+assets/js/guard.js       the engine guard: real presses only, rests, caps, one at a time
+assets/js/lkie/          lkie.like: curriculum map and matcher, prompts, data checks, drawing, exports, example, page
+assets/css/lkie.css      lkie.like styles
 assets/js/crypto.js, idb.js, settings.js, theme.js, slides.js, engines/, fx/
 ```
 
@@ -131,4 +150,5 @@ assets/js/crypto.js, idb.js, settings.js, theme.js, slides.js, engines/, fx/
 - Voice glow: written for this site, after the idea of Libraries.dev's Voice (voice-glow).
 - Other visual effects are vanilla re-implementations (no libraries), inspired by CardSwap and Ribbons (React Bits), MagnificationDock and Interactive Waves.
 - PowerPoint export: [PptxGenJS](https://github.com/gitbrent/PptxGenJS) 4.0.1, MIT licence (`assets/PPTXGENJS-LICENSE.txt`).
+- lkie.like curriculum map: statutory statements from the National Curriculum in England (2014) and the Relationships and Health Education guidance, lightly shortened (Crown copyright, Open Government Licence v3.0); RE after the RE Council's national framework (2013); Bahasa Melayu after the KSSR skill areas (Malaysia), paraphrased. The objective codes are this site's own.
 - Slide fonts: TeX Gyre Adventor and Schola, GUST Font Licence. Interface fonts: Plus Jakarta Sans, DM Sans and JetBrains Mono from Google Fonts.

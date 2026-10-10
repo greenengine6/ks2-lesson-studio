@@ -1,24 +1,26 @@
 /* KS2 Lesson Engine: start-up, routing, header, dock, landing page and the Connect dialog. */
-import './security.js?v=5de985bf';
-import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=5de985bf';
-import { Dock } from './fx/dock.js?v=5de985bf';
-import { CardSwap } from './fx/cardswap.js?v=5de985bf';
-import { Symphony } from './fx/symphony.js?v=5de985bf';
-import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=5de985bf';
-import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=5de985bf';
-import { initSlides, examplePreview, fitSlide, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=5de985bf';
-import { initSettings } from './settings.js?v=5de985bf';
-import { initChat } from './chat.js?v=5de985bf';
-import { track } from './track.js?v=5de985bf';
-import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=5de985bf';
-import { initFeedback } from './feedback.js?v=5de985bf';
-import { renderAdmin } from './admin.js?v=5de985bf';
-import { initPlay } from './play.js?v=5de985bf';
-import { initSync } from './sync.js?v=5de985bf';
-import { sfx } from './fx/audio.js?v=5de985bf';
+import './security.js?v=5e78cc38';
+import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=5e78cc38';
+import { Dock } from './fx/dock.js?v=5e78cc38';
+import { CardSwap } from './fx/cardswap.js?v=5e78cc38';
+import { Symphony } from './fx/symphony.js?v=5e78cc38';
+import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=5e78cc38';
+import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=5e78cc38';
+import { initSlides, examplePreview, fitSlide, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=5e78cc38';
+import { initSettings } from './settings.js?v=5e78cc38';
+import { initChat } from './chat.js?v=5e78cc38';
+import { track } from './track.js?v=5e78cc38';
+import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=5e78cc38';
+import { initFeedback } from './feedback.js?v=5e78cc38';
+import { renderAdmin } from './admin.js?v=5e78cc38';
+import { initPlay } from './play.js?v=5e78cc38';
+import { initSync } from './sync.js?v=5e78cc38';
+import { sfx } from './fx/audio.js?v=5e78cc38';
+import { landed } from './guard.js?v=5e78cc38';
 
 const PLAY = { id: 'play', name: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'A play area for the whole class: starlings, fireflies, the planets and the northern lights, with facts Symphony reads aloud.', chips: ['Earth, nature and space', 'Shared screen'] };
 const SLIDES = { id: 'slides', name: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
+const LKIE = { id: 'lkie', name: 'lkie.like', color: 'heart', icon: 'pack', tagline: 'One topic in, a whole lesson out: slides with exact diagrams, key words, activities and a worksheet in three tiers, for every KS2 subject.', chips: ['All KS2 subjects', 'Bahasa Melayu and Mandarin'] };
 
 /* ---------------- header ---------------- */
 const top = $('#top');
@@ -45,7 +47,7 @@ mnav.addEventListener('click', (e) => { if (e.target.closest('a')) { mnav.hidden
 /* ---------------- dock ---------------- */
 const go = (id) => { sfx('nav'); location.hash = id === 'home' ? '#/' : '#/' + id; };
 const dockItems = [{ id: 'home', label: 'Home', icon: icon('home'), color: 'violet', onClick: () => go('home') }, { sep: true },
-  { id: 'slides', label: 'Slide Studio', icon: icon('slides'), color: 'violet', onClick: () => go('slides') }, { id: 'play', label: 'Wonder Window', icon: icon('globe'), color: 'cyan', onClick: () => go('play') }]
+  { id: 'slides', label: 'Slide Studio', icon: icon('slides'), color: 'violet', onClick: () => go('slides') }, { id: 'lkie', label: 'lkie.like', icon: icon('pack'), color: 'heart', onClick: () => go('lkie') }, { id: 'play', label: 'Wonder Window', icon: icon('globe'), color: 'cyan', onClick: () => go('play') }]
   .concat(ENGINES.map((e) => ({ id: e.id, label: e.name, icon: icon(e.icon), color: e.color, onClick: () => go(e.id) })));
 const dock = new Dock($('#dock'), dockItems, { base: 50, magnification: 80, distance: 200 });
 
@@ -53,7 +55,7 @@ const dock = new Dock($('#dock'), dockItems, { base: 50, magnification: 80, dist
 function engineCards() {
   const card = (e, wide) => '<button type="button" class="ecard' + (wide ? ' wide' : '') + '" data-go="' + e.id + '" style="--c:var(--' + e.color + ')"><span class="ewell">' + icon(e.icon) + '</span>' +
     '<h3>' + esc(e.name) + '</h3><p>' + esc(e.tagline) + '</p><span class="etags">' + e.chips.slice(0, 2).map((c) => '<span class="chip">' + esc(c) + '</span>').join('') + '</span><span class="go" aria-hidden="true">' + icon('right') + '</span></button>';
-  $('#egrid').innerHTML = card(SLIDES, true) + ENGINES.map((e) => card(e)).join('') + card(PLAY, true);
+  $('#egrid').innerHTML = card(SLIDES, true) + card(LKIE, true) + ENGINES.map((e) => card(e)).join('') + card(PLAY, true);
   $$('#egrid [data-go]').forEach((b) => b.addEventListener('click', () => go(b.dataset.go)));
 }
 let showcase = null;
@@ -94,7 +96,7 @@ function startEarth() {
   if (earthTried) { runEarth(); return; }
   earthTried = true;
   const hero = $('#hero'), fail = () => { earth = null; hero.classList.add('earth-off'); const t = $('#hero-hint'); if (t) t.hidden = true; };
-  import('./fx/earth.js?v=5de985bf').then(async (m) => {
+  import('./fx/earth.js?v=5e78cc38').then(async (m) => {
     earth = new m.Earth($('#earth'), { onFail: fail });
     if (!(await earth.init())) return;
     earthTip();
@@ -117,7 +119,13 @@ function runEarth() {
 
 /* ---------------- routing ---------------- */
 let current = '';
-const PAGES = ['home', 'slides', 'admin', 'play'];
+const PAGES = ['home', 'slides', 'lkie', 'admin', 'play'];
+/* lkie.like loads the first time it is opened, so the landing page stays light. */
+let lkie = null;
+function showLkie() {
+  if (lkie) { lkie.mountLkie($('#view-lkie')); return; }
+  import('./lkie/lkie.js?v=5e78cc38').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">lkie.like could not load. Check the connection and reload the page.</p></div>'; });
+}
 function show(id) {
   if (!who.role) id = 'home';
   if (id === 'admin' && !requireAdmin(() => { location.hash = '#/admin'; route(); })) {
@@ -127,6 +135,7 @@ function show(id) {
   let eng = ENGINE_BY_ID[id];
   if (!PAGES.includes(id) && !eng) { id = 'home'; eng = null; }
   const changed = id !== current;
+  if (changed) landed();                // the tap that opened this page cannot also press a button on it (guard.js)
   if (current && ENGINE_BY_ID[current] && changed) leaveEngine();
   if (current === 'play' && changed) bus.emit('play', false);
   current = id;
@@ -135,6 +144,8 @@ function show(id) {
   $('#view-engine').hidden = !eng;
   $('#view-admin').hidden = id !== 'admin';
   $('#view-play').hidden = id !== 'play';
+  $('#view-lkie').hidden = id !== 'lkie';
+  if (id === 'lkie' && changed) showLkie();
   if (id === 'admin') renderAdmin($('#view-admin'));
   if (id === 'play' && changed) bus.emit('play', true);
   if (changed && who.role) track('view', { page: id });
@@ -144,7 +155,7 @@ function show(id) {
   if (id === 'slides') { if (changed) enterSlides(); else refitSlides(); }
   dock.setActive(id);
   $$('.nav a, .mnav a').forEach((a) => { const on = a.getAttribute('href') === '#/' + (id === 'home' ? '' : id); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-  document.title = id === 'home' ? 'KS2 Lesson Engine' : (eng ? eng.name : ({ slides: 'Slide Studio', admin: 'Dashboard', play: 'Wonder Window' })[id]) + ' · KS2 Lesson Engine';
+  document.title = id === 'home' ? 'KS2 Lesson Engine' : (eng ? eng.name : ({ slides: 'Slide Studio', lkie: 'lkie.like', admin: 'Dashboard', play: 'Wonder Window' })[id]) + ' · KS2 Lesson Engine';
   if (changed) window.scrollTo({ top: 0, behavior: 'auto' });
   paintHeader();
 }

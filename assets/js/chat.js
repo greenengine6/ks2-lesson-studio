@@ -5,15 +5,16 @@
    speaks, and her answer appears word by word as she says it. After she answers she listens again, until the mic is
    tapped or nothing is heard. Questions about her, the site, greetings and language changes are answered on the
    device; everything else needs the device to be connected. */
-import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=5de985bf';
-import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=5de985bf';
-import { settings, paintSwitches } from './settings.js?v=5de985bf';
-import { isAdmin, ADMIN_NAME } from './people.js?v=5de985bf';
-import { briefing, downloadReport } from './admin.js?v=5de985bf';
-import { track } from './track.js?v=5de985bf';
-import { Voice } from './fx/voice.js?v=5de985bf';
-import { Beam } from './fx/beam.js?v=5de985bf';
-import { sfx } from './fx/audio.js?v=5de985bf';
+import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=5e78cc38';
+import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=5e78cc38';
+import { settings, paintSwitches } from './settings.js?v=5e78cc38';
+import { isAdmin, ADMIN_NAME } from './people.js?v=5e78cc38';
+import { briefing, downloadReport } from './admin.js?v=5e78cc38';
+import { track } from './track.js?v=5e78cc38';
+import { Voice } from './fx/voice.js?v=5e78cc38';
+import { Beam } from './fx/beam.js?v=5e78cc38';
+import { sfx } from './fx/audio.js?v=5e78cc38';
+import { chatState, chatStart, chatEnd, clockAt } from './guard.js?v=5e78cc38';
 
 const LANG_KEY = 'ks2-engine.symlang.v1';
 const T = {
@@ -23,7 +24,7 @@ const T = {
     hello: 'Hello! I am Symphony. Ask me anything, by typing or by tapping the mic. I can brainstorm lessons with you, explain things simply, or tell you about the planets, animals and the natural world.',
     stageHello: 'Hello, I am Symphony',
     hi: 'Hello! It is lovely to hear from you. What would you like to know?',
-    site: 'This site has ten lesson engines, a Slide Studio and a Wonder Window play area. Pick an engine from the dock at the bottom, type your topic, and you get a class screen to share plus teacher notes. Press Present to share it on Teams, Zoom or Meet, with a magic pointer, a timer and your notes. You can also switch on Night mode, and collect feedback from your class for a report.',
+    site: 'This site has ten lesson engines, a Slide Studio, lkie.like for whole lesson packs with worksheets in three tiers, and a Wonder Window play area. Pick an engine from the dock at the bottom, type your topic, and you get a class screen to share plus teacher notes. Press Present to share it on Teams, Zoom or Meet, with a magic pointer, a timer and your notes. You can also switch on Night mode, and collect feedback from your class for a report.',
     toEn: 'Of course. I will speak English. What would you like to know?',
     noKey: 'I can tell you about me and about this site right now. For anything else, this device needs setting up once: open the personal link Rabinder sent you.',
     micDenied: 'Please allow the microphone, then tap the mic again so I can hear you.',
@@ -33,6 +34,9 @@ const T = {
     talkHint: 'Tap the mic to talk. She answers out loud, then listens again.',
     vmTap: 'Tap to talk', vmIdle: 'Say anything. I am listening when the glow moves.',
     voiceTrouble: 'This device would not let me speak just then. Tap “Say again” to hear it.',
+    tooFast: 'One question at a time, please. Ask me again in a moment.',
+    restTen: 'That was a lot of questions in a few minutes! Let us take a short break. I can answer again at {at}.',
+    restDay: 'We have talked a lot today! Let us talk again tomorrow.',
     copy: 'Copy', again: 'Say again', copied: 'Copied. Paste it anywhere.', newChat: 'New chat',
     chips: [['Who are you?', 'ask'], ['Brainstorm a lesson', 'fill:Brainstorm a fun KS2 lesson about '], ['A fun fact about space', 'ask'], ['Explain fractions to a Year 3 class', 'ask'], ['What can this site do?', 'ask'], ['Cakap Melayu', 'lang:ms']]
   },
@@ -42,7 +46,7 @@ const T = {
     hello: 'Hai! Saya Symphony. Tanyalah apa sahaja, dengan menaip atau menekan mikrofon. Saya boleh membantu merancang pelajaran, menerangkan sesuatu dengan mudah, atau bercerita tentang planet, haiwan dan alam semula jadi.',
     stageHello: 'Hai, saya Symphony',
     hi: 'Hai! Seronok mendengar daripada anda. Apa yang anda ingin tahu?',
-    site: 'Laman ini ada sepuluh enjin pelajaran, Slide Studio dan ruang main Wonder Window. Pilih enjin dari dok di bawah, taip topik anda, dan anda akan mendapat skrin kelas serta nota guru. Tekan Present untuk berkongsi di Teams, Zoom atau Meet. Anda juga boleh menghidupkan mod malam dan mengumpul maklum balas kelas untuk laporan.',
+    site: 'Laman ini ada sepuluh enjin pelajaran, Slide Studio, lkie.like untuk pek pelajaran lengkap dengan lembaran kerja tiga tahap, dan ruang main Wonder Window. Pilih enjin dari dok di bawah, taip topik anda, dan anda akan mendapat skrin kelas serta nota guru. Tekan Present untuk berkongsi di Teams, Zoom atau Meet. Anda juga boleh menghidupkan mod malam dan mengumpul maklum balas kelas untuk laporan.',
     toMs: 'Baiklah, saya akan bercakap dalam bahasa Melayu. Apa yang anda ingin tahu?',
     noKey: 'Saya boleh bercerita tentang diri saya dan laman ini sekarang. Untuk soalan lain, peranti ini perlu disediakan sekali: buka pautan peribadi yang Rabinder hantar kepada anda.',
     micDenied: 'Sila benarkan mikrofon, kemudian tekan mikrofon sekali lagi supaya saya boleh mendengar anda.',
@@ -52,6 +56,9 @@ const T = {
     talkHint: 'Tekan mikrofon untuk bercakap. Dia menjawab dengan suara, kemudian mendengar semula.',
     vmTap: 'Tekan untuk bercakap', vmIdle: 'Cakap apa sahaja. Saya mendengar apabila cahaya bergerak.',
     voiceTrouble: 'Peranti ini tidak membenarkan saya bercakap tadi. Tekan “Ulang” untuk mendengarnya.',
+    tooFast: 'Satu soalan pada satu masa, ya. Tanya saya lagi sebentar nanti.',
+    restTen: 'Banyak soalan dalam beberapa minit! Mari kita berehat sebentar. Saya boleh menjawab lagi pada pukul {at}.',
+    restDay: 'Kita sudah banyak berbual hari ini! Kita berbual lagi esok, ya.',
     copy: 'Salin', again: 'Ulang', copied: 'Disalin.', newChat: 'Sembang baharu',
     chips: [['Siapa awak?', 'ask'], ['Idea pelajaran', 'fill:Beri idea pelajaran KS2 yang seronok tentang '], ['Fakta menarik tentang angkasa', 'ask'], ['Apa yang laman ini boleh buat?', 'ask'], ['Speak English', 'lang:en']]
   }
@@ -278,7 +285,7 @@ function systemPrompt() {
     'Use British English spelling. ' + HOUSE_WORDS + ' If the person writes in Malay, reply in Malay (Bahasa Melayu). The current reply language is ' + (lang === 'ms' ? 'Malay' : 'English') + '. ' +
     'For children be kind, simple and encouraging, and keep everything suitable for primary school. Never ask for personal details such as full names, addresses, phone numbers or photos; if someone shares them, gently say you do not need them. ' +
     'If someone asks who you are, say you are Symphony, the helper in the KS2 Lesson Engine, a girl who speaks English and Malay and was named for her musical voice. ' +
-    'The site has ten lesson engines (Maths Reasoning, Story Spark, Reading Ladder, Science Mystery, Sound Journey, Unplugged Code, Step-by-Step, Escape Room, Brain Break, Big Debate), Slide Studio for slides and a PowerPoint download, the Wonder Window play area, Present mode with a magic pointer, timer and teacher notes, Night mode, and class feedback reports.' +
+    'The site has ten lesson engines (Maths Reasoning, Story Spark, Reading Ladder, Science Mystery, Sound Journey, Unplugged Code, Step-by-Step, Escape Room, Brain Break, Big Debate), Slide Studio for slides and a PowerPoint download, lkie.like (one topic becomes a whole lesson pack for any KS2 subject, including Bahasa Melayu and Mandarin: 10 to 15 slides with exact diagrams, key words, activities, a worksheet in three tiers, a unit planner and a slide editor that takes plain-English changes), the Wonder Window play area, Present mode with a magic pointer, timer and teacher notes, Night mode, and class feedback reports.' +
     (isAdmin() && adminDigest ? '\n\nYou are now talking with ' + ADMIN_NAME + ', the admin (Head of Key Stage 2), who is signed in to her dashboard. Call her Rabinder. Here is the activity data her dashboard has worked out:\n' + adminDigest +
       '\n\nWhen she asks about her teachers, time logged, lessons, pupils or anything in this data, answer meticulously: think it through, use the exact numbers and names above, compare where useful, say what stands out and what she might do next. Never invent numbers or people that are not in the data; if the data cannot answer, say so plainly. ' +
       'If she wants the full detail, tables, charts, a file, something to print or share, or everything at once, tell her the full report is ready and to tap Download report.' : '');
@@ -309,6 +316,15 @@ async function ask(text, from) {
   if (RX.hi.test(text)) { reply(T[lang].hi); return; }
   if (RX.site.test(text)) { reply(T[lang].site); return; }
   if (!hasKey()) { history.pop(); reply(T[lang].noKey, { muted: true }); talk = false; return; }
+  // the engine guard: one question every few seconds, a short break after many, and a daily limit (guard.js)
+  const g = chatState();
+  if (!g.ok) {
+    history.pop(); talk = false;
+    if (g.why === 'gap') note(T[lang].tooFast);
+    else reply(g.why === 'day' ? T[lang].restDay : T[lang].restTen.replace('{at}', clockAt(g.left)));
+    return;
+  }
+  const asked = chatStart();
   const ctl = new AbortController();
   busy = ctl;
   setState('think');
@@ -331,6 +347,7 @@ async function ask(text, from) {
     m.update(out); m.done(); vmText(out);
     history.push({ role: 'assistant', content: out });
     busy = null;
+    chatEnd(asked, true);
     if (out.length > said) say(out.slice(said));
     afterSpeaking();
   } catch (e) {
@@ -338,6 +355,7 @@ async function ask(text, from) {
     busy = null;
     history.pop();
     m.el.remove();
+    chatEnd(asked, e && e.code === 'cancelled');
     if (e && e.code === 'cancelled') { setState('idle'); return; }
     talk = false;
     note(errorCopy(e && e.code, 'an answer'));
