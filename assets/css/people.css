@@ -198,10 +198,6 @@ body.gated .hero{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
   .brand{min-width:0;flex:1 1 auto}
   .brand-t{min-width:0}
   .brand-t b{overflow:hidden;text-overflow:ellipsis}
-}
-@media (max-width:400px){
-  .brand-t b{font-size:15px}
-  .top-r{gap:8px;margin-left:8px}
   .aenrol{grid-template-columns:minmax(0,1fr)}
   .akpis{gap:12px}
   .akpi{padding:14px 16px}
@@ -211,4 +207,8 @@ body.gated .hero{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
   .tk-card{padding:18px 16px}
   .adev li{grid-template-columns:auto minmax(0,1fr)}
   .adev small{grid-column:2}
+}
+@media (max-width:400px){
+  .brand-t b{font-size:15px}
+  .top-r{gap:8px;margin-left:8px}
 }
