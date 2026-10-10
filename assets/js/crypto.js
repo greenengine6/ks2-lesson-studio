@@ -114,14 +114,5 @@ export async function checkPasskey(saved) {
   return subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, k, derToRaw(sig), data);
 }
 
-/* ---------- a tiny IndexedDB key-value store (keeps the admin key as a non-exportable CryptoKey) ---------- */
-function db() {
-  return new Promise((res, rej) => {
-    const q = indexedDB.open('ks2-engine', 1);
-    q.onupgradeneeded = () => q.result.createObjectStore('kv');
-    q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error);
-  });
-}
-export async function idbGet(k) { try { const d = await db(); return await new Promise((res) => { const r = d.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => res(undefined); }); } catch (e) { return undefined; } }
-export async function idbSet(k, v) { try { const d = await db(); await new Promise((res) => { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = res; t.onerror = res; }); return true; } catch (e) { return false; } }
-export async function idbDel(k) { try { const d = await db(); await new Promise((res) => { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').delete(k); t.oncomplete = res; t.onerror = res; }); } catch (e) { /* ignore */ } }
+/* ---------- key-value storage (IndexedDB, shared with the activity log) ---------- */
+export { kvGet as idbGet, kvSet as idbSet, kvDel as idbDel } from './idb.js';

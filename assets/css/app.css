@@ -419,6 +419,7 @@ details.more[open] summary{margin-bottom:10px}
   .hero-cta .btn.big{min-height:52px;padding:0 20px;font-size:15.5px}
   .hero-hint{top:88px;bottom:auto;right:16px}
   .hh-d{display:none}.hh-m{display:inline}
+  .hero-shade{background:linear-gradient(to top,rgb(8 10 18 / .9) 0%,rgb(8 10 18 / .72) 42%,rgb(8 10 18 / .25) 66%,rgb(8 10 18 / 0) 80%)}
   .row2{grid-template-columns:minmax(0,1fr)}
   .card{padding:22px 18px;border-radius:26px}
   .helper{grid-template-columns:78px minmax(0,1fr);column-gap:14px;row-gap:6px;padding:16px}

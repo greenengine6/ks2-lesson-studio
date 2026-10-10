@@ -242,9 +242,9 @@ export class Tubes {
   }
   autoGoal(t) {
     const W = this.halfW || 3, H = this.halfH || 2.3, portrait = W < H;
-    const cx = portrait ? 0 : W * 0.22, cy = portrait ? H * 0.2 : H * 0.12;
+    const cx = portrait ? 0 : W * 0.22, cy = portrait ? H * 0.5 : H * 0.12;
     return [cx + Math.sin(t * 0.43) * W * (portrait ? 0.7 : 0.56) + Math.sin(t * 0.97 + 1.3) * W * 0.14,
-      cy + Math.sin(t * 0.61 + 0.7) * H * 0.42 + Math.cos(t * 1.21) * H * 0.1, 0];
+      cy + Math.sin(t * 0.61 + 0.7) * H * (portrait ? 0.28 : 0.42) + Math.cos(t * 1.21) * H * 0.1, 0];
   }
   step(dt) {
     this.t += dt;

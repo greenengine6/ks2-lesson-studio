@@ -26,6 +26,7 @@
 <link rel="stylesheet" href="assets/css/slides.css">
 <link rel="stylesheet" href="assets/css/lumen.css">
 <link rel="stylesheet" href="assets/css/chat.css">
+<link rel="stylesheet" href="assets/css/people.css">
 <script src="assets/js/theme.js"></script>
 <link rel="modulepreload" href="assets/js/app.js">
 <link rel="modulepreload" href="assets/js/security.js">
@@ -34,6 +35,13 @@
 <link rel="modulepreload" href="assets/js/slides-example.js">
 <link rel="modulepreload" href="assets/js/settings.js">
 <link rel="modulepreload" href="assets/js/chat.js">
+<link rel="modulepreload" href="assets/js/people.js">
+<link rel="modulepreload" href="assets/js/crypto.js">
+<link rel="modulepreload" href="assets/js/idb.js">
+<link rel="modulepreload" href="assets/js/track.js">
+<link rel="modulepreload" href="assets/js/feedback.js">
+<link rel="modulepreload" href="assets/js/admin.js">
+<link rel="modulepreload" href="assets/js/report.js">
 <link rel="modulepreload" href="assets/js/fx/tubes.js">
 <link rel="modulepreload" href="assets/js/fx/dock.js">
 <link rel="modulepreload" href="assets/js/fx/cardswap.js">
@@ -81,6 +89,7 @@
       <p class="made">Made with <svg class="heart" viewBox="0 0 24 24" width="1em" height="1em" role="img" aria-label="love"><path fill="currentColor" d="M12 21.2C5.4 16.9 2.3 13.2 2.3 9.1 2.3 6.2 4.5 4 7.3 4c1.9 0 3.5 1 4.7 2.7C13.2 5 14.8 4 16.7 4c2.8 0 5 2.2 5 5.1 0 4.1-3.1 7.8-9.7 12.1z"/></svg> by <b>Rabinder Kaur</b></p>
       <p class="lede">Ten engines and a slide studio that turn one topic into a two-way online lesson your class will love, in about a minute.</p>
       <div class="hero-cta"><a class="btn glow big" href="#engines"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>Open the engines</a><a class="btn glass big" href="#/slides"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="2.2"/><path d="M8 20h8M12 16.5V20"/><path d="M7 9h6M7 12h4"/></svg>Make lesson slides</a></div>
+      <form class="hero-gate" id="hero-gate" novalidate hidden aria-label="Sign in to teach"></form>
     </div>
     <p class="hero-hint" id="hero-hint"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span class="hh-d">Move to play · click for new colours</span><span class="hh-m">Tap for new colours</span></p>
   </section>
@@ -136,10 +145,15 @@
     </div>
   </section>
   <footer class="foot"><p>Made with <span class="hrt">♥</span> by <b>Rabinder Kaur</b>, Head of Key Stage 2</p>
-    <p>Your key and your saved activities stay in this browser. Nothing leaves this device except the request the engine sends when you press a button.</p></footer>
+    <p><button type="button" class="linkbtn" data-feedback>Give feedback</button> · <a class="linkbtn" href="#/play">Wonder Window</a></p>
+    <p>Your key, saved activities and activity log stay in this browser. Nothing leaves this device except the request the engine sends when you press a button, and the activity file you choose to send to Rabinder.</p></footer>
 </div>
 
 <div id="view-engine" class="view" hidden></div>
+
+<div id="view-admin" class="view" hidden></div>
+
+<div id="view-play" class="play" hidden></div>
 
 <div id="view-slides" class="view" hidden style="--c:var(--violet)">
   <div class="wrap">
@@ -232,6 +246,7 @@
     <button type="button" class="pbtn" id="pr-pointer" aria-pressed="false" title="Magic pointer (P)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span>Magic pointer</span><i class="lsw mini violet" aria-hidden="true"><i class="lsw-handle"></i></i></button>
     <div style="position:relative"><button type="button" class="pbtn" id="pr-timer-btn" aria-expanded="false" title="Timer (T)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Timer</span></button>
       <div class="pr-menu" id="pr-timer-menu" hidden><button type="button" class="pbtn" data-min="1">1 min</button><button type="button" class="pbtn" data-min="2">2</button><button type="button" class="pbtn" data-min="3">3</button><button type="button" class="pbtn" data-min="5">5</button><button type="button" class="pbtn" data-min="10">10</button><button type="button" class="pbtn" data-min="0">Stop</button></div></div>
+    <button type="button" class="pbtn" id="pr-ticket" title="Class feedback (C)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.9 2 5.1 2 7 0"/><path d="M9 9.5v.5M15 9.5v.5"/></svg><span>Class feedback</span></button>
     <button type="button" class="pbtn" id="pr-notes-btn" aria-pressed="false" title="Teacher notes (N)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>Notes</span><i class="lsw mini amber" aria-hidden="true"><i class="lsw-handle"></i></i></button>
     <button type="button" class="pbtn" id="pr-full" aria-label="Full screen" title="Full screen (F)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     <span class="pr-sep"></span>
@@ -251,6 +266,7 @@
     <button type="button" class="pbtn" id="spr-reveal" aria-label="Reveal"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Reveal answers</span></button>
     <button type="button" class="pbtn" id="spr-timer-btn" aria-label="Timer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Timer</span></button>
     <button type="button" class="pbtn" id="spr-pointer" aria-pressed="false" title="Magic pointer (P)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span>Magic pointer</span><i class="lsw mini violet" aria-hidden="true"><i class="lsw-handle"></i></i></button>
+    <button type="button" class="pbtn" id="spr-ticket" title="Class feedback (C)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.9 2 5.1 2 7 0"/><path d="M9 9.5v.5M15 9.5v.5"/></svg><span>Class feedback</span></button>
     <button type="button" class="pbtn" id="spr-notes-btn" aria-pressed="false" aria-label="Teacher notes"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>Notes</span></button>
     <span class="pr-sep"></span>
     <button type="button" class="pbtn" id="spr-exit" aria-label="Stop presenting"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg><span>Exit</span></button>

@@ -7,9 +7,13 @@ import { CardSwap } from './fx/cardswap.js';
 import { Symphony } from './fx/symphony.js';
 import { ENGINES, ENGINE_BY_ID } from './engines/registry.js';
 import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js';
-import { initSlides, examplePreview, fitSlide, refitSlides } from './slides.js';
+import { initSlides, examplePreview, fitSlide, refitSlides, slidesPresentInfo } from './slides.js';
 import { initSettings } from './settings.js';
 import { initChat } from './chat.js';
+import { track } from './track.js';
+import { initPeople, who, isAdmin, requireAdmin } from './people.js';
+import { initFeedback } from './feedback.js';
+import { renderAdmin } from './admin.js';
 
 const SLIDES = { id: 'slides', name: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
 
@@ -37,7 +41,7 @@ mnav.addEventListener('click', (e) => { if (e.target.closest('a')) { mnav.hidden
 /* ---------------- dock ---------------- */
 const go = (id) => { location.hash = id === 'home' ? '#/' : '#/' + id; };
 const dockItems = [{ id: 'home', label: 'Home', icon: icon('home'), color: 'violet', onClick: () => go('home') }, { sep: true },
-  { id: 'slides', label: 'Slide Studio', icon: icon('slides'), color: 'violet', onClick: () => go('slides') }]
+  { id: 'slides', label: 'Slide Studio', icon: icon('slides'), color: 'violet', onClick: () => go('slides') }, { id: 'play', label: 'Wonder Window', icon: icon('globe'), color: 'cyan', onClick: () => go('play') }]
   .concat(ENGINES.map((e) => ({ id: e.id, label: e.name, icon: icon(e.icon), color: e.color, onClick: () => go(e.id) })))
   .concat([{ sep: true }, { id: 'connect', label: 'Connect', icon: icon('key'), color: 'teal', onClick: () => openConnect() }]);
 const dock = new Dock($('#dock'), dockItems, { base: 50, magnification: 80, distance: 200 });
@@ -89,22 +93,34 @@ function runTubes() { if (!tubes || presentState.open) return; if (reduceMotion(
 
 /* ---------------- routing ---------------- */
 let current = '';
+const PAGES = ['home', 'slides', 'admin', 'play'];
 function show(id) {
-  const eng = ENGINE_BY_ID[id];
-  if (id !== 'home' && id !== 'slides' && !eng) id = 'home';
+  if (!who.role) id = 'home';
+  if (id === 'admin' && !requireAdmin(() => { location.hash = '#/admin'; route(); })) {
+    id = current && current !== 'admin' ? current : 'home';
+    try { history.replaceState(null, '', id === 'home' ? location.pathname + location.search : '#/' + id); } catch (e) { /* ignore */ }
+  }
+  let eng = ENGINE_BY_ID[id];
+  if (!PAGES.includes(id) && !eng) { id = 'home'; eng = null; }
   const changed = id !== current;
-  if (current && current !== 'home' && current !== 'slides' && changed) leaveEngine();
+  if (current && ENGINE_BY_ID[current] && changed) leaveEngine();
+  if (current === 'play' && changed) bus.emit('play', false);
   current = id;
   $('#view-home').hidden = id !== 'home';
   $('#view-slides').hidden = id !== 'slides';
   $('#view-engine').hidden = !eng;
+  $('#view-admin').hidden = id !== 'admin';
+  $('#view-play').hidden = id !== 'play';
+  if (id === 'admin') renderAdmin($('#view-admin'));
+  if (id === 'play' && changed) bus.emit('play', true);
+  if (changed && who.role) track('view', { page: id });
   if (id === 'home') { startTubes(); if (showcase && !reduceMotion()) showcase.start(); }
   else { if (tubes) tubes.stop(); if (showcase) showcase.stopTimer(); }
   if (eng && changed) renderEngine($('#view-engine'), eng);
   if (id === 'slides') refitSlides();
   dock.setActive(id);
   $$('.nav a, .mnav a').forEach((a) => { const on = a.getAttribute('href') === '#/' + (id === 'home' ? '' : id); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-  document.title = id === 'home' ? 'KS2 Lesson Engine' : (eng ? eng.name : 'Slide Studio') + ' · KS2 Lesson Engine';
+  document.title = id === 'home' ? 'KS2 Lesson Engine' : (eng ? eng.name : ({ slides: 'Slide Studio', admin: 'Dashboard', play: 'Wonder Window' })[id]) + ' · KS2 Lesson Engine';
   if (changed) window.scrollTo({ top: 0, behavior: 'auto' });
   paintHeader();
 }
@@ -118,6 +134,13 @@ function route() {
 }
 window.addEventListener('hashchange', route);
 bus.on('present', (on) => { $('#dock').hidden = on; if (on && tubes) tubes.stop(); if (!on && current === 'home') runTubes(); });
+bus.on('who', (w) => { if (!w || !w.role) { if (current && ENGINE_BY_ID[current]) leaveEngine(); show('home'); } else route(); paintHeader(); });
+$('#pr-ticket').addEventListener('click', () => {
+  const P = presentState; if (!P.open) return;
+  const d = P.item.data;
+  bus.emit('ticket', { host: $('#present'), eng: P.eng.id, title: P.eng.presentTitle ? P.eng.presentTitle(d) : P.eng.title(d), screens: P.eng.screens(d).map((x) => x.title) });
+});
+$('#spr-ticket').addEventListener('click', () => { const info = slidesPresentInfo(); if (info) bus.emit('ticket', Object.assign({ host: $('#spresent') }, info)); });
 
 /* ---------------- Connect dialog ---------------- */
 const modal = $('#connect');
@@ -180,11 +203,13 @@ const sym = new Symphony();
 setSymphony(sym);
 initSettings();
 initChat();
+initFeedback();
 wirePresent();
 initSlides();
 engineCards();
 buildShowcase();
 paintConn();
+initPeople();
 route();
 if (conn.keyFromLink || conn.joinedNow) {
   testConnection().then(() => toast('This device is connected. Every engine is ready.'), (err) => {

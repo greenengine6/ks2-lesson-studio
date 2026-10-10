@@ -1,6 +1,7 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
 import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP } from './core.js';
+import { track } from './track.js';
 import EXAMPLE_RAW from './slides-example.js';
 import { Ribbons } from './fx/ribbons.js';
 
@@ -265,7 +266,7 @@ async function runLesson(prompt, params, title) {
   if (!hasKey()) { needKey('#make-notice'); return; }
   const ctl = new AbortController();
   state.busy = ctl; setBusy(true, title); scrollToLesson();
-  const expected = 12;
+  const expected = 12, t0 = Date.now();
   try {
     const raw = await askJSON(prompt, {
       model: CONFIG.mainModel, maxTokens: 8000, signal: ctl.signal,
@@ -278,9 +279,11 @@ async function runLesson(prompt, params, title) {
     const deck = normalizeDeck(raw, params);
     if (!deck) throw { code: 'invalid_json' };
     state.deck = deck; state.deckId = addRecent(deck); state.tab = 'slides';
+    track('deck', { eng: 'slides', title: deck.title, year: deck.year, subject: deck.subject, slides: deck.slides.length, ok: 1, ms: Date.now() - t0 });
     renderLesson(); toast('Your lesson is ready.');
   } catch (e) {
     const code = e && e.code;
+    track('deck', { eng: 'slides', title: params && params.topic || '', year: params && params.year || '', ok: 0, err: code || 'error', ms: Date.now() - t0 });
     if (code !== 'cancelled') showNotice('#make-notice', errorCopy(code, 'the lesson'), true);
   } finally { state.busy = null; setBusy(false); }
 }
@@ -523,6 +526,7 @@ async function exportPptx() {
     a.href = url; a.download = fileName(state.deck); a.rel = 'noopener';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
+    track('ppt', { eng: 'slides', title: state.deck.title });
     toast('PowerPoint downloaded. It opens in PowerPoint, Keynote and Google Slides.');
   } catch (e) { toast('The PowerPoint could not be made. Please try again.'); }
   finally { btn.disabled = false; btn.innerHTML = label; }
@@ -533,7 +537,7 @@ let ribbons = null;
 const POINTER_KEY = 'ks2-engine.pointer.v1';
 function openPresent(i) {
   const pr = state.pr;
-  pr.open = true; pr.i = Math.max(0, Math.min(i, state.deck.slides.length - 1)); pr.reveal = 0;
+  pr.open = true; pr.i = Math.max(0, Math.min(i, state.deck.slides.length - 1)); pr.reveal = 0; pr.t0 = Date.now(); pr.seen = pr.i;
   stopTimer();
   const el = $('#spresent');
   el.hidden = false;
@@ -546,6 +550,7 @@ function openPresent(i) {
   bus.emit('present', true);
 }
 function closePresent() {
+  if (state.pr.open && state.deck) track('present', { eng: 'slides', title: state.deck.title, ms: Date.now() - (state.pr.t0 || Date.now()), screens: state.deck.slides.length, seen: (state.pr.seen || 0) + 1, ex: state.deckId ? 0 : 1 });
   state.pr.open = false; stopTimer();
   if (ribbons) ribbons.stop();
   $('#spresent').hidden = true;
@@ -556,6 +561,7 @@ function closePresent() {
 function setPointer(on) { store.set(POINTER_KEY, on ? 'on' : ''); $('#spr-pointer').setAttribute('aria-pressed', String(on)); if (on) ribbons.start(); else ribbons.stop(); }
 function renderPresent() {
   const pr = state.pr, d = state.deck, s = d.slides[pr.i], frame = $('#spr-frame');
+  pr.seen = Math.max(pr.seen || 0, pr.i);
   frame.innerHTML = slideHTML(d, s, pr.i, pr.reveal);
   fitSlide(frame.firstElementChild);
   $('#spr-count').textContent = (pr.i + 1) + ' / ' + d.slides.length;
@@ -627,6 +633,7 @@ export function initSlides() {
     else if (k === 't' || k === 'T') { if (!$('#spr-timer-btn').hidden) toggleTimer(); }
     else if (k === 'n' || k === 'N') { state.pr.notes = !state.pr.notes; renderPresent(); }
     else if (k === 'p' || k === 'P') $('#spr-pointer').click();
+    else if (k === 'c' || k === 'C') $('#spr-ticket').click();
     else if (k === 'Escape' && !document.fullscreenElement) closePresent();
   });
   document.addEventListener('fullscreenchange', () => { if (state.pr.open) renderPresent(); if (ribbons) ribbons.resize(); });
@@ -636,3 +643,10 @@ export function initSlides() {
   renderLesson(); renderUnit();
 }
 export function refitSlides() { requestAnimationFrame(() => $$('.sthumb .sl').forEach(fitSlide)); }
+
+/* For the class feedback screen: what is being presented right now. */
+export function slidesPresentInfo() {
+  if (!state.pr.open || !state.deck) return null;
+  const d = state.deck;
+  return { eng: 'slides', title: d.title, screens: d.slides.filter((x) => x.type !== 'title').map((x) => x.title || (KINDS[x.type] && KINDS[x.type].label) || '').filter(Boolean).slice(0, 8) };
+}

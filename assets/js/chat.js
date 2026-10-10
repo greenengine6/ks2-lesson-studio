@@ -6,6 +6,9 @@
 import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP } from './core.js';
 import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js';
 import { settings, paintSwitches } from './settings.js';
+import { isAdmin, ADMIN_NAME } from './people.js';
+import { briefing, downloadReport } from './admin.js';
+import { track } from './track.js';
 
 const LANG_KEY = 'ks2-engine.symlang.v1';
 const T = {
@@ -49,11 +52,21 @@ const RX = {
   toEn: /\b(in english|speak english|bahasa inggeris|cakap inggeris)\b/i,
   about: /\b(who|what)\s+(are|r)\s+(you|u)\b|\babout (you|yourself|symphony)\b|\byour name\b|\bintroduce yourself\b|\bwhy .*symphony\b|\bsiapa\s+(awak|kamu|anda|nama)\b|\bkenalkan diri\b|^\s*symphony\s*[?!.]*\s*$/i,
   site: /\bwhat can (this|the) (site|website|app|engine) do\b|\bhow (do i|to) use (this|the) (site|website|app)\b|\bapa (yang )?laman ini boleh\b/i,
-  hi: /^\s*(hi|hello|hey|hiya|hai|helo|halo|assalamualaikum|selamat (pagi|petang|malam|tengah hari))( symphony)?[\s!.,]*$/i
+  hi: /^\s*(hi|hello|hey|hiya|hai|helo|halo|assalamualaikum|selamat (pagi|petang|malam|tengah hari))( symphony)?[\s!.,]*$/i,
+  report: /\b(report|reports|download|downloads|export|pdf|csv|spreadsheet|laporan|muat turun)\b/i,
+  brief: /\b(briefing|brief me|summary|summarise|summarize|overview|update me|how (are|is|did) (my|the|our) (teachers?|staff|team|week|class(es)?)|how did (we|they|everyone) do|what happened (this|last) week|ringkasan|taklimat)\b/i
 };
 
 let lang = store.get(LANG_KEY) === 'ms' ? 'ms' : 'en';
 let state = 'idle', busy = null, talk = false, rec = null, opened = false, greeted = false, lastFrom = 'text';
+let adminDigest = '', adminSpoken = '', adminLabel = 'last 7 days';
+const reportAction = () => ({ label: lang === 'ms' ? 'Muat turun laporan' : 'Download report', icon: 'download', fn: () => downloadReport() });
+async function adminGreeting() {
+  try { const b = await briefing(); adminDigest = b.digest; adminSpoken = b.spoken; adminLabel = b.label; } catch (e) { adminSpoken = ''; }
+  const hello = lang === 'ms' ? 'Hai Admin. Saya sudah sediakan taklimat anda. ' : 'Hello Admin. I have your briefing ready. ';
+  reply(hello + (adminSpoken || '') + (lang === 'ms' ? ' Tanya saya apa sahaja tentangnya, atau tekan Muat turun laporan.' : ' Ask me anything about it, or tap Download report.'), { action: reportAction() });
+  stageLine(lang === 'ms' ? 'Hai Admin' : 'Hello Admin', 320);
+}
 const history = [];
 let panel, fab, logEl, input, mic, stageWord, stageBar, stageWrap, statusEl, avatar;
 
@@ -144,7 +157,8 @@ function setState(s) {
 function addMsg(who, text, o) {
   o = o || {};
   const m = el('div', 'msg ' + (who === 'me' ? 'from-me' : 'from-sym') + (o.muted ? ' muted' : '') + (o.pending ? ' pending' : ''));
-  m.innerHTML = '<div class="mt"></div>' + (who === 'sym' && !o.muted ? '<div class="msg-tools" hidden><button type="button" data-copy>' + icon('copy') + esc(T[lang].copy) + '</button><button type="button" data-again>' + icon('volume') + esc(T[lang].again) + '</button></div>' : '');
+  m.innerHTML = '<div class="mt"></div>' + (o.action ? '<button type="button" class="btn small primary msg-act">' + icon(o.action.icon || 'download') + esc(o.action.label) + '</button>' : '') + (who === 'sym' && !o.muted ? '<div class="msg-tools" hidden><button type="button" data-copy>' + icon('copy') + esc(T[lang].copy) + '</button><button type="button" data-again>' + icon('volume') + esc(T[lang].again) + '</button></div>' : '');
+  if (o.action) $('.msg-act', m).addEventListener('click', o.action.fn);
   const mt = $('.mt', m);
   mt.textContent = text;
   logEl.appendChild(m);
@@ -167,7 +181,7 @@ function speakAll(text) { sentences(text).forEach((s) => Voice.say(s)); if (!Voi
 function sentences(t) { return (String(t).match(/[^.!?…]+[.!?…]*["”’)]*\s*/g) || [t]).map((x) => x.trim()).filter(Boolean); }
 function reply(text, o) {
   o = o || {};
-  addMsg('sym', text, { muted: o.muted });
+  addMsg('sym', text, { muted: o.muted, action: o.action });
   if (!o.muted) history.push({ role: 'assistant', content: text });
   if (o.silent) { stageLine(text.split(/\s+/).slice(0, 8).join(' ')); return; }
   speakAll(text);
@@ -183,7 +197,10 @@ function systemPrompt() {
     'Use British English spelling. If the person writes in Malay, reply in Malay (Bahasa Melayu). The current reply language is ' + (lang === 'ms' ? 'Malay' : 'English') + '. ' +
     'For children be kind, simple and encouraging, and keep everything suitable for primary school. Never ask for personal details such as full names, addresses, phone numbers or photos; if someone shares them, gently say you do not need them. ' +
     'If someone asks who you are, say you are Symphony, the helper in the KS2 Lesson Engine, a girl who speaks English and Malay and was named for her musical voice. ' +
-    'The site has ten lesson engines (Maths Reasoning, Story Spark, Reading Ladder, Science Mystery, Sound Journey, Unplugged Code, Step-by-Step, Escape Room, Brain Break, Big Debate), Slide Studio for slides and a PowerPoint download, the Wonder Window play area, Present mode with a magic pointer, timer and teacher notes, Night mode, and class feedback reports.';
+    'The site has ten lesson engines (Maths Reasoning, Story Spark, Reading Ladder, Science Mystery, Sound Journey, Unplugged Code, Step-by-Step, Escape Room, Brain Break, Big Debate), Slide Studio for slides and a PowerPoint download, the Wonder Window play area, Present mode with a magic pointer, timer and teacher notes, Night mode, and class feedback reports.' +
+    (isAdmin() && adminDigest ? '\n\nYou are now talking with ' + ADMIN_NAME + ', the admin (Head of Key Stage 2), who is signed in to her dashboard. Call her Rabinder. Here is the activity data her dashboard has worked out:\n' + adminDigest +
+      '\n\nWhen she asks about her teachers, time logged, lessons, pupils or anything in this data, answer meticulously: think it through, use the exact numbers and names above, compare where useful, say what stands out and what she might do next. Never invent numbers or people that are not in the data; if the data cannot answer, say so plainly. ' +
+      'If she wants the full detail, tables, charts, a file, something to print or share, or everything at once, tell her the full report is ready and to tap Download report.' : '');
 }
 function clean(t) {
   return String(t || '').replace(/```[\s\S]*?```/g, '').replace(/\*\*|__|`/g, '').replace(/^\s*#+\s*/gm, '').replace(/^\s*[-*•]\s+/gm, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\n{3,}/g, '\n\n').trim();
@@ -197,6 +214,12 @@ async function ask(text, from) {
   if (busy) { busy.abort(); busy = null; }
   addMsg('me', text);
   history.push({ role: 'user', content: text });
+  track('chat', { via: lastFrom, lang });
+  if (isAdmin()) {
+    try { const b = await briefing(); adminDigest = b.digest; adminSpoken = b.spoken; adminLabel = b.label; } catch (e) { /* keep the last one */ }
+    if (RX.report.test(text)) { reply((lang === 'ms' ? 'Laporan anda untuk ' : 'Your full report for ') + adminLabel.toLowerCase() + (lang === 'ms' ? ' sudah sedia. Tekan Muat turun laporan.' : ' is ready, with every table and chart. Tap Download report.'), { action: reportAction() }); return; }
+    if (RX.brief.test(text) || !hasKey()) { reply(adminSpoken + (lang === 'ms' ? ' Untuk butiran penuh, tekan Muat turun laporan.' : ' For the full detail, tap Download report.'), { action: reportAction() }); return; }
+  }
   if (RX.toMs.test(text)) { setLang('ms'); reply(T.ms.toMs); return; }
   if (RX.toEn.test(text)) { setLang('en'); reply(T.en.toEn); return; }
   if (RX.about.test(text)) { reply(SYMPHONY_ABOUT[lang]); return; }
@@ -299,8 +322,9 @@ export function openChat(o) {
   panel.hidden = false;
   fab.setAttribute('aria-expanded', 'true');
   document.body.classList.add('symc-open');
-  if (o.about) { Voice.unlock(); Voice.stop(); addMsg('me', lang === 'ms' ? 'Siapa awak, Symphony?' : 'Who are you, Symphony?'); history.push({ role: 'user', content: lang === 'ms' ? 'Siapa awak?' : 'Who are you?' }); reply(SYMPHONY_ABOUT[lang]); greeted = true; }
-  else if (first && !greeted) { greeted = true; addMsg('sym', T[lang].hello); stageLine(T[lang].stageHello, 300); }
+  if (o.brief && isAdmin()) { Voice.unlock(); greeted = true; adminGreeting(); }
+  else if (o.about) { Voice.unlock(); Voice.stop(); addMsg('me', lang === 'ms' ? 'Siapa awak, Symphony?' : 'Who are you, Symphony?'); history.push({ role: 'user', content: lang === 'ms' ? 'Siapa awak?' : 'Who are you?' }); reply(SYMPHONY_ABOUT[lang]); greeted = true; }
+  else if (first && !greeted) { greeted = true; if (isAdmin()) adminGreeting(); else { addMsg('sym', T[lang].hello); stageLine(T[lang].stageHello, 300); } }
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) setTimeout(() => input.focus(), 60);
 }
 export function closeChat() {
@@ -366,4 +390,5 @@ export function initChat() {
   bus.on('present', (on) => { fab.classList.toggle('away', !!on); if (on) closeChat(); });
   bus.on('header', (h) => fab.classList.toggle('tone-dark', !!h));
   bus.on('voice', (v) => { if (!v) Voice.stop(); });
+  bus.on('who', () => { closeChat(); history.length = 0; if (logEl) logEl.innerHTML = ''; greeted = false; opened = false; adminDigest = ''; adminSpoken = ''; });
 }

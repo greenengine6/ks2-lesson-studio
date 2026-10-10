@@ -3,6 +3,7 @@
 import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG } from '../core.js';
 import { Ribbons } from '../fx/ribbons.js';
 import { Ambient, Speech } from '../fx/sound.js';
+import { track } from '../track.js';
 
 /* ---------------- how pupils respond (online or in class) ---------------- */
 export const RESPOND = {
@@ -201,7 +202,8 @@ async function generate(eng, input) {
   go.disabled = true; $('span', go).textContent = 'Making…';
   meter.hidden = false; stop.hidden = false; $('i', meter).style.width = '5%';
   say('<b>Thinking…</b> ' + esc(eng.sym.thinking || 'Planning it for your class.'), 'think');
-  const expected = JSON.stringify(eng.example.data).length * 1.05;
+  const expected = JSON.stringify(eng.example.data).length * 1.05, t0 = Date.now();
+  const topicOf = () => { const f = eng.fields.find((x) => x.type === 'text' || x.type === 'textarea'); return f ? String(input[f.id] || '').slice(0, 80) : ''; };
   const resEl = $('#eng-result');
   resEl.innerHTML = '<div class="skeleton" aria-hidden="true"></div>';
   let lastLabel = '';
@@ -218,6 +220,7 @@ async function generate(eng, input) {
     const data = eng.normalize(raw, input);
     if (!data) throw new AiError('invalid_json');
     const item = { id: uid(eng.id), at: Date.now(), input, data, example: false };
+    track('gen', { eng: eng.id, title: eng.title(data), year: input.year || '', ok: 1, ms: Date.now() - t0 });
     putSaved(eng.id, item);
     showItem(item);
     renderSavedList();
@@ -226,6 +229,7 @@ async function generate(eng, input) {
     $('#eng-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     const code = e && e.code;
+    track('gen', { eng: eng.id, title: topicOf(), year: input.year || '', ok: 0, err: code || 'error', ms: Date.now() - t0 });
     if (code === 'cancelled') say('Stopped. Change anything you like and press the button again.', 'idle');
     else {
       notice(esc(errorCopy(code, 'this activity')) + (code === 'no_key' || code === 'bad_key' ? '<br><button type="button" class="btn small" data-connect>' + icon('key') + 'Connect</button>' : ''), true);
@@ -306,11 +310,13 @@ function copyNotes(eng, item) {
   const secs = eng.notes(d, prefs.mode).filter(Boolean).map((s) => s.table ? { h: s.h, list: s.table.rows.map((r) => r.join(' · ')) } : s);
   const { html, text } = sectionsToCopy(eng.title(d) + ': teacher notes', eng.name + ' · ' + eng.sub(d, item.input), secs);
   copyOut(html, text, 'Teacher notes copied. Paste them into an email, Word or OneNote.');
+  track('copy', { eng: eng.id, what: 'notes' });
 }
 function copyChat(eng, item) {
   const out = eng.chat(item.data, prefs.mode);
   const { html, text } = sectionsToCopy(out.title, out.sub || '', out.sections);
   copyOut(html, text, 'Copied for your class. Paste it into the Teams, Zoom or Meet chat.');
+  track('copy', { eng: eng.id, what: 'chat' });
 }
 
 /* ---------------- Present mode ---------------- */
@@ -324,7 +330,7 @@ export function leaveEngine() {
 }
 export function openPresent(eng, item, start) {
   if (page && page.ctx && page.ctx.cleanup) { page.ctx.cleanup(); page.ctx = null; }
-  Object.assign(P, { open: true, eng, item, i: start || 0 });
+  Object.assign(P, { open: true, eng, item, i: start || 0, t0: Date.now(), seen: start || 0 });
   const el = $('#present');
   el.hidden = false;
   el.style.setProperty('--c', 'var(--' + eng.color + ')');
@@ -340,6 +346,7 @@ export function openPresent(eng, item, start) {
 }
 export function closePresent() {
   if (!P.open) return;
+  track('present', { eng: P.eng.id, title: P.eng.presentTitle ? P.eng.presentTitle(P.item.data) : P.eng.title(P.item.data), ms: Date.now() - (P.t0 || Date.now()), screens: P.eng.screens(P.item.data).length, seen: (P.seen || 0) + 1, ex: P.item.example ? 1 : 0 });
   P.open = false;
   stopTimer();
   if (P.ctx && P.ctx.cleanup) P.ctx.cleanup();
@@ -355,6 +362,7 @@ export function closePresent() {
 function paintPresent() {
   const screens = P.eng.screens(P.item.data);
   P.i = Math.max(0, Math.min(P.i, screens.length - 1));
+  P.seen = Math.max(P.seen || 0, P.i);
   if (P.ctx && P.ctx.cleanup) P.ctx.cleanup();
   const fit = $('#pr-fit');
   fit.innerHTML = '<div class="board"></div>';
@@ -425,6 +433,7 @@ export function wirePresent() {
     else if (k === 'p' || k === 'P') setPointer(!P.pointer);
     else if (k === 'n' || k === 'N') $('#pr-notes-btn').click();
     else if (k === 't' || k === 'T') $('#pr-timer-btn').click();
+    else if (k === 'c' || k === 'C') $('#pr-ticket').click();
     else if (k === 'f' || k === 'F') $('#pr-full').click();
     else if (k === 'Escape') { if (!$('#pr-timer-menu').hidden) { $('#pr-timer-menu').hidden = true; } else if (!document.fullscreenElement) closePresent(); }
     else if (P.ctx && P.ctx.onKey) P.ctx.onKey(e);
