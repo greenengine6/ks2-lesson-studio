@@ -133,7 +133,7 @@ function teacherForm() {
     '<label class="hg-f hg-pin"><span>PIN</span><input type="password" id="hg-pin" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="••••••"></label>' +
     '<button class="btn glow big hg-go" type="submit">' + icon('play') + 'Start teaching</button></div><datalist id="hg-names"></datalist>' +
     '<p class="hg-err" role="alert" hidden></p>' +
-    '<p class="hg-none" hidden><b>This device is not set up yet.</b> Ask Rabinder for your personal link and open it once here. Your PIN is yours: please do not share it.</p>' +
+    '<p class="hg-none" hidden>' + icon('link') + '<span><b>First time on this device?</b> Open the personal link Rabinder sent you once, then sign in here with your name and PIN. Your PIN is yours: please do not share it.</span></p>' +
     '<p class="hg-note">' + icon('info') + '<span>For Rabinder’s reports this site records your teaching time, lessons made and taught, and class feedback. It never records pupils’ names or what you ask Symphony.</span></p>' +
     '<p class="hg-links"><button type="button" class="hg-admin" data-admin-signin>' + icon('key') + 'Admin sign-in</button></p>';
   host.addEventListener('click', (e) => {
@@ -145,9 +145,9 @@ function teacherForm() {
     e.preventDefault();
     const err = $('.hg-err', host), name = $('#hg-name').value.trim(), pin = $('#hg-pin').value.trim(), go = $('.hg-go', host);
     const list = profiles();
-    if (!list.length) { say(err, 'This device is not set up yet. Ask Rabinder for your personal link.'); return; }
-    const p = chosen && chosen.n.toLowerCase() === name.toLowerCase() ? chosen : list.find((x) => x.n.toLowerCase() === name.toLowerCase());
     if (!name) { say(err, 'Type your name first.'); $('#hg-name').focus(); return; }
+    if (!list.length) { say(err, 'This device does not know any teachers yet. Open the personal link Rabinder sent you once on this device, then sign in here.'); return; }
+    const p = chosen && chosen.n.toLowerCase() === name.toLowerCase() ? chosen : list.find((x) => x.n.toLowerCase() === name.toLowerCase());
     if (!p) { say(err, 'That name is not set up on this device. Check the spelling, or ask Rabinder for your personal link.'); return; }
     const wait = lockLeft(p.id);
     if (wait) { say(err, 'Too many tries. Wait ' + wait + ' seconds, then try again.'); return; }
@@ -178,7 +178,7 @@ function paintTeacher() {
   $('#hg-names').innerHTML = list.map((p) => '<option value="' + esc(p.n) + '"></option>').join('');
   paintPicks();
   $('.hg-none', heroForm).hidden = list.length > 0;
-  $('.hg-row', heroForm).hidden = !list.length;
+  $('.hg-row', heroForm).hidden = false;
 }
 
 /* ---------------- "Hello Admin": the only login ---------------- */
