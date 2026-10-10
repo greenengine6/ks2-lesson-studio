@@ -248,10 +248,10 @@ export function reportHTML(m, o) {
   '<div class="meta"><span>' + esc(fmtDate(Math.max(m.per.from, firstAt(m) || m.per.from))) + ' to ' + esc(fmtDate(m.per.to)) + '</span><span>Generated ' + esc(fmtDate(Date.now()) + ' ' + fmtTime(Date.now())) + '</span><span>' + esc(String(o.sources || 1)) + ' data source' + ((o.sources || 1) === 1 ? '' : 's') + '</span></div></div>' +
   '<div class="btns"><button type="button" id="pr">Print or save as PDF</button></div>' +
   '<section><h2><i></i>At a glance</h2><div class="kpis">' +
-    kpi(fmtDur(T.act), 'Teaching time logged', '#6C63FF', T.sessions + ' sessions') + kpi(T.people + (T.enrolled ? ' / ' + T.enrolled : ''), 'Teachers active', '#2C9C96', T.enrolled ? 'of those enrolled' : '') +
+    kpi(fmtDur(T.act), 'Teaching time logged', '#6C63FF', pl(T.sessions, 'session', 'sessions')) + kpi(T.people + (T.enrolled ? ' / ' + T.enrolled : ''), 'Teachers active', '#2C9C96', T.enrolled ? 'of those enrolled' : '') +
     kpi(T.ok, 'Lessons made', '#4F5BD5', T.fail ? T.fail + ' failed' : 'none failed') + kpi(T.presents, 'Lessons presented', '#E07B2E', fmtDur(T.presentMs) + ' on screen') +
-    kpi(T.votes ? round1(T.mood) + ' / 5' : '–', 'Class mood', moodColour(T.mood), T.votes + ' pupil answers') + kpi(T.fb ? round1(T.rating) + ' / 5' : '–', 'Teacher rating', '#C38A12', T.fb + ' responses') +
-    kpi(m.deviations.length, 'Things to look at', m.deviations.some((d) => d.sev === 'high') ? '#DC2626' : m.deviations.length ? '#D97706' : '#16A34A', m.deviations.filter((d) => d.sev === 'high').length + ' important') + kpi(T.chats, 'Questions to Symphony', '#9A55CF', T.plays + ' Wonder Window scenes') +
+    kpi(T.votes ? round1(T.mood) + ' / 5' : '–', 'Class mood', moodColour(T.mood), pl(T.votes, 'pupil answer', 'pupil answers')) + kpi(T.fb ? round1(T.rating) + ' / 5' : '–', 'Teacher rating', '#C38A12', pl(T.fb, 'response', 'responses')) +
+    kpi(m.deviations.length, 'Things to look at', m.deviations.some((d) => d.sev === 'high') ? '#DC2626' : m.deviations.length ? '#D97706' : '#16A34A', m.deviations.filter((d) => d.sev === 'high').length + ' important') + kpi(T.chats, 'Questions to Symphony', '#9A55CF', pl(T.plays, 'Wonder Window scene', 'Wonder Window scenes')) +
   '</div></section>' +
   (o.analysis ? '<section><h2><i style="background:#E2558A"></i>Symphony’s analysis</h2>' + o.analysis + '</section>' : '') +
   '<section><h2><i style="background:#2C9C96"></i>Briefing</h2><ul class="brief">' + brief + '</ul></section>' +

@@ -33,6 +33,7 @@ const kpi = (n, l, sub, tone) => '<div class="akpi' + (tone ? ' ' + tone : '') +
 const bar = (v, max) => '<span class="abar"><i style="width:' + (max ? Math.max(2, Math.round(100 * v / max)) : 0) + '%"></i></span>';
 const sev = (s) => '<span class="asev ' + s + '">' + ({ high: 'Important', medium: 'Check', low: 'Note' })[s] + '</span>';
 const r1 = (v) => Math.round(v * 10) / 10;
+const pl = (v, one, many) => v + ' ' + (v === 1 ? one : many);
 const moodTone = (v) => (!v ? '' : v >= 4 ? 'good' : v >= 3 ? 'ok' : 'bad');
 
 function daysChart(days) {
@@ -62,10 +63,10 @@ export async function renderAdmin(host) {
       '<div class="adm-tools"><div class="seg" role="group" aria-label="Period">' + [['week', '7 days'], ['month', '30 days'], ['term', 'School year'], ['all', 'All']].map(([k, l]) => '<button type="button" data-range="' + k + '" aria-pressed="' + (range === k) + '">' + l + '</button>').join('') + '</div>' +
       '<div class="adm-btns"><button type="button" class="btn primary" data-dl-report>' + icon('download') + 'Download report</button><button type="button" class="btn" data-analysis>' + icon('spark') + (analysis ? 'Refresh analysis' : 'Symphony’s analysis') + '</button><button type="button" class="btn" data-ask>' + icon('chat') + 'Ask Symphony</button><button type="button" class="btn" data-csv>' + icon('download') + 'CSV</button></div></div></header>' +
     '<div class="akpis">' +
-      kpi(fmtDur(T.act), 'Teaching time', T.sessions + ' sessions') + kpi(T.people + (T.enrolled ? ' / ' + T.enrolled : ''), 'Teachers active', T.enrolled ? 'of those enrolled' : 'enrol teachers below') +
+      kpi(fmtDur(T.act), 'Teaching time', pl(T.sessions, 'session', 'sessions')) + kpi(T.people + (T.enrolled ? ' / ' + T.enrolled : ''), 'Teachers active', T.enrolled ? 'of those enrolled' : 'enrol teachers below') +
       kpi(T.ok, 'Lessons made', T.fail ? T.fail + ' failed' : 'none failed', T.fail ? 'warn' : '') + kpi(T.presents, 'Presented', fmtDur(T.presentMs) + ' on screen') +
-      kpi(T.votes ? r1(T.mood) + ' / 5' : '–', 'Class mood', T.votes + ' pupil answers', moodTone(T.mood)) + kpi(T.fb ? r1(T.rating) + ' / 5' : '–', 'Teacher rating', T.fb + ' responses') +
-      kpi(m.deviations.length, 'To look at', m.deviations.filter((d) => d.sev === 'high').length + ' important', m.deviations.some((d) => d.sev === 'high') ? 'bad' : m.deviations.length ? 'warn' : 'good') + kpi(T.chats, 'Asked Symphony', T.plays + ' Wonder Window scenes') +
+      kpi(T.votes ? r1(T.mood) + ' / 5' : '–', 'Class mood', pl(T.votes, 'pupil answer', 'pupil answers'), moodTone(T.mood)) + kpi(T.fb ? r1(T.rating) + ' / 5' : '–', 'Teacher rating', pl(T.fb, 'response', 'responses')) +
+      kpi(m.deviations.length, 'To look at', m.deviations.filter((d) => d.sev === 'high').length + ' important', m.deviations.some((d) => d.sev === 'high') ? 'bad' : m.deviations.length ? 'warn' : 'good') + kpi(T.chats, 'Asked Symphony', pl(T.plays, 'Wonder Window scene', 'Wonder Window scenes')) +
     '</div>' +
     (analysis || busyAnalysis ? '<section class="card asec wide" id="a-analysis"><h2>' + icon('spark') + 'Symphony’s analysis</h2>' + (busyAnalysis ? '<p class="fine">Symphony is reading the numbers…</p>' : analysisHTML(analysis).replace('class="brief"', 'class="alist"')) + '</section>' : '') +
     '<div class="agrid">' +

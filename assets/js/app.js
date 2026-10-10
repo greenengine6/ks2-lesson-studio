@@ -14,7 +14,9 @@ import { track } from './track.js';
 import { initPeople, who, isAdmin, requireAdmin } from './people.js';
 import { initFeedback } from './feedback.js';
 import { renderAdmin } from './admin.js';
+import { initPlay } from './play.js';
 
+const PLAY = { id: 'play', name: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'A play area for the whole class: starlings, fireflies, the planets and the northern lights, with facts Symphony reads aloud.', chips: ['Earth, nature and space', 'Shared screen'] };
 const SLIDES = { id: 'slides', name: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
 
 /* ---------------- header ---------------- */
@@ -50,7 +52,7 @@ const dock = new Dock($('#dock'), dockItems, { base: 50, magnification: 80, dist
 function engineCards() {
   const card = (e, wide) => '<button type="button" class="ecard' + (wide ? ' wide' : '') + '" data-go="' + e.id + '" style="--c:var(--' + e.color + ')"><span class="ewell">' + icon(e.icon) + '</span>' +
     '<h3>' + esc(e.name) + '</h3><p>' + esc(e.tagline) + '</p><span class="etags">' + e.chips.slice(0, 2).map((c) => '<span class="chip">' + esc(c) + '</span>').join('') + '</span><span class="go" aria-hidden="true">' + icon('right') + '</span></button>';
-  $('#egrid').innerHTML = card(SLIDES, true) + ENGINES.map((e) => card(e)).join('');
+  $('#egrid').innerHTML = card(SLIDES, true) + ENGINES.map((e) => card(e)).join('') + card(PLAY, true);
   $$('#egrid [data-go]').forEach((b) => b.addEventListener('click', () => go(b.dataset.go)));
 }
 let showcase = null;
@@ -204,6 +206,7 @@ setSymphony(sym);
 initSettings();
 initChat();
 initFeedback();
+initPlay();
 wirePresent();
 initSlides();
 engineCards();

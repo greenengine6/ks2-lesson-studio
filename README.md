@@ -2,68 +2,113 @@
 
 Made with ♥ by Rabinder Kaur, Head of Key Stage 2.
 
-Ten engines and a slide studio that turn one topic into a two-way online lesson for Years 3 to 6. Each one makes a **class screen to share** on Teams, Zoom or Meet, plus **teacher notes** to keep. Every engine ships with a finished example, so it can be used before anything is generated.
+Ten lesson engines, a slide studio and a play area that turn one topic into a two-way online lesson for Years 3 to 6. Each engine makes a **class screen to share** on Teams, Zoom or Meet, plus **teacher notes** to keep. Every engine ships with a finished example, so it can be used before anything is generated.
 
 **Live site:** https://greenengine6.github.io/ks2-lesson-studio/
 
-## The engines
+## Who signs in
 
-| Engine | What pupils do |
+| Who | How |
 |---|---|
-| **Slide Studio** | The original lesson builder: about 12 two-way slides, answers, lesson plan, Adapt, unit planning, PowerPoint download. |
-| **Maths Reasoning** | “Which one doesn’t belong?” (every answer can be right), then an Open Middle puzzle the class tries live. The board checks answers and finds the best one by trying every option. |
-| **Story Spark** | A mystery scene with moving weather, revealed line by line; see/think/wonder, a word bank, a model paragraph with its features highlighted, the writing task. |
-| **Reading Ladder** | One text at three reading levels (same facts, same key words), tap-to-define words, VIPERS questions with answers to reveal. |
-| **Science Mystery** | A puzzling case file, notice and wonder, a live class vote on predictions, a safe home investigation, the big reveal and myth-busting. |
-| **Sound Journey** | Eyes closed: the screen reads a journey over live rain, forest, river or city sounds; then guess the place, fact file, here vs there, say hello in the local language. |
-| **Unplugged Code** | A robot grid the class programs with F, L, R (and repeats); a buggy algorithm to debug; an unplugged game for home. The grid is checked to be solvable. |
-| **Step-by-Step** | Any task broken into small timed steps with Now / Next / Then, a tick-off checklist and a word bank with home-language words (SEND and EAL). |
-| **Escape Room** | A story mission where each lock is a card: a correct code drops it away and brings the next lock forward. Timer, hints and a finale. |
-| **Brain Break** | A timed calm-down or wake-up script led by Symphony, who grows on breathe-in and shrinks on breathe-out, with read-aloud and nature sounds. |
-| **Big Debate** | Paste a news story: a balanced debate or assembly with before-and-after live votes, arguments on both sides and oracy stems. |
+| **Teachers** | The landing page asks *Who’s teaching today?*: their name and the PIN Rabinder gave them. They open their **personal link** once on their own device. On a shared classroom laptop, Rabinder’s **classroom link** sets up every enrolled teacher at once. |
+| **Rabinder (admin)** | The only login: **Hello Admin**, with *Rabinder Kaur* pre-filled. She uses her password on a new device, then sets up a **passkey** (Face ID, fingerprint or the screen lock) on her laptop and phone. |
+| **Pupils** | Never sign in. They answer the class feedback faces on the shared screen, and no names are stored. |
 
-**Present mode** (every engine): full screen, Magic pointer (ribbons follow the mouse so pupils on a call can see where you point; key P), timer (T), teacher notes (N), arrow keys between screens.
+PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name for a while.
 
-**Online / In class** (top right) switches every “how to respond” prompt between chat-based and classroom wording.
+## What is inside
 
-## Setup (once per device)
+| Part | What it does |
+|---|---|
+| **Slide Studio** | About 12 two-way slides with answers, a lesson plan, Adapt, unit planning and a PowerPoint download. |
+| **Maths Reasoning** | “Which one doesn’t belong?” then an Open Middle puzzle the class tries live. The board checks every answer. |
+| **Story Spark** | A mystery scene revealed line by line, with see/think/wonder, a word bank and a model paragraph. |
+| **Reading Ladder** | One text at three reading levels, tap-to-define words, and VIPERS questions. |
+| **Science Mystery** | A case file, a live class vote, a safe home investigation and the big reveal. |
+| **Sound Journey** | A journey read over live nature or city sounds, then guess the place. |
+| **Unplugged Code** | A robot grid the class programs (checked to be solvable), plus a bug to fix. |
+| **Step-by-Step** | Any task in small timed steps for SEND and EAL. |
+| **Escape Room** | Code locks that drop away when cracked, with a timer and hints. |
+| **Brain Break** | A timed calm-down led by Symphony, who breathes with the class. |
+| **Big Debate** | A news story becomes a fair debate with before-and-after votes. |
+| **Wonder Window** | A full-screen play area for the whole class: starlings dodging a falcon, fireflies that learn to flash together, the planets at their real relative speeds, and the northern lights. Symphony reads the facts, and wonder questions appear for the chat. |
+| **Symphony** | The helper. She is a girl who speaks English and Malay and was named for her musical voice. Click her, or tap **Ask Symphony**, to ask anything by text or by voice. On phones she answers out loud, then listens again. |
 
-1. Sign in at **console.anthropic.com**, add credit and set a monthly spend limit under **Limits**.
-2. Create a key under **API keys**.
-3. Open the site, press **Connect** (top right, or the key at the end of the dock), paste the key and press **Save and test**.
+**Present mode** (every engine and Slide Studio) gives you:
+- full screen;
+- **Magic pointer** (P), timer (T) and teacher notes (N);
+- **Class feedback** (C): five faces, keys 1–5 to count, and "best bit".
 
-**Set up someone else’s device without telling them the key:** on a connected device, open **Connect → Copy a one-tap setup link** and send it privately. Opening the link once saves the key in that browser and removes it from the address bar. Anyone who has the link can use the key, so delete the message afterwards. To cut off every device, delete the key in the Anthropic Console.
+**Switches** (header, menu and the lit cards on the home page):
+- Night mode;
+- Symphony’s voice;
+- Magic pointer;
+- Teaching online.
 
-## Privacy
+Class screens stay bright in Night mode, because they are what pupils see.
 
-- The key and all saved activities stay **in that browser only** (local storage). The page’s security policy only allows requests to `api.anthropic.com` and Google Fonts.
-- The site is hidden from search engines and does nothing without a key.
-- The engines ask for topics, not pupils. Don’t type pupils’ names or personal details into the boxes.
+## Rabinder’s dashboard and report
 
-## Updating
+After *Hello Admin*, the dashboard shows:
+- **Teaching time:** active minutes only.
+- **Activity:** sessions, lessons made and presented, and engines used.
+- **Feedback:** class mood, best bits and teacher feedback.
+- **Deviations to look at:**
+  - no sessions for 7 days;
+  - repeated failed lessons;
+  - sessions after 9 pm;
+  - very short or 3-hour sessions;
+  - slow lesson making;
+  - a big drop in weekly time;
+  - class mood under 3;
+  - few feedback screens;
+  - low ratings.
 
-- Models are set in the small `config` block in `index.html` (`mainModel`, `quickModel`).
-- Each engine is one file in `assets/js/engines/` with its fields, prompt, example, class screens and teacher notes.
-- Push to `main`; GitHub Pages republishes in about a minute.
+From the dashboard, Rabinder can:
+- **Download report:** a print-ready HTML report with a briefing, actions for the week, tables and charts. Open it, then *Print or save as PDF*.
+- **CSV:** download the raw data for Excel.
+- **Symphony’s analysis:** a written analysis that is added to the next report.
+- **Ask Symphony:** she gives a prepared briefing, answers questions about the data by voice or text, and points to *Download report* for the full detail.
+- **Teachers and PINs:** enrol a teacher, copy their personal link, give a new PIN, or remove them.
+- **Activity from teachers:** each teacher presses **Send my activity to Rabinder**, which downloads a locked file (ECDH P-256 + AES-GCM) that only this dashboard can open. Drop the files in.
 
-## Optional: private link on Vercel
+The activity log lives in each browser (IndexedDB). It never records pupils’ names or what anyone asks Symphony.
 
-`api/claude.js` lets the site run on Vercel with the key kept on the server (`ANTHROPIC_API_KEY`) and teachers joining with `https://<vercel-address>/#join=<ACCESS_CODE>`. Not needed for GitHub Pages.
+## Setup
+
+1. **Connect once.** On the first device, press **Connect** and paste the engine key, or open the owner’s one-tap link. The key stays in that browser.
+2. **Admin.** Rabinder signs in with her password (handed over privately; it is not stored in this repository). Only a salted PBKDF2 check and an encrypted key are in `index.html`. She then sets up a passkey on each device.
+3. **Teachers.** Enrol each one on the dashboard and send them their personal link privately. Tell them their PIN yourself.
+
+## Privacy and protection
+
+- The site is hidden from search engines. The page’s security policy only allows requests to the engine API and Google Fonts.
+- It blocks right-click, text selection and copying (except the site’s own Copy buttons), dragging, printing, and the save, view-source and developer-tools shortcuts.
+- It blanks the page when a screenshot shortcut is pressed, and pauses while developer tools are open.
+- These are deterrents. No website can stop a phone camera or someone reading published code.
+- Screen sharing on Teams, Zoom and Meet keeps working.
 
 ## Files
 
 ```
-index.html               page shell, Connect dialog, Present overlays
-assets/css/              app.css (neumorphic design system), board.css (class screens), slides.css
-assets/js/app.js         routing, header, dock, landing page
-assets/js/core.js        Claude connection (streaming), storage, copying
-assets/js/slides.js      Slide Studio
-assets/js/engines/       the ten engines + shared framework
-assets/js/fx/            Tubes, Symphony, Waves, Ribbons, CardSwap, Dock, sounds, particles
+index.html               page shell, config (models, admin check), overlays
+assets/css/              app (design system), lumen (night mode, luminous switches), board, slides,
+                         chat (Symphony), people (sign-in, dashboard, class feedback), play (Wonder Window)
+assets/js/app.js         routing, header, dock, landing page, Connect
+assets/js/core.js        engine connection (streaming), storage, copying
+assets/js/people.js      landing sign-in, Hello Admin, passkeys, enrolment links
+assets/js/track.js       activity log (sessions, lessons, feedback)
+assets/js/report.js      metrics, deviations, briefing, report template, CSV
+assets/js/admin.js       Rabinder's dashboard
+assets/js/feedback.js    teacher feedback, class feedback, Send to Rabinder
+assets/js/chat.js        Symphony chat (voice and text, English and Malay)
+assets/js/play.js        Wonder Window scenes
+assets/js/security.js    protection deterrents
+assets/js/crypto.js, idb.js, settings.js, theme.js, slides.js, engines/, fx/
 ```
 
 ## Credits
 
-- Visual effects are vanilla re-implementations (no libraries) inspired by: Tubes cursor (Kevin Levron, threejs-components), CardSwap and Ribbons (React Bits), MagnificationDock, Interactive Waves.
+- Visual effects are vanilla re-implementations (no libraries), inspired by Tubes cursor (Kevin Levron, threejs-components), CardSwap and Ribbons (React Bits), MagnificationDock and Interactive Waves.
 - PowerPoint export: [PptxGenJS](https://github.com/gitbrent/PptxGenJS) 4.0.1, MIT licence (`assets/PPTXGENJS-LICENSE.txt`).
-- Slide fonts: TeX Gyre Adventor and Schola, GUST Font Licence (`assets/fonts/TEX-GYRE-LICENSE.txt`). Interface fonts: Plus Jakarta Sans and DM Sans from Google Fonts.
+- Slide fonts: TeX Gyre Adventor and Schola, GUST Font Licence. Interface fonts: Plus Jakarta Sans, DM Sans and JetBrains Mono from Google Fonts.
