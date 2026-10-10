@@ -1,11 +1,11 @@
-/* Engine 9: Brain Break. A timed script that Lumi leads: she grows as pupils breathe in and shrinks as they
+/* Engine 9: Brain Break. A timed script that Symphony leads: she grows as pupils breathe in and shrinks as they
    breathe out, over calm moving waves, with optional read-aloud and ocean, rain or forest sounds. */
 import { esc, str, arr, strs, num, clamp, icon, reduceMotion } from '../core.js';
 import { B } from './shared.js';
 import { buildPrompt } from './prompt.js';
 import { Waves } from '../fx/waves.js';
 import { Ambient, Speech } from '../fx/sound.js';
-import { Lumi } from '../fx/lumi.js';
+import { Symphony } from '../fx/symphony.js';
 
 const CUES = { in: 'Breathe in', out: 'Breathe out', hold: 'Hold', still: 'Relax', listen: 'Listen', move: 'Move' };
 const TYPES = ['Calm breathing', 'Stretch and move', 'Focus and grounding', 'Visualisation', 'Gratitude', 'Energiser'];
@@ -41,7 +41,7 @@ const EXAMPLE = {
     { say: 'Slowly open your eyes. Notice how calm your body feels.', seconds: 15, cue: 'still' }
   ],
   closing: 'Well done. Take that calm feeling with you into the next part of our lesson.',
-  adapt: ['Pupils can keep their eyes open and watch Lumi breathe.', 'Hands on tummies helps pupils feel each breath rise and fall.', 'Anyone who feels uncomfortable can draw slow waves on paper instead.'],
+  adapt: ['Pupils can keep their eyes open and watch Symphony breathe.', 'Hands on tummies helps pupils feel each breath rise and fall.', 'Anyone who feels uncomfortable can draw slow waves on paper instead.'],
   why: 'Slow breathing with a longer breath out helps the body calm down and get ready to learn.'
 };
 
@@ -77,7 +77,7 @@ function soundFor(d) {
   return 'ocean';
 }
 
-let pacerLumi = null;
+let pacerSym = null;
 const ease = (x) => 0.5 - 0.5 * Math.cos(Math.PI * x);
 
 const screens = (eng) => [{
@@ -95,12 +95,12 @@ const screens = (eng) => [{
     if (!ctx.still) waves = new Waves(board, { lineColor: 'rgba(26,156,184,.22)', waveSpeedX: 0.008, waveSpeedY: 0.004, waveAmpX: 36, waveAmpY: 18, xGap: 12, yGap: 36 });
     const body = B.body(board);
     const R = 46, C = 2 * Math.PI * R;
-    body.innerHTML = '<div class="pacer"><div class="pace-orb"><svg class="pace-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="' + R + '"/><circle class="bar" cx="50" cy="50" r="' + R + '" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + C.toFixed(2) + '"/></svg><div class="pace-lumi"></div></div>' +
+    body.innerHTML = '<div class="pacer"><div class="pace-orb"><svg class="pace-ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="' + R + '"/><circle class="bar" cx="50" cy="50" r="' + R + '" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + C.toFixed(2) + '"/></svg><div class="pace-sym"></div></div>' +
       '<div class="pace-txt"><span class="pace-cue"></span><p class="pace-say"></p></div></div>';
-    const host = body.querySelector('.pace-lumi'), cue = body.querySelector('.pace-cue'), sayEl = body.querySelector('.pace-say'), bar = body.querySelector('.bar'), leftEl = board.querySelector('.pace-left');
-    let lumi = null;
-    if (!ctx.still) { if (!pacerLumi) pacerLumi = new Lumi(); lumi = pacerLumi; lumi.mount(host); lumi.setState('breathe'); }
-    else host.innerHTML = '<div class="lumi lumi--css"><div class="lumi-float"><div class="lumi-css" style="display:block"></div></div></div>';
+    const host = body.querySelector('.pace-sym'), cue = body.querySelector('.pace-cue'), sayEl = body.querySelector('.pace-say'), bar = body.querySelector('.bar'), leftEl = board.querySelector('.pace-left');
+    let sym = null;
+    if (!ctx.still) { if (!pacerSym) pacerSym = new Symphony(); sym = pacerSym; sym.mount(host); sym.setState('breathe'); }
+    else host.innerHTML = '<div class="sym sym--css"><div class="sym-float"><div class="sym-css" style="display:block"></div></div></div>';
     let raf = 0, last = 0, cur = -1;
     const stepAt = (t) => { let a = 0; for (let i = 0; i < d.steps.length; i++) { if (t < a + d.steps[i].seconds) return { i, start: a, p: (t - a) / d.steps[i].seconds }; a += d.steps[i].seconds; } return { i: d.steps.length, start: total, p: 1 }; };
     const breathFor = (s, p, t) => {
@@ -121,7 +121,7 @@ const screens = (eng) => [{
         if (st.playing && s && st.voice) { Speech.stop(); Speech.speak(s.say, { lang: 'en-GB', rate: 0.86, pitch: 1 }); }
         if (st.playing && !s) { if (st.voice && d.closing) Speech.speak(d.closing, { lang: 'en-GB', rate: 0.86 }); setTimeout(() => Ambient.stop(), 3500); }
       }
-      if (lumi) lumi.setBreath(breathFor(s, at.p, (now || 0) / 1000));
+      if (sym) sym.setBreath(breathFor(s, at.p, (now || 0) / 1000));
       bar.style.strokeDashoffset = (C * (1 - Math.min(1, st.t / total))).toFixed(2);
       const left = Math.max(0, Math.ceil(total - st.t));
       leftEl.textContent = st.t <= 0 ? Math.round(total / 60 * 10) / 10 + ' minutes · ' + d.steps.length + ' steps' : Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0') + ' left';
@@ -137,7 +137,7 @@ const screens = (eng) => [{
       paint(now);
       if (st.playing) raf = requestAnimationFrame(loop);
     };
-    const idle = (now) => { raf = 0; if (st.playing) return; if (lumi) lumi.setBreath(0.92 + 0.02 * Math.sin(now / 1000 * 1.2)); if (board.isConnected) raf = requestAnimationFrame(idle); };
+    const idle = (now) => { raf = 0; if (st.playing) return; if (sym) sym.setBreath(0.92 + 0.02 * Math.sin(now / 1000 * 1.2)); if (board.isConnected) raf = requestAnimationFrame(idle); };
     const play = () => {
       if (st.t >= total) st.t = 0;
       st.playing = true; cur = -1; last = performance.now();
@@ -158,10 +158,10 @@ const screens = (eng) => [{
 
 const eng = {
   id: 'break', name: 'Brain Break', short: 'Brain break', color: 'cyan', icon: 'breath',
-  kicker: 'Wellbeing · mindfulness', tagline: 'A timed calm-down or wake-up script that Lumi leads, with sounds and read-aloud.',
-  about: 'A timed brain break that Lumi leads on screen: she grows as pupils breathe in and shrinks as they breathe out, over calm waves, with optional read-aloud and nature sounds.',
+  kicker: 'Wellbeing · mindfulness', tagline: 'A timed calm-down or wake-up script that Symphony leads, with sounds and read-aloud.',
+  about: 'A timed brain break that Symphony leads on screen: she grows as pupils breathe in and shrinks as they breathe out, over calm waves, with optional read-aloud and nature sounds.',
   chips: ['Wellbeing', '2–5 minutes', 'Plays by itself'], cta: 'Write the brain break', savedLabel: 'brain breaks',
-  lumi: { hello: 'Need a calm minute, or a wake-up? Pick a <b>type</b> and length. I’ll lead it on screen and breathe with your class.', thinking: 'Timing every breath…', done: 'Present it and press <b>Start</b>. I’ll breathe with them.' },
+  sym: { hello: 'Need a calm minute, or a wake-up? Pick a <b>type</b> and length. I’ll lead it on screen and breathe with your class.', thinking: 'Timing every breath…', done: 'Present it and press <b>Start</b>. I’ll breathe with them.' },
   fields: [
     { id: 'type', type: 'pills', label: 'Type of break', options: TYPES, value: 'Calm breathing' },
     { id: 'minutes', type: 'pills', label: 'Length', options: ['2 minutes', '3 minutes', '5 minutes'], value: '3 minutes' },
@@ -178,7 +178,7 @@ const eng = {
   screens: () => screens(eng),
   notes(d) {
     return [
-      { h: 'Before you start', icon: 'info', text: (d.intro ? d.intro + ' ' : '') + 'Press Start: each step shows for its time and Lumi breathes with the class. Tick “Share sound” on your call to share the voice and the sounds.', full: true },
+      { h: 'Before you start', icon: 'info', text: (d.intro ? d.intro + ' ' : '') + 'Press Start: each step shows for its time and Symphony breathes with the class. Tick “Share sound” on your call to share the voice and the sounds.', full: true },
       { h: 'The script', icon: 'breath', list: d.steps.map((s) => CUES[s.cue] + ' (' + s.seconds + 's): ' + s.say), ordered: true, full: true },
       { h: 'Make it work for everyone', icon: 'heart', list: d.adapt },
       { h: 'Why it works', icon: 'bulb', text: d.why }

@@ -258,7 +258,7 @@ function setBusy(on, title) {
   if (on) { $('#busy-title').textContent = title; $('#busy-msg').textContent = 'Thinking about the lesson…'; $('#busy-bar').style.width = '6%'; }
 }
 function showNotice(sel, msg, isErr, html) { const n = $(sel); if (html) n.innerHTML = msg; else n.textContent = msg; n.className = 'notice' + (isErr ? ' err' : ''); n.hidden = !msg; }
-function needKey(sel) { showNotice(sel, esc(errorCopy('no_key')) + '<br><button type="button" class="btn small" data-connect>Connect Claude</button>', true, true); bus.emit('need-key'); }
+function needKey(sel) { showNotice(sel, esc(errorCopy('no_key')) + '<br><button type="button" class="btn small" data-connect>Connect</button>', true, true); bus.emit('need-key'); }
 async function runLesson(prompt, params, title) {
   if (state.busy) return;
   showNotice('#make-notice', '', false);

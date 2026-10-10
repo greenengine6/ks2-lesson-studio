@@ -184,7 +184,7 @@ const eng = {
   kicker: 'Any subject · gamified review', tagline: 'A story mission: crack each code to drop the lock and reveal the next.',
   about: 'A story mission for any subject. Each lock is a card: the class works out the code, you type it in, and a correct code drops the card away to reveal the next lock. Timer, hints and a finale included.',
   chips: ['Any subject', '15–25 minutes', 'Whole-class game'], cta: 'Build the escape room', savedLabel: 'escape rooms',
-  lumi: { hello: 'Tell me the <b>subject and topic</b>, pick a theme, and I’ll lock some doors. Your class cracks the codes to escape.', thinking: 'Locking the doors and writing the codes…', done: 'Present it, read the briefing and press <b>Start the clock</b>.' },
+  sym: { hello: 'Tell me the <b>subject and topic</b>, pick a theme, and I’ll lock some doors. Your class cracks the codes to escape.', thinking: 'Locking the doors and writing the codes…', done: 'Present it, read the briefing and press <b>Start the clock</b>.' },
   fields: [
     { id: 'year', type: 'year', label: 'Year group', value: 'Year 6' },
     { id: 'topic', type: 'text', label: 'Subject and topic', required: true, placeholder: 'For example: Maths, place value and rounding', chips: ['Maths: fractions', 'Spelling: suffixes', 'Science: the solar system', 'History: the Romans', 'Grammar: word classes'], tip: 'Say the subject and the topic, for example “Science: the solar system”.', missing: 'Type the subject and topic first.' },

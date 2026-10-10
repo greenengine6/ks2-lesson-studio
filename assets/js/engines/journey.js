@@ -227,7 +227,7 @@ const eng = {
   kicker: 'Geography · culture', tagline: 'Close your eyes and travel: a narrated journey with live sounds, then guess where you are.',
   about: 'Pupils close their eyes while the screen reads a journey over live rain, forest, river or city sounds. Then they guess where they are, open the fact file, compare it with home and say hello.',
   chips: ['Geography', '25–35 minutes', 'Sound on'], cta: 'Plan the journey', savedLabel: 'journeys',
-  lumi: { hello: 'Where shall we go? Give me a <b>place</b>. I’ll write a journey your class hears with their eyes closed.', thinking: 'Listening to the place and writing the journey…', done: 'Present it and press <b>Play journey</b>. Tick “Share sound” on your video call.' },
+  sym: { hello: 'Where shall we go? Give me a <b>place</b>. I’ll write a journey your class hears with their eyes closed.', thinking: 'Listening to the place and writing the journey…', done: 'Present it and press <b>Play journey</b>. Tick “Share sound” on your video call.' },
   fields: [
     { id: 'year', type: 'year', label: 'Year group', value: 'Year 4' },
     { id: 'place', type: 'text', label: 'Place', required: true, placeholder: 'For example: Tokyo, Japan', chips: ['Tokyo, Japan', 'The Sahara Desert', 'Reykjavik, Iceland', 'Mumbai, India', 'The Maasai Mara, Kenya', 'The Arctic'], tip: 'A city, country, landscape or region anywhere in the world.', missing: 'Type a place first, for example “Tokyo, Japan”.' },

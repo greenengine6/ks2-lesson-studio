@@ -309,10 +309,10 @@
 .pace-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
 .pace-ring .trk{fill:none;stroke:rgb(163 177 198 / .35);stroke-width:2.4}
 .pace-ring .bar{fill:none;stroke:var(--c);stroke-width:2.4;stroke-linecap:round;transition:stroke-dashoffset .25s linear}
-.pace-lumi{position:absolute;inset:9%;border-radius:50%;display:grid;place-items:center;
+.pace-sym{position:absolute;inset:9%;border-radius:50%;display:grid;place-items:center;
   background:radial-gradient(circle at 50% 46%,#F7F8FB 0%,#EEF1F6 45%,#E0E5EC 72%);
   box-shadow:inset calc(.8 * var(--u)) calc(.8 * var(--u)) calc(1.6 * var(--u)) var(--sd2),inset calc(-.8 * var(--u)) calc(-.8 * var(--u)) calc(1.6 * var(--u)) var(--sl2)}
-.pace-lumi .lumi{width:88%}
+.pace-sym .sym{width:88%}
 .pace-txt{display:grid;gap:calc(1.4 * var(--u));align-content:center}
 .pace-cue{font-family:var(--f-display);font-weight:800;font-size:calc(1.6 * var(--u));letter-spacing:.16em;text-transform:uppercase;color:var(--c)}
 .pace-say{margin:0;font-family:var(--f-kid);font-weight:700;font-size:calc(3 * var(--u) * var(--fs));line-height:1.3;text-wrap:balance;min-height:3.9em;transition:opacity .4s}

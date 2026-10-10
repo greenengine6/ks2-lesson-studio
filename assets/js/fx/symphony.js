@@ -1,6 +1,8 @@
-/* Lumi: the engine's helper. A floating head made of soft aurora light (cyan, violet, soft blue) with foggy edges,
-   drawn with a WebGL shader, and a calm face in glowing white lines: high curved eyebrows, dot eyes and an L-shaped nose.
-   Eyes follow the pointer, she blinks, and she reacts to what the teacher is doing (listen, think, happy, breathe). */
+/* Symphony: the lesson helper. A girl made of soft aurora light (cyan, violet, rose) with foggy edges, drawn with a
+   WebGL shader, and a friendly face in glowing white lines: curved brows, eyes with lashes, rosy cheeks, a smile and a
+   little music-note hair clip (she is named Symphony for her musical voice). Eyes follow the pointer, she blinks,
+   and she reacts to what the teacher is doing (listen, think, happy, speak, breathe). Click her to hear who she is. */
+import { bus } from '../core.js';
 
 const VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }';
 const FS = `
@@ -49,6 +51,8 @@ void main(){
   vec3 blue = vec3(0.52, 0.71, 1.00);
   vec3 col = mix(blue, cyan, smoothstep(0.15, 0.85, bands));
   col = mix(col, violet, smoothstep(0.25, 0.95, f*0.55 + 0.5 + 0.3*w.y));
+  vec3 rose = vec3(0.99, 0.66, 0.86);
+  col = mix(col, rose, 0.55*smoothstep(0.62, 0.98, 0.5 + 0.5*sin(2.6*(n.x - 0.4*w.z) + 1.7*f - uTime*sp*2.0)));
   vec3 L = normalize(vec3(-0.45 - uLook.x*0.3, 0.6 + uLook.y*0.3, 0.8));
   float diff = 0.62 + 0.38*max(dot(n, L), 0.0);
   float fres = pow(1.0 - z, 2.0);
@@ -60,35 +64,49 @@ void main(){
   float alphaCore = core * (0.80 + 0.16*bands);
   float halo = exp(-pow(max(r - R*0.86, 0.0)/(0.24*uBreath), 2.0)) * (0.50 + 0.12*uEnergy);
   vec3 haloCol = mix(cyan, violet, 0.5 + 0.5*sin(uTime*0.5 + atan(uv.y, uv.x)*1.0));
+  haloCol = mix(haloCol, rose, 0.25 + 0.25*sin(uTime*0.37 + atan(uv.y, uv.x)*2.0));
   haloCol = mix(haloCol, blue, 0.3);
   float a = max(alphaCore, halo);
   vec3 c = mix(haloCol, col, alphaCore / max(a, 0.0001));
   gl_FragColor = vec4(c*a, a);
 }`;
 
-const FACE = '<svg class="lumi-face" viewBox="0 0 200 200" aria-hidden="true"><g class="lf-move">' +
-  '<path class="lf-brow lf-l" d="M57 79 Q74 59 93 70"/><path class="lf-brow lf-r" d="M107 70 Q126 59 143 79"/>' +
-  '<g class="lf-eyes"><circle class="lf-eye" cx="78" cy="97" r="5.8"/><circle class="lf-eye" cx="122" cy="97" r="5.8"/></g>' +
-  '<path class="lf-nose" d="M100 90 V125 H114"/></g></svg>';
+const FACE = '<svg class="sym-face" viewBox="0 0 200 200" aria-hidden="true"><g class="sf-move">' +
+  '<circle class="sf-cheek" cx="66" cy="117" r="10"/><circle class="sf-cheek" cx="134" cy="117" r="10"/>' +
+  '<path class="sf-brow sf-l" d="M60 77 Q76 63 92 71"/><path class="sf-brow sf-r" d="M108 71 Q124 63 140 77"/>' +
+  '<g class="sf-eyes"><g class="sf-eye-l"><circle class="sf-eye" cx="80" cy="98" r="5.8"/><path class="sf-lash" d="M72.5 93.5 67 89.5M75.5 90.6 72.6 85.2"/></g>' +
+  '<g class="sf-eye-r"><circle class="sf-eye" cx="120" cy="98" r="5.8"/><path class="sf-lash" d="M127.5 93.5 133 89.5M124.5 90.6 127.4 85.2"/></g></g>' +
+  '<path class="sf-smile" d="M87 121 Q100 133 113 121"/><ellipse class="sf-open" cx="100" cy="124.5" rx="7.2" ry="5.4"/>' +
+  '<g class="sf-clip"><path d="M139 44v17.5"/><path d="M139 44l11 3.4v5.4l-11-3.4"/><ellipse cx="134.4" cy="62.4" rx="5.4" ry="4.1" transform="rotate(-18 134.4 62.4)"/></g>' +
+  '</g><g class="sf-notes"><path d="M164 92v-15l9 2.6"/><ellipse cx="160.6" cy="93" rx="4.2" ry="3.2" transform="rotate(-18 160.6 93)"/>' +
+  '<path d="M34 72v-12l7.5 2.2"/><ellipse cx="31.2" cy="73" rx="3.5" ry="2.7" transform="rotate(-18 31.2 73)"/></g></svg>';
 
-export class Lumi {
+/* A light, CSS-only Symphony (no WebGL) for small places such as the chat button. */
+export const MINI = (label) => '<div class="sym sym--css"' + (label ? ' role="img" aria-label="' + label + '"' : ' aria-hidden="true"') + '><div class="sym-float"><div class="sym-css"></div>' + FACE + '</div></div>';
+
+export const SYMPHONY_ABOUT = {
+  en: 'Hello, I am Symphony! I am a girl who lives inside this lesson engine. I speak English and Malay. I was named Symphony because of my musical voice. I help teachers plan lessons, and I love answering children’s questions about anything, from planets and animals to fractions.',
+  ms: 'Hai, saya Symphony! Saya seorang gadis yang tinggal di dalam enjin pelajaran ini. Saya boleh bercakap bahasa Inggeris dan bahasa Melayu. Saya dinamakan Symphony kerana suara saya yang merdu seperti muzik. Saya membantu guru merancang pelajaran, dan saya suka menjawab soalan kanak-kanak tentang apa sahaja, dari planet dan haiwan hingga pecahan.'
+};
+
+export class Symphony {
   constructor(opts) {
-    this.o = Object.assign({ size: 240 }, opts || {});
+    this.o = Object.assign({ size: 240, talk: true }, opts || {});
     this.root = document.createElement('div');
-    this.root.className = 'lumi';
-    this.root.innerHTML = '<div class="lumi-float"><canvas class="lumi-orb"></canvas><div class="lumi-css" aria-hidden="true"><i></i><i></i><i></i></div>' + FACE + '</div>';
-    this.root.setAttribute('role', 'img');
-    this.root.setAttribute('aria-label', 'Lumi, your lesson helper');
+    this.root.className = 'sym';
+    this.root.innerHTML = '<div class="sym-float"><canvas class="sym-orb"></canvas><div class="sym-css" aria-hidden="true"><i></i><i></i><i></i></div>' + FACE + '</div>';
+    if (this.o.talk) { this.root.setAttribute('role', 'button'); this.root.tabIndex = 0; this.root.setAttribute('aria-label', 'Symphony, your lesson helper. Press to talk to her'); }
+    else { this.root.setAttribute('role', 'img'); this.root.setAttribute('aria-label', 'Symphony'); }
     this.canvas = this.root.querySelector('canvas');
-    this.move = this.root.querySelector('.lf-move');
-    this.eyes = this.root.querySelector('.lf-eyes');
+    this.move = this.root.querySelector('.sf-move');
+    this.eyes = this.root.querySelector('.sf-eyes');
     this.state = 'idle';
     this.energy = 0; this.energyT = 0;
     this.breath = 1; this.breathT = 1;
     this.look = [0, 0]; this.lookT = [0, 0];
     this.visible = false;
     this.t0 = performance.now();
-    try { this.initGL(); } catch (e) { this.gl = null; this.root.classList.add('lumi--css'); }
+    try { this.initGL(); } catch (e) { this.gl = null; this.root.classList.add('sym--css'); }
     this.onPointer = (e) => {
       if (this.state === 'think' || this.state === 'breathe') return;
       const r = this.root.getBoundingClientRect();
@@ -106,7 +124,8 @@ export class Lumi {
     this.ro.observe(this.root);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) this.play(); });
     this.scheduleBlink();
-    this.root.addEventListener('click', () => this.pulse());
+    this.root.addEventListener('click', () => { this.pulse(); if (this.o.talk) bus.emit('symphony', { about: true }); });
+    this.root.addEventListener('keydown', (e) => { if (this.o.talk && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); this.root.click(); } });
   }
   initGL() {
     const gl = this.canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false });
@@ -123,7 +142,7 @@ export class Lumi {
     gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     this.u = { res: gl.getUniformLocation(p, 'uRes'), time: gl.getUniformLocation(p, 'uTime'), energy: gl.getUniformLocation(p, 'uEnergy'), breath: gl.getUniformLocation(p, 'uBreath'), look: gl.getUniformLocation(p, 'uLook') };
     this.gl = gl;
-    this.canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.gl = null; this.root.classList.add('lumi--css'); });
+    this.canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); this.gl = null; this.root.classList.add('sym--css'); });
   }
   mount(host) { host.appendChild(this.root); this.resize(); this.play(); }
   resize() {
@@ -136,18 +155,18 @@ export class Lumi {
   setState(s) {
     this.state = s;
     this.root.dataset.state = s;
-    this.energyT = s === 'think' ? 1 : s === 'happy' ? 0.6 : 0;
+    this.energyT = s === 'think' ? 1 : s === 'happy' ? 0.6 : s === 'speak' ? 0.45 : 0;
     if (s === 'listen') this.lookT = [-0.55, 0.25];
     if (s !== 'breathe') this.breathT = 1;
     if (s === 'happy') { clearTimeout(this.happyT); this.happyT = setTimeout(() => { if (this.state === 'happy') this.setState('idle'); }, 2600); }
     this.play();
   }
   setBreath(v) { this.breathT = v; this.play(); }
-  pulse() { this.root.classList.remove('lumi-pulse'); void this.root.offsetWidth; this.root.classList.add('lumi-pulse'); }
+  pulse() { this.root.classList.remove('sym-pulse'); void this.root.offsetWidth; this.root.classList.add('sym-pulse'); }
   scheduleBlink() {
     clearTimeout(this.blinkT);
     this.blinkT = setTimeout(() => {
-      if (this.state !== 'breathe') { this.root.classList.add('lumi-blink'); setTimeout(() => this.root.classList.remove('lumi-blink'), 150); }
+      if (this.state !== 'breathe') { this.root.classList.add('sym-blink'); setTimeout(() => this.root.classList.remove('sym-blink'), 150); }
       this.scheduleBlink();
     }, 2400 + Math.random() * 3800);
   }

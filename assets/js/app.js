@@ -1,18 +1,27 @@
 /* KS2 Lesson Engine: start-up, routing, header, dock, landing page and the Connect dialog. */
+import './security.js';
 import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js';
 import { Tubes } from './fx/tubes.js';
 import { Dock } from './fx/dock.js';
 import { CardSwap } from './fx/cardswap.js';
-import { Lumi } from './fx/lumi.js';
+import { Symphony } from './fx/symphony.js';
 import { ENGINES, ENGINE_BY_ID } from './engines/registry.js';
-import { renderEngine, leaveEngine, wirePresent, setLumi, exampleData, mountScreen, presentState } from './engines/shared.js';
+import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js';
 import { initSlides, examplePreview, fitSlide, refitSlides } from './slides.js';
+import { initSettings } from './settings.js';
+import { initChat } from './chat.js';
 
 const SLIDES = { id: 'slides', name: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
 
 /* ---------------- header ---------------- */
 const top = $('#top');
-function paintHeader() { top.classList.toggle('solid', current !== 'home' || window.scrollY > 40); }
+function paintHeader() {
+  const heroH = current === 'home' ? ($('#hero').offsetHeight || window.innerHeight) : 0;
+  const onHero = current === 'home' && window.scrollY < heroH - 80;
+  top.classList.toggle('on-hero', onHero);
+  top.classList.toggle('solid', !onHero && (current !== 'home' || window.scrollY > 40));
+  bus.emit('header', onHero);
+}
 window.addEventListener('scroll', paintHeader, { passive: true });
 function paintMode() { $$('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === prefs.mode))); }
 document.addEventListener('click', (e) => {
@@ -30,7 +39,7 @@ const go = (id) => { location.hash = id === 'home' ? '#/' : '#/' + id; };
 const dockItems = [{ id: 'home', label: 'Home', icon: icon('home'), color: 'violet', onClick: () => go('home') }, { sep: true },
   { id: 'slides', label: 'Slide Studio', icon: icon('slides'), color: 'violet', onClick: () => go('slides') }]
   .concat(ENGINES.map((e) => ({ id: e.id, label: e.name, icon: icon(e.icon), color: e.color, onClick: () => go(e.id) })))
-  .concat([{ sep: true }, { id: 'connect', label: 'Connect Claude', icon: icon('key'), color: 'teal', onClick: () => openConnect() }]);
+  .concat([{ sep: true }, { id: 'connect', label: 'Connect', icon: icon('key'), color: 'teal', onClick: () => openConnect() }]);
 const dock = new Dock($('#dock'), dockItems, { base: 50, magnification: 80, distance: 200 });
 
 /* ---------------- landing ---------------- */
@@ -42,7 +51,7 @@ function engineCards() {
 }
 let showcase = null;
 function buildShowcase() {
-  const picks = [['maths', 0, 'Live reasoning'], ['escape', 0, 'Crack the codes'], ['break', 0, 'Breathe with Lumi'], ['code', 0, 'Program the robot'], ['debate', 1, 'Live class vote']];
+  const picks = [['maths', 0, 'Live reasoning'], ['escape', 0, 'Crack the codes'], ['break', 0, 'Breathe with Symphony'], ['code', 0, 'Program the robot'], ['debate', 1, 'Live class vote']];
   const root = $('#cs-root');
   root.innerHTML = picks.map(([id, , cap]) => {
     const e = id === 'slides' ? SLIDES : ENGINE_BY_ID[id];
@@ -118,7 +127,7 @@ function paintConn() {
   $$('.conn').forEach((b) => { b.classList.toggle('on', on); const t = $('.ctext', b); if (t) t.textContent = on ? 'Connected' : 'Connect'; });
   dock.setBadge('connect', !on);
   $('#k-status').hidden = !on;
-  $('#k-status-text').textContent = viaLink() ? 'Connected through your private link' : 'Claude is connected on this device';
+  $('#k-status-text').textContent = viaLink() ? 'Connected through your private link' : 'This device is connected';
   $('#k-change').hidden = viaLink();
   $('#k-form').hidden = on && !editing;
   $('#k-share').hidden = !on || viaLink();
@@ -139,13 +148,13 @@ $('#k-forget').addEventListener('click', () => { forgetKey(); editing = true; pa
 $('#k-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const v = str($('#k-key').value);
-  if (!/^sk-ant-[A-Za-z0-9_-]{20,}$/.test(v)) { notice('That does not look like an Anthropic API key. Keys start with sk-ant-.', true); return; }
+  if (!/^sk-ant-[A-Za-z0-9_-]{20,}$/.test(v)) { notice('That does not look like a key. Keys start with sk-ant-.', true); return; }
   const btn = $('#k-save');
   btn.disabled = true; btn.textContent = 'Testing the key…';
   try {
     await testConnection(v);
     setKey(v); $('#k-key').value = ''; editing = false; notice('', false); paintConn();
-    toast('Claude is connected on this device.');
+    toast('This device is connected. Every engine is ready.');
     setTimeout(closeConnect, 700);
   } catch (err) { notice(errorCopy(err && err.code), true); }
   finally { btn.disabled = false; btn.textContent = 'Save and test'; }
@@ -167,8 +176,10 @@ document.addEventListener('keydown', (e) => {
 $('#fb-close').addEventListener('click', () => { $('#fallback').hidden = true; });
 
 /* ---------------- start ---------------- */
-const lumi = new Lumi();
-setLumi(lumi);
+const sym = new Symphony();
+setSymphony(sym);
+initSettings();
+initChat();
 wirePresent();
 initSlides();
 engineCards();

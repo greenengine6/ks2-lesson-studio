@@ -176,7 +176,7 @@ const eng = {
   kicker: 'English · reading comprehension', tagline: 'One text at three levels with the same key facts, plus VIPERS questions.',
   about: 'One text written at three reading levels (same facts, same key words) so the whole class reads together. Tap words to define them, then work through VIPERS questions.',
   chips: ['Reading', '30–40 minutes', 'Three levels'], cta: 'Write the texts', savedLabel: 'texts',
-  lumi: { hello: 'Give me a <b>topic</b> and text type. I’ll write it at three levels with the same facts, so every reader joins in.', thinking: 'Writing the Core text first, then the Support and Challenge versions…', done: 'Switch levels on the Read screen, then step through the questions.' },
+  sym: { hello: 'Give me a <b>topic</b> and text type. I’ll write it at three levels with the same facts, so every reader joins in.', thinking: 'Writing the Core text first, then the Support and Challenge versions…', done: 'Switch levels on the Read screen, then step through the questions.' },
   fields: [
     { id: 'year', type: 'year', label: 'Year group', value: 'Year 3' },
     { id: 'topic', type: 'text', label: 'Topic', required: true, placeholder: 'For example: The Romans in Britain', chips: ['Volcanoes', 'The Ancient Egyptians', 'A day on Mars', 'Plastic in the ocean', 'The lost puppy'], tip: 'Any topic from your curriculum, or a story idea.', missing: 'Type a topic first, for example “Volcanoes”.' },

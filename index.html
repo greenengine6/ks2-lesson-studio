@@ -8,7 +8,7 @@
 <meta name="description" content="Ten online-lesson engines and a slide studio for Key Stage 2: two-way class screens, teacher notes and slides, made in about a minute.">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#E0E5EC">
+<meta name="theme-color" content="#080A12">
 <meta property="og:type" content="website">
 <meta property="og:title" content="KS2 Lesson Engine">
 <meta property="og:description" content="Made with love by Rabinder Kaur. Ten engines for two-way online lessons, plus slides, in about a minute.">
@@ -20,18 +20,24 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=JetBrains+Mono:wght@500;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap">
 <link rel="stylesheet" href="assets/css/app.css">
 <link rel="stylesheet" href="assets/css/board.css">
 <link rel="stylesheet" href="assets/css/slides.css">
+<link rel="stylesheet" href="assets/css/lumen.css">
+<link rel="stylesheet" href="assets/css/chat.css">
+<script src="assets/js/theme.js"></script>
 <link rel="modulepreload" href="assets/js/app.js">
+<link rel="modulepreload" href="assets/js/security.js">
 <link rel="modulepreload" href="assets/js/core.js">
 <link rel="modulepreload" href="assets/js/slides.js">
 <link rel="modulepreload" href="assets/js/slides-example.js">
+<link rel="modulepreload" href="assets/js/settings.js">
+<link rel="modulepreload" href="assets/js/chat.js">
 <link rel="modulepreload" href="assets/js/fx/tubes.js">
 <link rel="modulepreload" href="assets/js/fx/dock.js">
 <link rel="modulepreload" href="assets/js/fx/cardswap.js">
-<link rel="modulepreload" href="assets/js/fx/lumi.js">
+<link rel="modulepreload" href="assets/js/fx/symphony.js">
 <link rel="modulepreload" href="assets/js/fx/waves.js">
 <link rel="modulepreload" href="assets/js/fx/ribbons.js">
 <link rel="modulepreload" href="assets/js/fx/sound.js">
@@ -50,7 +56,7 @@
 <link rel="modulepreload" href="assets/js/engines/escape.js">
 <link rel="modulepreload" href="assets/js/engines/brainbreak.js">
 <link rel="modulepreload" href="assets/js/engines/debate.js">
-<script type="application/json" id="config">{"mainModel": "claude-sonnet-5-5", "quickModel": "claude-haiku-5-5"}</script>
+<script type="application/json" id="config">{"mainModel": "claude-sonnet-5-5", "quickModel": "claude-haiku-5-5", "admin": {"name": "Rabinder Kaur", "iter": 400000, "salt": "9m8DAyZLstgOdjN48kJsHQ", "check": "_1XJXZO3aEhYQbN8qVhHoQUSexIYU2wxPA-jddQ_Plo", "pub": "BDySIQy1KVdnMX9f2Selpt8E8IHPlnpnL0Rssq8jumx1fFJx01fw6D-xuIszATP6wr48ooqH_qzhAMHyGsVX7jo", "key": "FCnshmCVWYNgK-yr3ei2Htz1jtFCXkyMuPLqBp9WfqH0lwODJzo10mp9EgSLC9TUBh7SyPBraHE7dHIFJoPW3Us8NaJYSo1BGrxMyw3oqL2-5csUuaW-H0_J6Rwxi6oKfnrmrdyYuTThV_6o6dduosyNuqyhV5-MsyBb2qycPlRZMDaF_tdL499-AeO8qapwiIlW5cjhroVR-w", "iv": "ykf7_pbMiGoTr8UN"}}</script>
 </head>
 <body>
 <a class="sr" href="#main">Skip to content</a>
@@ -58,26 +64,25 @@
   <div class="top-in">
     <a class="brand" href="#/" aria-label="KS2 Lesson Engine home"><span class="logo"><i><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8B84FF"/><stop offset="1" stop-color="#38B2AC"/></linearGradient></defs><path fill="url(#lg)" d="M12 21.2C5.4 16.9 2.3 13.2 2.3 9.1 2.3 6.2 4.5 4 7.3 4c1.9 0 3.5 1 4.7 2.7C13.2 5 14.8 4 16.7 4c2.8 0 5 2.2 5 5.1 0 4.1-3.1 7.8-9.7 12.1z"/></svg></i></span><span class="brand-t"><b>KS2 Lesson Engine</b><span>Made with <span class="hrt">♥</span> by Rabinder Kaur</span></span></a>
     <nav class="nav" aria-label="Main"><a href="#engines">Engines</a><a href="#/slides">Slide Studio</a><a href="#how">How it works</a></nav>
-    <div class="top-r"><div class="seg" role="group" aria-label="Where you are teaching"><button type="button" data-mode="online" aria-pressed="true">Online</button><button type="button" data-mode="class" aria-pressed="false">In class</button></div><button type="button" class="conn" data-connect><span class="st" aria-hidden="true"></span><span class="ctext">Connect</span></button>
+    <div class="top-r"><span class="night-sw"><button type="button" class="lsw hdr amber" role="switch" aria-checked="false" data-switch="night" aria-label="Night mode"><span class="lsw-handle"></span><span class="lsw-tip">Night mode</span></button></span><div class="seg" role="group" aria-label="Where you are teaching"><button type="button" data-mode="online" aria-pressed="true">Online</button><button type="button" data-mode="class" aria-pressed="false">In class</button></div><button type="button" class="conn" data-connect><span class="st" aria-hidden="true"></span><span class="ctext">Connect</span></button>
       <button type="button" class="btn icon menu-btn" id="menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="mnav"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
   </div>
 </header>
-<nav class="mnav" id="mnav" hidden aria-label="Menu"><a href="#/">Home</a><a href="#engines">Engines</a><a href="#/slides">Slide Studio</a><a href="#how">How it works</a><div class="seg" role="group" aria-label="Where you are teaching"><button type="button" data-mode="online" aria-pressed="true">Online</button><button type="button" data-mode="class" aria-pressed="false">In class</button></div></nav>
+<nav class="mnav" id="mnav" hidden aria-label="Menu"><a href="#/">Home</a><a href="#engines">Engines</a><a href="#/slides">Slide Studio</a><a href="#how">How it works</a><div class="seg" role="group" aria-label="Where you are teaching"><button type="button" data-mode="online" aria-pressed="true">Online</button><button type="button" data-mode="class" aria-pressed="false">In class</button></div><div class="lsw-row"><span>Night mode<small>Dark, calm screens</small></span><button type="button" class="lsw amber" role="switch" aria-checked="false" data-switch="night" aria-label="Night mode"><span class="lsw-handle"></span></button></div></nav>
 
 <main id="main">
 <div id="view-home">
   <section class="hero" id="hero" aria-label="KS2 Lesson Engine">
-    <div class="deco d1" aria-hidden="true"><i><i></i></i></div><div class="deco d2" aria-hidden="true"><i><i></i></i></div><div class="deco d3" aria-hidden="true"><i><i></i></i></div>
     <canvas class="tubes" id="tubes" aria-hidden="true"></canvas>
-    <div class="hero-fog" aria-hidden="true"></div>
+    <div class="hero-shade" aria-hidden="true"></div>
     <div class="hero-in">
       <p class="kicker"><span class="dot" aria-hidden="true"></span>Key Stage 2 · Years 3 to 6</p>
       <h1><span class="ks2">KS2</span> Lesson Engine</h1>
       <p class="made">Made with <svg class="heart" viewBox="0 0 24 24" width="1em" height="1em" role="img" aria-label="love"><path fill="currentColor" d="M12 21.2C5.4 16.9 2.3 13.2 2.3 9.1 2.3 6.2 4.5 4 7.3 4c1.9 0 3.5 1 4.7 2.7C13.2 5 14.8 4 16.7 4c2.8 0 5 2.2 5 5.1 0 4.1-3.1 7.8-9.7 12.1z"/></svg> by <b>Rabinder Kaur</b></p>
       <p class="lede">Ten engines and a slide studio that turn one topic into a two-way online lesson your class will love, in about a minute.</p>
-      <div class="hero-cta"><a class="btn primary big" href="#engines"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>Open the engines</a><a class="btn big" href="#/slides"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="2.2"/><path d="M8 20h8M12 16.5V20"/><path d="M7 9h6M7 12h4"/></svg>Make lesson slides</a></div>
+      <div class="hero-cta"><a class="btn glow big" href="#engines"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>Open the engines</a><a class="btn glass big" href="#/slides"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="2.2"/><path d="M8 20h8M12 16.5V20"/><path d="M7 9h6M7 12h4"/></svg>Make lesson slides</a></div>
     </div>
-    <p class="hero-hint" id="hero-hint"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg>Move the mouse to play · click to change the colours</p>
+    <p class="hero-hint" id="hero-hint"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span class="hh-d">Move to play · click for new colours</span><span class="hh-m">Tap for new colours</span></p>
   </section>
 
   <section class="sec" id="engines" aria-labelledby="eng-h">
@@ -99,16 +104,39 @@
     </div>
   </section>
 
+  <section class="room tone-dark" id="room" aria-labelledby="room-h">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+      <linearGradient id="lc-grad" x1="0" x2="0" y1="-1" y2="0.8"><stop offset="0%" stop-color="#bbb"/><stop offset="100%" stop-color="#555"/></linearGradient>
+      <filter id="lc-inner"><feFlood flood-color="#fff2"/><feComposite operator="out" in2="SourceGraphic"/><feMorphology operator="dilate" radius="0.2"/><feGaussianBlur stdDeviation="0.75"/><feComposite operator="atop" in2="SourceGraphic"/></filter></defs></svg>
+    <div class="room-in">
+      <div class="sec-h"><p class="kicker">Make it yours</p><h2 id="room-h">Switch on what you need.</h2><p>Each switch lights up and remembers your choice on this device.</p></div>
+      <div class="lgrid">
+        <div class="lcell"><div class="lcard" data-tone="amber"><div class="lc-light"><div class="lc-slit"></div><div class="lc-lumen"><i class="lc-min"></i><i class="lc-mid"></i><i class="lc-hi"></i></div><div class="lc-dark"><i class="lc-sl"></i><i class="lc-ll"></i><i class="lc-slt"></i><i class="lc-srt"></i></div></div>
+          <div class="lc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#lc-grad)" filter="url(#lc-inner)" d="M20.6 14.7A8.7 8.7 0 0 1 9.3 3.4a8.7 8.7 0 1 0 11.3 11.3zM17.2 2.6l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8zM21 8.2l.5 1.1 1.1.5-1.1.5-.5 1.1-.5-1.1-1.1-.5 1.1-.5z"/></svg></div>
+          <div class="lc-bottom"><h4>Night mode</h4><p>Dark, calm screens for evening planning.</p><button type="button" class="lsw amber" role="switch" aria-checked="false" data-switch="night" aria-label="Night mode"><span class="lsw-handle"></span><span class="lsw-tip">Lights off</span></button></div></div></div>
+        <div class="lcell"><div class="lcard" data-tone="rose"><div class="lc-light"><div class="lc-slit"></div><div class="lc-lumen"><i class="lc-min"></i><i class="lc-mid"></i><i class="lc-hi"></i></div><div class="lc-dark"><i class="lc-sl"></i><i class="lc-ll"></i><i class="lc-slt"></i><i class="lc-srt"></i></div></div>
+          <div class="lc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#lc-grad)" filter="url(#lc-inner)" d="M9.6 17.9a3 3 0 1 1-1.6-2.65V5.4l11-2.3v12.2a3 3 0 1 1-1.6-2.65V7.1L9.6 8.6z"/></svg></div>
+          <div class="lc-bottom"><h4>Symphony’s voice</h4><p>She reads her answers aloud, in English or Malay.</p><button type="button" class="lsw rose" role="switch" aria-checked="true" data-switch="voice" aria-label="Symphony reads answers aloud"><span class="lsw-handle"></span><span class="lsw-tip">Let her speak</span></button></div></div></div>
+        <div class="lcell"><div class="lcard" data-tone="violet"><div class="lc-light"><div class="lc-slit"></div><div class="lc-lumen"><i class="lc-min"></i><i class="lc-mid"></i><i class="lc-hi"></i></div><div class="lc-dark"><i class="lc-sl"></i><i class="lc-ll"></i><i class="lc-slt"></i><i class="lc-srt"></i></div></div>
+          <div class="lc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#lc-grad)" filter="url(#lc-inner)" d="M4.6 2.8l14.2 6.9-6.3 2-2.7 6.5zM18.4 14.6l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg></div>
+          <div class="lc-bottom"><h4>Magic pointer</h4><p>Glowing ribbons follow your mouse when you present.</p><button type="button" class="lsw violet" role="switch" aria-checked="false" data-switch="pointer" aria-label="Magic pointer when presenting"><span class="lsw-handle"></span><span class="lsw-tip">Ribbons on</span></button></div></div></div>
+        <div class="lcell"><div class="lcard" data-tone="teal"><div class="lc-light"><div class="lc-slit"></div><div class="lc-lumen"><i class="lc-min"></i><i class="lc-mid"></i><i class="lc-hi"></i></div><div class="lc-dark"><i class="lc-sl"></i><i class="lc-ll"></i><i class="lc-slt"></i><i class="lc-srt"></i></div></div>
+          <div class="lc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#lc-grad)" filter="url(#lc-inner)" d="M2.5 4.5h19v12.2h-19zM9 19h6v1.8H9zM12 7.4a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM8.4 15.4c.5-1.9 1.9-2.9 3.6-2.9s3.1 1 3.6 2.9z"/></svg></div>
+          <div class="lc-bottom"><h4>Teaching online</h4><p>Prompts say “type in the chat”. Off: classroom wording.</p><button type="button" class="lsw teal" role="switch" aria-checked="true" data-switch="online" aria-label="Teaching online"><span class="lsw-handle"></span><span class="lsw-tip">Online lessons</span></button></div></div></div>
+      </div>
+    </div>
+  </section>
+
   <section class="sec" id="how" aria-labelledby="how-h">
     <div class="sec-h"><p class="kicker" style="--c:var(--accent)">How it works</p><h2 id="how-h">Ready for your next online class.</h2></div>
     <div class="how">
       <div><b>1</b><h3>Pick an engine</h3><p>From the dock at the bottom of the screen, or the cards above.</p></div>
-      <div><b>2</b><h3>Fill in two or three boxes</h3><p>Year group, topic and one choice. Lumi writes it in about a minute.</p></div>
+      <div><b>2</b><h3>Fill in two or three boxes</h3><p>Year group, topic and one choice. Symphony writes it in about a minute.</p></div>
       <div><b>3</b><h3>Press Present</h3><p>Share that window on Teams, Zoom or Meet. Tick “share sound” for Sound Journey and Brain Break.</p></div>
     </div>
   </section>
   <footer class="foot"><p>Made with <span class="hrt">♥</span> by <b>Rabinder Kaur</b>, Head of Key Stage 2</p>
-    <p>Your API key and your saved activities stay in this browser. Nothing leaves this device except the request sent to Claude when you press a button.</p></footer>
+    <p>Your key and your saved activities stay in this browser. Nothing leaves this device except the request the engine sends when you press a button.</p></footer>
 </div>
 
 <div id="view-engine" class="view" hidden></div>
@@ -132,7 +160,7 @@
             <label class="fld"><span>What should pupils learn? <span class="opt">(optional)</span></span><textarea id="f-goal" rows="2" placeholder="For example: find a fraction of a number by dividing"></textarea></label>
             <label class="fld"><span>Lesson length</span><select id="f-min"><option value="30">30 minutes</option><option value="45" selected>45 minutes</option><option value="60">60 minutes</option></select></label>
             <button type="submit" class="btn primary big wide" id="f-go"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>Make my slides</button>
-            <p class="fine">Takes about a minute. Uses the Claude key connected on this device.</p>
+            <p class="fine">Takes about a minute. Uses the key connected on this device.</p>
             <div class="notice" id="make-notice" hidden role="status"></div>
           </form>
         </section>
@@ -201,10 +229,10 @@
     <div class="pr-dots" id="pr-dots"></div>
     <button type="button" class="pbtn" id="pr-next" aria-label="Next screen"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     <span class="pr-sep"></span>
-    <button type="button" class="pbtn" id="pr-pointer" aria-pressed="false" title="Magic pointer (P)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span>Magic pointer</span></button>
+    <button type="button" class="pbtn" id="pr-pointer" aria-pressed="false" title="Magic pointer (P)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span>Magic pointer</span><i class="lsw mini violet" aria-hidden="true"><i class="lsw-handle"></i></i></button>
     <div style="position:relative"><button type="button" class="pbtn" id="pr-timer-btn" aria-expanded="false" title="Timer (T)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Timer</span></button>
       <div class="pr-menu" id="pr-timer-menu" hidden><button type="button" class="pbtn" data-min="1">1 min</button><button type="button" class="pbtn" data-min="2">2</button><button type="button" class="pbtn" data-min="3">3</button><button type="button" class="pbtn" data-min="5">5</button><button type="button" class="pbtn" data-min="10">10</button><button type="button" class="pbtn" data-min="0">Stop</button></div></div>
-    <button type="button" class="pbtn" id="pr-notes-btn" aria-pressed="false" title="Teacher notes (N)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>Notes</span></button>
+    <button type="button" class="pbtn" id="pr-notes-btn" aria-pressed="false" title="Teacher notes (N)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>Notes</span><i class="lsw mini amber" aria-hidden="true"><i class="lsw-handle"></i></i></button>
     <button type="button" class="pbtn" id="pr-full" aria-label="Full screen" title="Full screen (F)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
     <span class="pr-sep"></span>
     <button type="button" class="pbtn" id="pr-exit"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg><span>Exit</span></button>
@@ -222,7 +250,7 @@
     <span class="pr-sep"></span>
     <button type="button" class="pbtn" id="spr-reveal" aria-label="Reveal"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Reveal answers</span></button>
     <button type="button" class="pbtn" id="spr-timer-btn" aria-label="Timer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Timer</span></button>
-    <button type="button" class="pbtn" id="spr-pointer" aria-pressed="false" title="Magic pointer (P)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span>Magic pointer</span></button>
+    <button type="button" class="pbtn" id="spr-pointer" aria-pressed="false" title="Magic pointer (P)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span>Magic pointer</span><i class="lsw mini violet" aria-hidden="true"><i class="lsw-handle"></i></i></button>
     <button type="button" class="pbtn" id="spr-notes-btn" aria-pressed="false" aria-label="Teacher notes"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>Notes</span></button>
     <span class="pr-sep"></span>
     <button type="button" class="pbtn" id="spr-exit" aria-label="Stop presenting"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg><span>Exit</span></button>
@@ -232,16 +260,16 @@
 <div class="modal" id="connect" hidden role="dialog" aria-modal="true" aria-labelledby="k-h">
   <div class="modal-card" style="position:relative">
     <button type="button" class="btn small icon modal-x" id="k-close" aria-label="Close"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-    <h2 id="k-h"><i><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/></svg></i>Connect Claude</h2>
+    <h2 id="k-h"><i><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/></svg></i>Connect this device</h2>
     <p id="k-intro">Connect once on this device and every engine works.</p>
-    <div class="kstat" id="k-status" hidden><span class="st" aria-hidden="true"></span><span id="k-status-text">Claude is connected on this device</span>
+    <div class="kstat" id="k-status" hidden><span class="st" aria-hidden="true"></span><span id="k-status-text">This device is connected</span>
       <span style="margin-left:auto;display:flex;gap:12px"><button type="button" class="linkbtn" id="k-change">Change key</button><button type="button" class="linkbtn" id="k-forget">Disconnect</button></span></div>
     <form id="k-form" class="form" novalidate>
-      <label class="fld"><span>Anthropic API key</span><input type="password" id="k-key" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="sk-ant-…"></label>
+      <label class="fld"><span>Engine key</span><input type="password" id="k-key" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="sk-ant-…"></label>
       <button type="submit" class="btn primary" id="k-save">Save and test</button>
       <div class="notice" id="k-notice" hidden role="status"></div>
     </form>
-    <details class="more"><summary>Where do I get a key?</summary>
+    <details class="more"><summary>Setting up a new key (for the person who manages it)</summary>
       <ol class="steps-mini"><li>Sign in at console.anthropic.com and add credit.</li><li>Under Limits, set a monthly spend limit.</li><li>Under API keys, create a key and copy it.</li><li>Paste it above and press Save and test.</li></ol></details>
     <button type="button" class="btn" id="k-share" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>Copy a one-tap setup link for another device</button>
     <p class="fine">A setup link connects a device in one tap and then removes itself from the address bar. Anyone who has the link can use the key, so send it privately and delete the message afterwards.</p>

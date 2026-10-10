@@ -154,7 +154,7 @@ const eng = {
   kicker: 'Science · inquiry', tagline: 'A puzzling case to crack, a live class vote, a home investigation and the big reveal.',
   about: 'Every lesson starts with a mystery: a real everyday puzzle. Pupils notice and wonder, vote on a prediction, investigate safely at home, then see the big reveal.',
   chips: ['Science', '30–45 minutes', 'Safe at home'], cta: 'Make the mystery', savedLabel: 'mysteries',
-  lumi: { hello: 'Pick a <b>science topic</b>. I’ll turn it into a mystery your class has to crack, with a safe investigation they can do at home.', thinking: 'Writing the case file…', done: 'Start with the case file, then let the class vote.' },
+  sym: { hello: 'Pick a <b>science topic</b>. I’ll turn it into a mystery your class has to crack, with a safe investigation they can do at home.', thinking: 'Writing the case file…', done: 'Start with the case file, then let the class vote.' },
   fields: [
     { id: 'year', type: 'year', label: 'Year group', value: 'Year 4' },
     { id: 'topic', type: 'text', label: 'Science topic', required: true, placeholder: 'For example: Forces and magnets', chips: ['Light and shadows', 'Forces and magnets', 'States of matter', 'Sound', 'Electricity', 'Plants', 'Earth and space'], tip: 'Use a topic from your science curriculum.', missing: 'Type a science topic first, for example “Forces and magnets”.' },

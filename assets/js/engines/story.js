@@ -184,7 +184,7 @@ const eng = {
   kicker: 'English · visual inference + writing', tagline: 'A mystery scene revealed line by line, then inference, a word bank and a model paragraph.',
   about: 'A mystery scene painted in words, with moving weather, revealed one line at a time. Pupils infer, steal vocabulary, unpick a model paragraph and then write.',
   chips: ['English', '30–45 minutes', 'Inference + writing'], cta: 'Make the scene', savedLabel: 'scenes',
-  lumi: { hello: 'Give me a <b>theme or setting</b> and a writing focus. I’ll paint a mystery scene your class reveals line by line.', thinking: 'Painting the scene, one clue at a time…', done: 'Present it and click the scene to reveal each line.' },
+  sym: { hello: 'Give me a <b>theme or setting</b> and a writing focus. I’ll paint a mystery scene your class reveals line by line.', thinking: 'Painting the scene, one clue at a time…', done: 'Present it and click the scene to reveal each line.' },
   fields: [
     { id: 'year', type: 'year', label: 'Year group', value: 'Year 5' },
     { id: 'theme', type: 'text', label: 'Theme or setting', required: true, placeholder: 'For example: a door at the bottom of the garden', chips: ['A lost robot in the city', 'An abandoned fairground', 'A secret library', 'A frozen forest', 'A market in the clouds'], tip: 'A place or a moment works best: a door at the bottom of the garden, an empty fairground…', missing: 'Type a theme or setting first.' },

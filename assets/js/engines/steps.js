@@ -140,7 +140,7 @@ const eng = {
   kicker: 'Inclusion · SEND and EAL', tagline: 'Paste any task: get small timed steps, a Now / Next / Then strip and a word bank.',
   about: 'Paste any task. Get it broken into small timed steps with a Now / Next / Then strip, a tick-off checklist, a word bank (with home-language words for EAL) and support ideas for each need.',
   chips: ['Any subject', 'SEND and EAL', 'Executive function'], cta: 'Break it down', savedLabel: 'task plans',
-  lumi: { hello: 'Paste the <b>task</b> you are setting. I’ll break it into small steps so every pupil can start, keep going and finish.', thinking: 'Breaking the task into small steps…', done: 'Present the Steps screen and tick each step off together.' },
+  sym: { hello: 'Paste the <b>task</b> you are setting. I’ll break it into small steps so every pupil can start, keep going and finish.', thinking: 'Breaking the task into small steps…', done: 'Present the Steps screen and tick each step off together.' },
   fields: [
     { id: 'year', type: 'year', label: 'Year group', value: 'Year 5' },
     { id: 'task', type: 'textarea', label: 'The task', required: true, rows: 4, placeholder: 'Paste the activity instructions, for example: Write a diary entry as a Roman soldier arriving at Hadrian’s Wall.', tip: 'Paste the instructions exactly as you would give them to the class.', missing: 'Paste the task you are setting first.' },

@@ -90,13 +90,13 @@ function liveState(item) { if (!live.has(item.id)) live.set(item.id, {}); return
 
 /* ---------------- the engine page ---------------- */
 let page = null;           // { eng, root, item, screen, tab, busy }
-let lumiRef = null;
-export function setLumi(l) { lumiRef = l; }
+let symRef = null;
+export function setSymphony(l) { symRef = l; }
 function say(html, state) {
   if (!page) return;
   const b = $('.bubble', page.root);
   if (b) b.innerHTML = html;
-  if (lumiRef && state) lumiRef.setState(state);
+  if (symRef && state) symRef.setState(state);
 }
 
 export function renderEngine(view, eng) {
@@ -110,17 +110,17 @@ export function renderEngine(view, eng) {
     '<div class="eng-grid"><form class="card form" id="eng-form" novalidate>' +
     eng.fields.map((f) => fieldHTML(f, startInput[f.id], eng)).join('') +
     '<button type="submit" class="btn primary big wide" id="eng-go">' + icon('spark') + '<span>' + esc(eng.cta || 'Make it') + '</span></button>' +
-    '<p class="fine">Takes about a minute. Uses the Claude key connected on this device. Everything is saved in this browser only.</p>' +
+    '<p class="fine">Takes about a minute. Uses the key connected on this device. Everything is saved in this browser only.</p>' +
     '<div class="notice" id="eng-notice" hidden role="status"></div>' +
     '<div class="saved" id="eng-saved" hidden><span>Your saved ' + esc(eng.savedLabel || 'activities') + '</span><ul></ul></div>' +
     '</form>' +
-    '<aside class="card helper" aria-label="Lumi, your helper"><div class="lumi-well" id="lumi-host"></div><p class="helper-name">Lumi</p>' +
+    '<aside class="card helper" aria-label="Symphony, your helper"><div class="sym-well" id="sym-host"></div><p class="helper-name">Symphony</p>' +
     '<div class="bubble" aria-live="polite"></div><div class="meter" id="eng-meter" hidden><i></i></div>' +
     '<button type="button" class="btn small" id="eng-stop" hidden>' + icon('stop') + 'Stop</button></aside></div>' +
     '<section class="result" id="eng-result" aria-live="polite"></section></div>';
   page = { eng, root: view, item: null, screen: 0, tab: 'screens', busy: null };
-  if (lumiRef) { lumiRef.mount($('#lumi-host', view)); lumiRef.setState('idle'); }
-  say(eng.lumi.hello, 'idle');
+  if (symRef) { symRef.mount($('#sym-host', view)); symRef.setState('idle'); }
+  say(eng.sym.hello, 'idle');
   wireForm(view, eng);
   renderSavedList();
   const first = saved[0] ? Object.assign({ example: false }, saved[0]) : exampleItem(eng);
@@ -153,7 +153,7 @@ function wireForm(root, eng) {
     const def = eng.fields.find((x) => x.id === f.dataset.field);
     if (def && def.tip) say(esc(def.tip), 'listen');
   });
-  form.addEventListener('focusout', () => { if (page && !page.busy && lumiRef && lumiRef.state === 'listen') lumiRef.setState('idle'); });
+  form.addEventListener('focusout', () => { if (page && !page.busy && symRef && symRef.state === 'listen') symRef.setState('idle'); });
   form.addEventListener('submit', (e) => { e.preventDefault(); generate(eng, readFields(root, eng)); });
   $('#eng-stop', root).addEventListener('click', () => { if (page && page.busy) page.busy.abort(); });
   eng.fields.forEach((f) => { if (f.onChange) f.onChange(readFields(root, eng), root); });
@@ -190,7 +190,7 @@ async function generate(eng, input) {
     return;
   }
   if (!hasKey()) {
-    notice(esc(errorCopy('no_key')) + '<br><button type="button" class="btn small" data-connect>' + icon('key') + 'Connect Claude</button>', true);
+    notice(esc(errorCopy('no_key')) + '<br><button type="button" class="btn small" data-connect>' + icon('key') + 'Connect</button>', true);
     say('I need to be connected first. Press <b>Connect</b> and paste the key once.', 'idle');
     bus.emit('need-key');
     return;
@@ -200,7 +200,7 @@ async function generate(eng, input) {
   const go = $('#eng-go'), meter = $('#eng-meter'), stop = $('#eng-stop');
   go.disabled = true; $('span', go).textContent = 'Making…';
   meter.hidden = false; stop.hidden = false; $('i', meter).style.width = '5%';
-  say('<b>Thinking…</b> ' + esc(eng.lumi.thinking || 'Planning it for your class.'), 'think');
+  say('<b>Thinking…</b> ' + esc(eng.sym.thinking || 'Planning it for your class.'), 'think');
   const expected = JSON.stringify(eng.example.data).length * 1.05;
   const resEl = $('#eng-result');
   resEl.innerHTML = '<div class="skeleton" aria-hidden="true"></div>';
@@ -221,14 +221,14 @@ async function generate(eng, input) {
     putSaved(eng.id, item);
     showItem(item);
     renderSavedList();
-    say('<b>Ready!</b> ' + esc(eng.lumi.done || 'Press Present to share it with your class.'), 'happy');
+    say('<b>Ready!</b> ' + esc(eng.sym.done || 'Press Present to share it with your class.'), 'happy');
     toast(eng.name + ': ready to teach.');
     $('#eng-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) {
     const code = e && e.code;
     if (code === 'cancelled') say('Stopped. Change anything you like and press the button again.', 'idle');
     else {
-      notice(esc(errorCopy(code, 'this activity')) + (code === 'no_key' || code === 'bad_key' ? '<br><button type="button" class="btn small" data-connect>' + icon('key') + 'Connect Claude</button>' : ''), true);
+      notice(esc(errorCopy(code, 'this activity')) + (code === 'no_key' || code === 'bad_key' ? '<br><button type="button" class="btn small" data-connect>' + icon('key') + 'Connect</button>' : ''), true);
       say(esc(errorCopy(code, 'this activity')), 'idle');
     }
     showItem(page.item || exampleItem(eng));
@@ -370,6 +370,7 @@ function setPointer(on) {
   store.set(POINTER_KEY, on ? 'on' : '');
   $('#pr-pointer').setAttribute('aria-pressed', String(on));
   if (on) P.ribbons.start(); else P.ribbons.stop();
+  bus.emit('pointer', on);
 }
 function fmt(sec) { const m = Math.floor(sec / 60), r = sec % 60; return m + ':' + String(r).padStart(2, '0'); }
 export function chime() {

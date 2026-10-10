@@ -75,6 +75,9 @@ export const I = {
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.2"/>',
   bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>',
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.2" class="f"/>',
+  send: '<path d="M4.5 11.8 20 4.5l-4.6 15.2-3.7-6.4z"/><path d="M11.7 13.3 20 4.5"/>',
+  moon: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>',
+  smile: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.9 2 5.1 2 7 0"/><path d="M9 9.5v.5M15 9.5v.5"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>'
 };
 export const icon = (n, cls) => '<svg class="i' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (I[n] || '') + '</svg>';
@@ -159,7 +162,7 @@ export async function askClaude(prompt, o) {
       headers: link && !o.key
         ? { 'content-type': 'application/json', 'x-access-code': memAccess }
         : { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify(Object.assign({ model: o.model || CONFIG.mainModel, max_tokens: o.maxTokens || 4000, stream: true, messages: [{ role: 'user', content: prompt }] }, o.system ? { system: o.system } : {}))
+      body: JSON.stringify(Object.assign({ model: o.model || CONFIG.mainModel, max_tokens: o.maxTokens || 4000, stream: true, messages: o.messages || [{ role: 'user', content: prompt }] }, o.system ? { system: o.system } : {}))
     });
   } catch (e) { throw new AiError(e && e.name === 'AbortError' ? 'cancelled' : 'network'); }
   if (!res.ok) {
@@ -223,20 +226,20 @@ export async function askJSON(prompt, o) {
 export async function testConnection(key) {
   await askClaude('Reply with the single word OK.', { model: CONFIG.quickModel, maxTokens: 8, key });
 }
-export const NEED_KEY = 'This device is not connected to Claude yet. Press Connect (bottom right of the dock) and paste the key once.';
+export const NEED_KEY = 'This device is not connected yet. Open your one-tap setup link once, or press Connect and paste the key.';
 export function errorCopy(code, what) {
   const thing = what || 'this';
   switch (code) {
     case 'no_key': return NEED_KEY;
-    case 'bad_key': return 'That API key did not work. Check it in the Anthropic Console and paste it again.';
-    case 'forbidden': return 'This API key is not allowed to do that. Check its settings in the Anthropic Console.';
-    case 'no_credit': return 'The Anthropic account is out of credit. Add credit in the Anthropic Console, then try again.';
+    case 'bad_key': return 'That key did not work. Paste it again, or ask for a new setup link.';
+    case 'forbidden': return 'This key is not allowed to do that. Ask the person who manages the key to check it.';
+    case 'no_credit': return 'The engine account is out of credit. Ask the person who manages the key to top it up, then try again.';
     case 'rate_limited': return 'Too many requests at once. Wait a minute, then try again.';
-    case 'overloaded': return 'Claude is very busy right now. Please try again in a minute.';
-    case 'network': return 'Could not reach Claude. Check the internet connection and try again.';
-    case 'model': return 'This page needs a small update (the Claude model name) before it can make ' + thing + '.';
+    case 'overloaded': return 'The engine is very busy right now. Please try again in a minute.';
+    case 'network': return 'Could not reach the engine. Check the internet connection and try again.';
+    case 'model': return 'This page needs a small update (the engine model name) before it can make ' + thing + '.';
     case 'bad_access': return 'This private link is not valid any more. Ask for a new link and tap it once.';
-    case 'server_setup': return 'The site is not fully set up yet: its Claude key is missing or wrong on the server.';
+    case 'server_setup': return 'The site is not fully set up yet: its key is missing or wrong on the server.';
     case 'no_proxy': return 'Private links only work on the main site address. Open the link exactly as it was sent.';
     case 'invalid_json': case 'truncated': case 'empty': return 'It came back incomplete. Please press the button again.';
     default: return 'Something went wrong while making ' + thing + '. Please try again.';
@@ -248,17 +251,20 @@ let toastTimer;
 export function toast(msg) {
   const t = $('#toast');
   if (!t) return;
-  t.textContent = msg; t.classList.add('show');
+  t.textContent = msg; t.classList.add('is-on');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  toastTimer = setTimeout(() => t.classList.remove('is-on'), 3200);
 }
 
 /* ---------------- copying (rich text for email/Word/Teams, plain text fallback) ---------------- */
+export const guard = { copying: false };   // lets the site's own Copy buttons through the copy protection
 function copyEvent(html, text) {
   let ok = false;
   const h = (e) => { e.clipboardData.setData('text/html', html); e.clipboardData.setData('text/plain', text); e.preventDefault(); ok = true; };
   document.addEventListener('copy', h);
+  guard.copying = true;
   try { document.execCommand('copy'); } catch (e) { /* blocked */ }
+  guard.copying = false;
   document.removeEventListener('copy', h);
   return ok;
 }

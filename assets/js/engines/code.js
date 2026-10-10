@@ -287,7 +287,7 @@ const eng = {
   kicker: 'Computing · computational thinking', tagline: 'A robot grid the class programs live, a bug to hunt and an unplugged game for home.',
   about: 'Pupils type F, L and R in the chat; you type their algorithm in and the robot runs it. Then a buggy algorithm to debug, and an unplugged game for home.',
   chips: ['Computing', '20–30 minutes', 'No devices needed'], cta: 'Build the mission', savedLabel: 'missions',
-  lumi: { hello: 'Pick a <b>computing concept</b> and a theme. I’ll build a robot mission your class programs live.', thinking: 'Placing the walls and checking there is a way through…', done: 'Type the class’s algorithm into the box and press <b>Run</b>.' },
+  sym: { hello: 'Pick a <b>computing concept</b> and a theme. I’ll build a robot mission your class programs live.', thinking: 'Placing the walls and checking there is a way through…', done: 'Type the class’s algorithm into the box and press <b>Run</b>.' },
   fields: [
     { id: 'year', type: 'year', label: 'Year group', value: 'Year 3' },
     { id: 'concept', type: 'select', label: 'Concept', options: ['Sequence', 'Repetition (loops)', 'Debugging', 'Decomposition', 'Selection (if… then…)', 'Algorithms for efficiency'], value: 'Sequence' },

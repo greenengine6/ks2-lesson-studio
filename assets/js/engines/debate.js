@@ -140,7 +140,7 @@ const eng = {
   kicker: 'Oracy · current affairs', tagline: 'Paste a news story: get a balanced debate or assembly with live votes.',
   about: 'Paste a child-friendly news story. Get a balanced debate or assembly: summary, motion, live before-and-after votes, arguments on both sides, oracy stems and a running order.',
   chips: ['Oracy', '15–20 minutes', 'Balanced'], cta: 'Plan the debate', savedLabel: 'debates',
-  lumi: { hello: 'Paste a <b>news story</b> from this week (a children’s news site is perfect). I’ll turn it into a fair debate with live votes.', thinking: 'Reading the story and balancing both sides…', done: 'Start with the story, then take the first vote.' },
+  sym: { hello: 'Paste a <b>news story</b> from this week (a children’s news site is perfect). I’ll turn it into a fair debate with live votes.', thinking: 'Reading the story and balancing both sides…', done: 'Start with the story, then take the first vote.' },
   fields: [
     { id: 'year', type: 'year', label: 'Year group', mixed: true, value: 'Years 3 to 6' },
     { id: 'story', type: 'textarea', label: 'The news story', required: true, rows: 6, hint: 'Paste a headline and a short summary from a children’s news site, so it is current and age-appropriate.', placeholder: 'Paste the story here…', tip: 'I only use what you paste, so the debate stays accurate and up to date.', missing: 'Paste a news story first: a headline and a few sentences is enough.' },

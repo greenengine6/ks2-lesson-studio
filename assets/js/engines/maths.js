@@ -427,7 +427,7 @@ const eng = {
   kicker: 'Maths · reasoning starter', tagline: "Which One Doesn't Belong + an Open Middle puzzle the class solves live.",
   about: 'A four-picture “Which one doesn’t belong?” where every answer can be right, then an Open Middle puzzle your class tries live: it checks answers and finds the best one.',
   chips: ['Maths', '15–20 minutes', 'Every pupil can be right'], cta: 'Make the puzzles', savedLabel: 'puzzles',
-  lumi: { hello: 'Tell me the <b>maths topic</b> and year group. I’ll make a “Which one doesn’t belong?” grid and an Open Middle puzzle your class can try live.', thinking: 'Choosing four items that can each be the odd one out…', done: 'Press <b>Present</b>, then tap the pictures to reveal reasons.' },
+  sym: { hello: 'Tell me the <b>maths topic</b> and year group. I’ll make a “Which one doesn’t belong?” grid and an Open Middle puzzle your class can try live.', thinking: 'Choosing four items that can each be the odd one out…', done: 'Press <b>Present</b>, then tap the pictures to reveal reasons.' },
   fields: [
     { id: 'year', type: 'year', label: 'Year group', value: 'Year 4' },
     { id: 'topic', type: 'text', label: 'Maths topic', required: true, placeholder: 'For example: Equivalent fractions', chips: ['Place value', 'Multiplication', 'Fractions', 'Angles', 'Shape', 'Time', 'Decimals'], tip: 'Any maths topic works: place value, fractions, shape, time, angles…', missing: 'Type a maths topic first, for example “Equivalent fractions”.' },

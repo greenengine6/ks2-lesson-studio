@@ -19,7 +19,7 @@ Ten engines and a slide studio that turn one topic into a two-way online lesson 
 | **Unplugged Code** | A robot grid the class programs with F, L, R (and repeats); a buggy algorithm to debug; an unplugged game for home. The grid is checked to be solvable. |
 | **Step-by-Step** | Any task broken into small timed steps with Now / Next / Then, a tick-off checklist and a word bank with home-language words (SEND and EAL). |
 | **Escape Room** | A story mission where each lock is a card: a correct code drops it away and brings the next lock forward. Timer, hints and a finale. |
-| **Brain Break** | A timed calm-down or wake-up script led by Lumi, who grows on breathe-in and shrinks on breathe-out, with read-aloud and nature sounds. |
+| **Brain Break** | A timed calm-down or wake-up script led by Symphony, who grows on breathe-in and shrinks on breathe-out, with read-aloud and nature sounds. |
 | **Big Debate** | Paste a news story: a balanced debate or assembly with before-and-after live votes, arguments on both sides and oracy stems. |
 
 **Present mode** (every engine): full screen, Magic pointer (ribbons follow the mouse so pupils on a call can see where you point; key P), timer (T), teacher notes (N), arrow keys between screens.
@@ -59,7 +59,7 @@ assets/js/app.js         routing, header, dock, landing page
 assets/js/core.js        Claude connection (streaming), storage, copying
 assets/js/slides.js      Slide Studio
 assets/js/engines/       the ten engines + shared framework
-assets/js/fx/            Tubes, Lumi, Waves, Ribbons, CardSwap, Dock, sounds, particles
+assets/js/fx/            Tubes, Symphony, Waves, Ribbons, CardSwap, Dock, sounds, particles
 ```
 
 ## Credits
