@@ -1,7 +1,7 @@
 /* The luminous switches: Night mode, Symphony's voice, Magic pointer and Teaching online. Any element with
    data-switch="night|voice|pointer|online" toggles that setting; every copy of the switch (header, menu, the
    lit cards on the home page) shows the same state, and lit cards glow when their switch is on. */
-import { $, $$, store, bus, prefs, toast } from './core.js';
+import { $, $$, store, bus, prefs, toast } from './core.js?v=f3cc728c';
 
 const THEME_KEY = 'ks2-engine.theme.v1', VOICE_KEY = 'ks2-engine.voice.v1', POINTER_KEY = 'ks2-engine.pointer.v1';
 let onHero = false;

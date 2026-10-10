@@ -47,6 +47,8 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 
 Class screens stay bright in Night mode, because they are what pupils see.
 
+The landing page on a phone opens on the background with the title, credit and description at the bottom; one scroll down shows *Who’s teaching today?* and, at the end, the privacy note. On a laptop it all fits one screen.
+
 On phones, all the site’s text is 25% smaller (never below 9px), so more fits on the screen. Typing boxes stay at 16px so iPhones do not zoom in, and class screens and slides keep their own sizing.
 
 ## Rabinder’s dashboard and report
@@ -109,6 +111,7 @@ assets/js/feedback.js    teacher feedback, class feedback
 assets/js/sync.js        sends teachers' activity (locked) to the inbox; the dashboard fetches and opens it
 assets/js/fx/voice.js    Symphony's voice: a girl's voice, one sentence at a time, used by every read-aloud
 inbox/Code.gs            the Apps Script inbox (stores locked activity only)
+tools/stamp.py           stamps one version on every script and style address; run before each commit
 assets/js/chat.js        Symphony chat (voice and text, English and Malay)
 assets/js/play.js        Wonder Window scenes
 assets/js/security.js    protection deterrents

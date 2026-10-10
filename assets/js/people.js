@@ -3,8 +3,8 @@
    one-tap link once on their device). Rabinder has the only login: "Hello Admin", her name pre-filled, her
    password on a new device, then a passkey (Face ID, fingerprint or the screen lock) on each of her devices.
    Pupils never sign in. */
-import { $, $$, esc, el, icon, store, bus, CONFIG, setKey, toast } from './core.js';
-import { cryptoOK, b64u, unb64u, utf8, unutf8, random, pbkdf2, sha256, sameBytes, aesKey, aesDecrypt, importAdminPrivate, passkeyOK, platformPasskey, createPasskey, checkPasskey, idbGet, idbSet, idbDel } from './crypto.js';
+import { $, $$, esc, el, icon, store, bus, CONFIG, setKey, toast } from './core.js?v=f3cc728c';
+import { cryptoOK, b64u, unb64u, utf8, unutf8, random, pbkdf2, sha256, sameBytes, aesKey, aesDecrypt, importAdminPrivate, passkeyOK, platformPasskey, createPasskey, checkPasskey, idbGet, idbSet, idbDel } from './crypto.js?v=f3cc728c';
 
 const ME_KEY = 'ks2-engine.me.v1', ROSTER_KEY = 'ks2-engine.roster.v1', PASS_KEY = 'ks2-engine.passkey.v1', SES_KEY = 'ks2-engine.session.v1', LOCK_KEY = 'ks2-engine.pinlock.v1';
 const PIN_ITER = 150000, ADMIN_IDLE = 30 * 60 * 1000;
@@ -134,8 +134,12 @@ function teacherForm() {
     '<button class="btn glow big hg-go" type="submit">' + icon('play') + 'Start teaching</button></div><datalist id="hg-names"></datalist>' +
     '<p class="hg-err" role="alert" hidden></p>' +
     '<p class="hg-none" hidden>' + icon('link') + '<span><b>First time on this device?</b> Open the personal link Rabinder sent you once, then sign in here with your name and PIN. Your PIN is yours: please do not share it.</span></p>' +
-    '<p class="hg-note">' + icon('info') + '<span>For Rabinder’s reports, this site records your teaching time, lessons made and taught, and class feedback, and sends them to her by itself, locked so only she can open them. It never records pupils’ names or what you ask Symphony.</span></p>' +
-    '<p class="hg-links"><button type="button" class="hg-admin" data-admin-signin>' + icon('key') + 'Admin sign-in</button></p>';
+    '<p class="hg-links"><button type="button" class="hg-admin" data-admin-signin>' + icon('key') + 'Admin sign-in</button></p>' +
+    '<div class="hg-priv" role="note" aria-label="Privacy"><p class="hg-priv-h">' + icon('lock') + 'Privacy</p>' +
+      '<p>A simple home-made site for Rabinder’s teachers, run not for profit: no adverts, no trackers, no cookies, nothing sold. Pupils never sign in, and no pupil names are kept. ' +
+      'The only thing recorded is teachers’ lesson activity for Rabinder’s reports, locked so only she can open it. Topics you type go to the AI engine only to write your lesson.</p></div>';
+  const down = $('[data-to-gate]');
+  if (down) down.addEventListener('click', () => host.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }));
   host.addEventListener('click', (e) => {
     const pick = e.target.closest('[data-person]');
     if (pick) { chosen = profiles().find((p) => p.id === pick.dataset.person) || null; $('#hg-name').value = chosen ? chosen.n : ''; paintTeacher(); $('#hg-pin').focus(); }

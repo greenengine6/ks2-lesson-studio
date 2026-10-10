@@ -1,9 +1,9 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
-import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP } from './core.js';
-import { track } from './track.js';
-import EXAMPLE_RAW from './slides-example.js';
-import { Ribbons } from './fx/ribbons.js';
+import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP } from './core.js?v=f3cc728c';
+import { track } from './track.js?v=f3cc728c';
+import EXAMPLE_RAW from './slides-example.js?v=f3cc728c';
+import { Ribbons } from './fx/ribbons.js?v=f3cc728c';
 
 const I = {
   flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',

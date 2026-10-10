@@ -5,9 +5,18 @@ body.gated #view-home > :not(#hero),body.gated #view-engine,body.gated #view-sli
 body.gated .dock,body.gated .sym-fab,body.gated .symc,body.gated .nav,body.gated .top-r .seg,body.gated .conn,body.gated #menu-btn,body.gated #mnav,
 body.gated .hero-cta,body.gated .who-wrap,body.gated .present,body.gated .spresent{display:none!important}
 html:not([data-who="admin"]) .conn{display:none!important}
-body.gated .hero{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+body.gated .hero{padding-bottom:calc(30px + env(safe-area-inset-bottom,0px))}
 @media (min-width:641px){body.gated .hero-hint{bottom:calc(44px + env(safe-area-inset-bottom,0px))}}
 @media (max-width:640px){
+  /* the landing page on a phone: first the open background with the title, credit and lede at the bottom;
+     scroll once for "Who's teaching today?", with the privacy note at the very end */
+  body.gated .hero{justify-content:flex-start;padding:0 20px calc(30px + env(safe-area-inset-bottom,0px))}
+  body.gated .hero .tubes,body.gated .hero-shade{bottom:auto;height:100vh;height:100svh}
+  body.gated .hero-shade{background:linear-gradient(to top,#080A12 0%,rgb(8 10 18 / .86) 15%,rgb(8 10 18 / .5) 36%,rgb(8 10 18 / .12) 58%,rgb(8 10 18 / 0) 72%)}
+  body.gated .hero-top{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+  body.gated .hg-down{display:inline-flex;align-items:center;gap:6px;align-self:center;margin-top:30px;padding:8px 16px;border:0;border-radius:999px;background:rgb(255 255 255 / .07);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .16);color:#D5DBE7;font-family:var(--f-display);font-weight:700;font-size:max(9px,calc(13px * var(--m,1)));cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  body.gated .hg-down .i{width:16px;height:16px;animation:hgbob 1.8s ease-in-out infinite}
+  body.gated .hero-gate{margin-top:0;min-height:100vh;min-height:100svh;align-content:start;padding-top:calc(96px + env(safe-area-inset-top,0px))}
   body.gated .hero-hint{display:none}
   body.gated .toast{bottom:auto;top:calc(86px + env(safe-area-inset-top,0px));transform:translate(-50%,-10px)}
   body.gated .toast.is-on{transform:translate(-50%,0)}
@@ -38,8 +47,16 @@ body.gated .hero{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
 .hg-none[hidden]{display:none}
 .hg-none .i{flex:none;width:17px;height:17px;margin-top:2px;color:#9D97FF}
 .hg-none b{color:#fff}
-.hg-note{display:flex;gap:8px;align-items:flex-start;margin:2px 0 0;font-size:max(9px,calc(12.5px * var(--m,1)));line-height:1.5;color:rgb(238 241 248 / .62);max-width:62ch}
-.hg-note .i{flex:none;width:15px;height:15px;margin-top:2px}
+.hg-priv{margin:4px 0 0;padding:12px 14px;border-radius:16px;background:rgb(255 255 255 / .04);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .1);max-width:62ch}
+.hg-priv p{margin:0;font-size:max(9px,calc(12.5px * var(--m,1)));line-height:1.55;color:rgb(238 241 248 / .64)}
+.hg-priv .hg-priv-h{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-family:var(--f-display);font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:max(9px,calc(11.5px * var(--m,1)));color:#C9D2E3}
+.hg-priv .i{width:14px;height:14px}
+.hg-down{display:none}
+@media (min-width:641px){                       /* on a laptop the note stays small, so the landing page fits one screen */
+  .hg-priv{padding:0;background:none;box-shadow:none}
+  .hg-priv .hg-priv-h{display:none}
+  .hg-priv p::before{content:"Privacy. ";font-weight:800;color:#C9D2E3}
+}
 .hg-links{margin:0}
 .hg-admin{display:inline-flex;align-items:center;gap:7px;border:0;background:none;padding:6px 0;color:#C3CBDB;font-family:var(--f-display);font-weight:700;font-size:max(9px,calc(13.5px * var(--m,1)));cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .hg-admin .i{width:15px;height:15px}
@@ -214,3 +231,5 @@ body.gated .hero{padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
   .brand-t b{font-size:max(9px,calc(15px * var(--m,1)))}
   .top-r{gap:8px;margin-left:8px}
 }
+@keyframes hgbob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+@media (prefers-reduced-motion:reduce){.hg-down .i{animation:none!important}}

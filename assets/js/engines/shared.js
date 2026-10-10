@@ -1,9 +1,9 @@
 /* The engine framework: every engine is a small definition (fields, prompt, normaliser, class screens, notes).
    This file renders the engine page, talks to Claude, keeps saved activities, and runs Present mode. */
-import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG } from '../core.js';
-import { Ribbons } from '../fx/ribbons.js';
-import { Ambient, Speech } from '../fx/sound.js';
-import { track } from '../track.js';
+import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG } from '../core.js?v=f3cc728c';
+import { Ribbons } from '../fx/ribbons.js?v=f3cc728c';
+import { Ambient, Speech } from '../fx/sound.js?v=f3cc728c';
+import { track } from '../track.js?v=f3cc728c';
 
 /* ---------------- how pupils respond (online or in class) ---------------- */
 export const RESPOND = {

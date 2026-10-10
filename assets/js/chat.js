@@ -3,13 +3,13 @@
    underline that fits each word. On phones, tapping the mic starts a spoken conversation: after she answers she
    listens again, until the mic is tapped or nothing is heard. Questions about her, the site, greetings and language
    changes are answered on the device; everything else needs the device to be connected. */
-import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP } from './core.js';
-import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js';
-import { settings, paintSwitches } from './settings.js';
-import { isAdmin, ADMIN_NAME } from './people.js';
-import { briefing, downloadReport } from './admin.js';
-import { track } from './track.js';
-import { Voice } from './fx/voice.js';
+import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP } from './core.js?v=f3cc728c';
+import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=f3cc728c';
+import { settings, paintSwitches } from './settings.js?v=f3cc728c';
+import { isAdmin, ADMIN_NAME } from './people.js?v=f3cc728c';
+import { briefing, downloadReport } from './admin.js?v=f3cc728c';
+import { track } from './track.js?v=f3cc728c';
+import { Voice } from './fx/voice.js?v=f3cc728c';
 
 const LANG_KEY = 'ks2-engine.symlang.v1';
 const T = {
@@ -27,6 +27,7 @@ const T = {
     noSpeech: 'I did not hear anything. Tap the mic and try again.',
     micNet: 'Voice needs an internet connection. You can type instead.',
     talkHint: 'Tap the mic to talk. She answers out loud, then listens again.',
+    voiceTrouble: 'This device would not let me speak just then. Tap “Say again” to hear it.',
     copy: 'Copy', again: 'Say again', copied: 'Copied. Paste it anywhere.', newChat: 'New chat',
     chips: [['Who are you?', 'ask'], ['Brainstorm a lesson', 'fill:Brainstorm a fun KS2 lesson about '], ['A fun fact about space', 'ask'], ['Explain fractions to a Year 3 class', 'ask'], ['What can this site do?', 'ask'], ['Cakap Melayu', 'lang:ms']]
   },
@@ -44,6 +45,7 @@ const T = {
     noSpeech: 'Saya tidak dengar apa-apa. Tekan mikrofon dan cuba lagi.',
     micNet: 'Suara memerlukan sambungan internet. Anda boleh menaip.',
     talkHint: 'Tekan mikrofon untuk bercakap. Dia menjawab dengan suara, kemudian mendengar semula.',
+    voiceTrouble: 'Peranti ini tidak membenarkan saya bercakap tadi. Tekan “Ulang” untuk mendengarnya.',
     copy: 'Salin', again: 'Ulang', copied: 'Disalin.', newChat: 'Sembang baharu',
     chips: [['Siapa awak?', 'ask'], ['Idea pelajaran', 'fill:Beri idea pelajaran KS2 yang seronok tentang '], ['Fakta menarik tentang angkasa', 'ask'], ['Apa yang laman ini boleh buat?', 'ask'], ['Speak English', 'lang:en']]
   }
@@ -72,7 +74,7 @@ const history = [];
 let panel, fab, logEl, input, mic, stageWord, stageBar, stageWrap, statusEl, avatar;
 
 /* ---------------- voice out: Symphony's voice (fx/voice.js), one part at a time ---------------- */
-let sayGen = 0, lastSay = null;
+let sayGen = 0, lastSay = null, troubled = -1;
 function say(text) {
   text = String(text || '').trim();
   if (!text) return;
@@ -80,7 +82,8 @@ function say(text) {
   lastSay = Voice.say(text, {
     lang: lang === 'ms' ? 'ms' : 'en-GB', rate: lang === 'ms' ? 0.95 : 1, silent: !settings.voice,
     onStart: () => { if (g === sayGen && state !== 'listen') setState('speak'); },
-    onWord: (w) => { if (g === sayGen) showWord(w); }
+    onWord: (w) => { if (g === sayGen) showWord(w); },
+    onTrouble: () => { if (g === sayGen && troubled !== g) { troubled = g; addMsg('sym', T[lang].voiceTrouble, { muted: true }); } }
   });
 }
 function hush() { sayGen++; lastSay = null; Voice.stop(); }
@@ -251,6 +254,7 @@ function listen() {
   };
   rec.onerror = (e) => {
     talk = false;
+    Voice.hold(700);
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') note(T[lang].micDenied);
     else if (e.error === 'no-speech') note(T[lang].noSpeech);
     else if (e.error === 'network') note(T[lang].micNet);
@@ -258,6 +262,7 @@ function listen() {
   rec.onend = () => {
     const t = (finalText || input.value).trim();
     rec = null;
+    Voice.hold(700);                                  // phones need a moment to hand the sound back from the microphone
     if (state === 'listen') setState('idle');
     if (t) { input.value = ''; ask(t, 'voice'); } else showWord('');
   };

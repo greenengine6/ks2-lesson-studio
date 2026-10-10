@@ -1,21 +1,21 @@
 /* KS2 Lesson Engine: start-up, routing, header, dock, landing page and the Connect dialog. */
-import './security.js';
-import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js';
-import { Tubes } from './fx/tubes.js';
-import { Dock } from './fx/dock.js';
-import { CardSwap } from './fx/cardswap.js';
-import { Symphony } from './fx/symphony.js';
-import { ENGINES, ENGINE_BY_ID } from './engines/registry.js';
-import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js';
-import { initSlides, examplePreview, fitSlide, refitSlides, slidesPresentInfo } from './slides.js';
-import { initSettings } from './settings.js';
-import { initChat } from './chat.js';
-import { track } from './track.js';
-import { initPeople, who, isAdmin, requireAdmin } from './people.js';
-import { initFeedback } from './feedback.js';
-import { renderAdmin } from './admin.js';
-import { initPlay } from './play.js';
-import { initSync } from './sync.js';
+import './security.js?v=f3cc728c';
+import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=f3cc728c';
+import { Tubes } from './fx/tubes.js?v=f3cc728c';
+import { Dock } from './fx/dock.js?v=f3cc728c';
+import { CardSwap } from './fx/cardswap.js?v=f3cc728c';
+import { Symphony } from './fx/symphony.js?v=f3cc728c';
+import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=f3cc728c';
+import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=f3cc728c';
+import { initSlides, examplePreview, fitSlide, refitSlides, slidesPresentInfo } from './slides.js?v=f3cc728c';
+import { initSettings } from './settings.js?v=f3cc728c';
+import { initChat } from './chat.js?v=f3cc728c';
+import { track } from './track.js?v=f3cc728c';
+import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=f3cc728c';
+import { initFeedback } from './feedback.js?v=f3cc728c';
+import { renderAdmin } from './admin.js?v=f3cc728c';
+import { initPlay } from './play.js?v=f3cc728c';
+import { initSync } from './sync.js?v=f3cc728c';
 
 const PLAY = { id: 'play', name: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'A play area for the whole class: starlings, fireflies, the planets and the northern lights, with facts Symphony reads aloud.', chips: ['Earth, nature and space', 'Shared screen'] };
 const SLIDES = { id: 'slides', name: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
@@ -27,6 +27,7 @@ function paintHeader() {
   const onHero = current === 'home' && window.scrollY < heroH - 80;
   top.classList.toggle('on-hero', onHero);
   top.classList.toggle('solid', !onHero && (current !== 'home' || window.scrollY > 40));
+  top.classList.toggle('glass', onHero && window.scrollY > 40);           // dark glass, so text scrolling under it stays readable
   bus.emit('header', onHero);
 }
 window.addEventListener('scroll', paintHeader, { passive: true });

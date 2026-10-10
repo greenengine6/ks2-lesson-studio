@@ -171,6 +171,7 @@ input[type=password]{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,mono
 .hh-m{display:none}
 @keyframes hintpulse{0%,100%{opacity:.5}50%{opacity:1}}
 /* header while it floats over the dark hero */
+.top.on-hero.glass{background:rgb(8 10 18 / .72);-webkit-backdrop-filter:saturate(1.2) blur(14px);backdrop-filter:saturate(1.2) blur(14px);box-shadow:0 10px 24px -18px rgb(0 0 0 / .9)}
 .top.on-hero .brand{color:#F5F7FC}
 .top.on-hero .brand-t span{color:#AEB7CA}
 .top.on-hero .logo{background:rgb(255 255 255 / .06);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .16)}

@@ -3,10 +3,12 @@
    Malay. It picks the best female voice the device has (a girl's voice first where there is one, such as Maisie on
    Edge) and never a man's voice while a woman's or girl's voice exists.
 
-   Text is spoken one short part at a time: the next part starts only when the last one has finished, and nothing
-   is cut off while it is still being spoken. (Queuing several parts at once and cancelling the ones that had not
-   started made phones stop after the first word.) If the device cannot speak, or reading aloud is off, the words
-   are still timed one by one, so Symphony's stage can show them. */
+   Text is spoken one sentence at a time: the next starts only when the last one has finished, and nothing is cut
+   off while it is still being spoken. Phones can still break speech off by themselves (the microphone handing the
+   sound back, another sound, a notification), often without saying so, so each sentence is watched while it plays:
+   if the voice goes quiet or its words stop moving, she carries on from the word she had reached. If the device
+   cannot speak at all, or reading aloud is off, the words are still timed one by one, so Symphony's stage can show
+   them. */
 
 const OK = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 const synth = OK ? window.speechSynthesis : null;
@@ -134,8 +136,8 @@ function partsOf(text) {
     }
     if (s) pieces.push(s);
   });
-  const parts = [];                                   // join short sentences so the speech flows
-  pieces.forEach((s) => { const l = parts.length - 1; if (l >= 0 && parts[l].length + 1 + s.length <= MAXP) parts[l] += ' ' + s; else parts.push(s); });
+  const parts = [];                                   // a very short sentence joins the next one, so the speech flows
+  pieces.forEach((s) => { const l = parts.length - 1; if (l >= 0 && parts[l].length < 30 && parts[l].length + 1 + s.length <= MAXP) parts[l] += ' ' + s; else parts.push(s); });
   return parts;
 }
 const wordsOf = (t) => String(t).split(/\s+/).filter(Boolean);
@@ -143,17 +145,25 @@ const wordMs = (w, rate) => (170 + Math.min(14, w.length) * 34) / Math.max(0.5, 
 const estimate = (p) => wordsOf(p.text).reduce((a, w) => a + wordMs(w, p.job.rate), 0);
 const call = (fn, a) => { if (typeof fn === 'function') { try { fn(a); } catch (e) { /* ignore */ } } };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const starts = (t) => { const out = [], re = /\S+/g; let m; while ((m = re.exec(t))) out.push(m.index); return out; };
 
 const Q = [];
-let cur = null, unlocked = false, lastCancel = 0, blipAt = 0, simT = 0;
+const GAP = 250;                                      // phones ignore speech that starts straight after a cancel
+let cur = null, unlocked = false, lastCancel = 0, blipAt = 0, simT = 0, holdUntil = 0;
+export const stats = { parts: 0, breaks: 0, mutes: 0 };
 
 function hushBrowser() {
   if (!OK) return;
   try { synth.cancel(); lastCancel = Date.now(); } catch (e) { /* ignore */ }
 }
-function finish(job, ok) { if (job.over) return; job.over = true; job.resolve(ok); }
+function finish(job, ok) {
+  if (job.over) return;
+  job.over = true;
+  if (ok && job.mute) call(job.onTrouble);
+  job.resolve(ok);
+}
 function stopSim() { clearTimeout(simT); simT = 0; }
-function clear(p) { clearTimeout(p.wd); clearTimeout(p.capT); clearTimeout(p.simT); p.u = null; }
+function clear(p) { clearTimeout(p.wd); clearTimeout(p.capT); clearTimeout(p.simT); clearInterval(p.hc); p.u = null; }
 
 function pump() {
   if (cur) return;
@@ -161,6 +171,7 @@ function pump() {
   while (p && p.job.over) p = Q.shift();
   if (!p) return;
   cur = p;
+  stats.parts++;
   if (!OK || p.job.silent || p.job.mute) simulate(p, true);
   else speakPart(p);
 }
@@ -172,6 +183,7 @@ function done(p) {
   if (p.job.left <= 0) finish(p.job, true);
   setTimeout(pump, 0);
 }
+function mute(p) { clear(p); if (!p.job.mute) stats.mutes++; p.job.mute = true; simulate(p, true); }
 /* Show the words one by one at a natural pace: alongside the speech when the browser does not report each word,
    or on their own when there is no sound. */
 function simulate(p, owns) {
@@ -191,38 +203,70 @@ function simulate(p, owns) {
 function started(p) {
   if (p.started) return;
   p.started = true;
+  p.t0 = p.markAt = Date.now();
+  p.idle = 0;
   clearTimeout(p.wd);
   if (!p.job.begun) { p.job.begun = true; call(p.job.onStart); }
   p.capT = setTimeout(() => done(p), estimate(p) * 2.2 + 5000);           // never wait for ever if the end is not reported
   if (marks.has(vid(p.voice))) p.simT = setTimeout(() => { if (cur === p && !p.bound) simulate(p, false); }, 600);
   else simulate(p, false);                                               // time the words until the voice reports its own
+  p.hc = setInterval(() => check(p), 250);
+}
+/* Watch the voice while it speaks. Phones can cut speech off without saying so (another sound, the microphone,
+   a notification). If the browser goes quiet without finishing, or the words stop moving, carry on from the word
+   it had reached. */
+function check(p) {
+  if (cur !== p || !p.u || document.hidden) return;
+  let speaking = true, pending = false;
+  try { speaking = !!synth.speaking; pending = !!synth.pending; } catch (e) { /* ignore */ }
+  p.idle = !speaking && !pending ? (p.idle || 0) + 1 : 0;
+  if (p.idle >= 4 || (p.bound && Date.now() - p.markAt > 2500)) broke(p);
+}
+const left = (p) => wordsOf(p.text.slice(p.at || 0)).length;            // words still to say, from the last one reached
+function broke(p) {
+  if (cur !== p) return;
+  if (!p.bound) {                                                         // no word marks from this voice: judge by time
+    const ws = starts(p.text), f = Math.min(1, (Date.now() - (p.t0 || Date.now())) / Math.max(1, estimate(p)));
+    p.at = ws[Math.max(0, Math.floor(f * ws.length) - 1)] || 0;
+  }
+  if (left(p) <= 1 || (p.resumes || 0) >= 3) { done(p); return; }
+  p.resumes = (p.resumes || 0) + 1;
+  stats.breaks++;
+  const rest = p.text.slice(p.at || 0).trim();
+  clear(p); stopSim(); hushBrowser();
+  Object.assign(p, { text: rest, at: 0, started: false, bound: false, retried: false });
+  speakPart(p);
 }
 async function speakPart(p) {
   await ready();
   if (cur !== p) return;
-  const gap = 170 - (Date.now() - lastCancel);                         // phones ignore speech that starts straight after a cancel
-  if (gap > 0) { await sleep(gap); if (cur !== p) return; }
+  const wait = Math.max(GAP - (Date.now() - lastCancel), holdUntil - Date.now());
+  if (wait > 0) { await sleep(wait); if (cur !== p) return; }
   const v = pick(p.job.lang), k = kindOf(v);
   let u;
-  try { u = new SpeechSynthesisUtterance(p.text); } catch (e) { p.job.mute = true; simulate(p, true); return; }
+  try { u = new SpeechSynthesisUtterance(p.text); } catch (e) { mute(p); return; }
   if (v) { u.voice = v; u.lang = v.lang; } else u.lang = wantOf(p.job.lang).tag;
   u.rate = Math.min(1.6, Math.max(0.5, p.job.rate || 1));
   u.pitch = PITCH[k] || 1.1;
   u.volume = 1;
-  p.u = u; p.voice = v; p.started = false; p.bound = false;
+  p.u = u; p.voice = v; p.started = false; p.bound = false; p.at = 0;
   const mine = () => cur === p && p.u === u;
   u.onstart = () => { if (mine()) started(p); };
   u.onboundary = (e) => {
     if (!mine() || (e && e.name && e.name !== 'word')) return;
     started(p);
-    p.bound = true;
+    p.bound = true; p.markAt = Date.now(); p.at = (e && e.charIndex) || 0;
     marks.add(vid(p.voice));
     if (simT) stopSim();
-    const m = /^\S+/.exec(p.text.slice((e && e.charIndex) || 0));
+    const m = /^\S+/.exec(p.text.slice(p.at));
     if (m) call(p.job.onWord, m[0]);
   };
-  u.onend = () => { if (mine()) done(p); };
-  u.onerror = (e) => { if (mine()) failed(p, (e && e.error) || 'error'); };
+  u.onend = () => {
+    if (!mine()) return;
+    if (p.bound && left(p) >= 3) { broke(p); return; }                  // it stopped early: the phone was interrupted
+    done(p);
+  };
+  u.onerror = (e) => { if (!mine()) return; if (p.started) broke(p); else failed(p, (e && e.error) || 'error'); };
   try { if (synth.paused) synth.resume(); } catch (e) { /* ignore */ }
   try { synth.speak(u); } catch (e) { failed(p, 'speak'); return; }
   p.wd = setTimeout(() => stalled(p, u), v && v.localService === false ? 6000 : 3000);
@@ -237,29 +281,29 @@ function stalled(p, u) {
     if (p.voice && p.voice.localService === false) { bad.add(vid(p.voice)); cache = {}; }   // an online voice that did not answer: use the next best
     speakPart(p); return;
   }
-  clear(p); p.job.mute = true; simulate(p, true);                        // no sound right now: show the words instead
+  mute(p);                                                               // no sound right now: show the words instead
 }
 function failed(p, err) {
-  if (p.started) { done(p); return; }
   clear(p);
-  if (err === 'not-allowed') { p.job.mute = true; simulate(p, true); return; }   // the browser wants a tap first
+  if (err === 'not-allowed') { mute(p); return; }                         // the browser wants a tap first
   if (!p.retried) {
     p.retried = true;
     if (p.voice && /network|synthesis|voice|language|unavailable/.test(err)) { bad.add(vid(p.voice)); cache = {}; }
     setTimeout(() => { if (cur === p) speakPart(p); }, 120);
     return;
   }
-  p.job.mute = true; simulate(p, true);
+  mute(p);
 }
 
 /* Say something in Symphony's voice. Resolves true when it has all been said, false if it was stopped.
-   o: { lang: 'en' | 'ms' | any language tag, rate, silent (time the words without sound), onStart(), onWord(word) } */
+   o: { lang: 'en' | 'ms' | any language tag, rate, silent (time the words without sound), onStart(), onWord(word),
+   onTrouble() (the device would not speak, so the words were only shown) } */
 export function say(text, o) {
   o = o || {};
   const parts = partsOf(text);
   return new Promise((resolve) => {
     if (!parts.length) { resolve(true); return; }
-    const job = { lang: o.lang || 'en-GB', rate: o.rate || 1, silent: !!o.silent, onStart: o.onStart, onWord: o.onWord, left: parts.length, resolve, over: false, begun: false, mute: false };
+    const job = { lang: o.lang || 'en-GB', rate: o.rate || 1, silent: !!o.silent, onStart: o.onStart, onWord: o.onWord, onTrouble: o.onTrouble, left: parts.length, resolve, over: false, begun: false, mute: false };
     parts.forEach((t) => Q.push({ text: t, job }));
     if (!cur) pump();
   });
@@ -275,6 +319,8 @@ export function stop() {
   try { busy = OK && (synth.speaking || synth.pending); } catch (e) { busy = false; }
   if (had || (busy && Date.now() - blipAt > 1500)) hushBrowser();   // leave the silent first-tap blip alone
 }
+/* Wait a moment before the next speech starts: after the microphone, phones need to switch their sound back. */
+export function hold(ms) { holdUntil = Math.max(holdUntil, Date.now() + (ms || 0)); }
 /* Phones only allow speech after a tap: speak a silent blip on the first tap anywhere, then all speech works. */
 export function unlock() {
   if (!OK || unlocked) return;
@@ -291,7 +337,7 @@ if (OK) {
 
 export const Voice = {
   supported: OK,
-  say, stop, pick, hasVoice, unlock,
+  say, stop, pick, hasVoice, unlock, hold, stats,
   get busy() { return !!cur || Q.length > 0; },
   name(lang) { const v = pick(lang || 'en-GB'); return v ? v.name : ''; },
   kind(lang) { return kindOf(pick(lang || 'en-GB')); }
