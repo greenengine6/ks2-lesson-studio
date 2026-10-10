@@ -21,6 +21,19 @@ Two-way lesson slides for Key Stage 2 teachers. Made for Rabinder.
 3. Under **API keys**, create a key named after the device (for example `Rabinder laptop`).
 4. Open the site, paste the key into **Connect Claude**, and press **Save and test**.
 
+## Private link (no key for the teacher) — Vercel
+
+When the site runs on Vercel, the API key stays on the server and teachers connect by tapping a private link.
+
+1. In Vercel, open the project, then **Settings → Environment Variables**, and add:
+   - `ANTHROPIC_API_KEY`: the key from the Anthropic Console
+   - `ACCESS_CODE`: a long random code (the "house key" inside the link)
+2. Redeploy (Deployments → ⋯ → Redeploy).
+3. Send the link `https://<your-vercel-address>/#join=<ACCESS_CODE>`. Tapping it once connects that device; the code is removed from the address bar.
+4. To cut off every old link, change `ACCESS_CODE` in Vercel, redeploy, and send the new link.
+
+`api/claude.js` only accepts the two models the site uses, caps the length of each answer, and never returns the key.
+
 ## Privacy
 
 - The API key is stored **only in that browser** (local storage). It is sent only to `api.anthropic.com`; the page's security policy blocks every other destination.
