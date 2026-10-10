@@ -15,6 +15,7 @@ import { initPeople, who, isAdmin, requireAdmin } from './people.js';
 import { initFeedback } from './feedback.js';
 import { renderAdmin } from './admin.js';
 import { initPlay } from './play.js';
+import { initSync } from './sync.js';
 
 const PLAY = { id: 'play', name: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'A play area for the whole class: starlings, fireflies, the planets and the northern lights, with facts Symphony reads aloud.', chips: ['Earth, nature and space', 'Shared screen'] };
 const SLIDES = { id: 'slides', name: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
@@ -44,8 +45,7 @@ mnav.addEventListener('click', (e) => { if (e.target.closest('a')) { mnav.hidden
 const go = (id) => { location.hash = id === 'home' ? '#/' : '#/' + id; };
 const dockItems = [{ id: 'home', label: 'Home', icon: icon('home'), color: 'violet', onClick: () => go('home') }, { sep: true },
   { id: 'slides', label: 'Slide Studio', icon: icon('slides'), color: 'violet', onClick: () => go('slides') }, { id: 'play', label: 'Wonder Window', icon: icon('globe'), color: 'cyan', onClick: () => go('play') }]
-  .concat(ENGINES.map((e) => ({ id: e.id, label: e.name, icon: icon(e.icon), color: e.color, onClick: () => go(e.id) })))
-  .concat([{ sep: true }, { id: 'connect', label: 'Connect', icon: icon('key'), color: 'teal', onClick: () => openConnect() }]);
+  .concat(ENGINES.map((e) => ({ id: e.id, label: e.name, icon: icon(e.icon), color: e.color, onClick: () => go(e.id) })));
 const dock = new Dock($('#dock'), dockItems, { base: 50, magnification: 80, distance: 200 });
 
 /* ---------------- landing ---------------- */
@@ -150,7 +150,6 @@ let editing = false, lastFocus = null;
 function paintConn() {
   const on = hasKey();
   $$('.conn').forEach((b) => { b.classList.toggle('on', on); const t = $('.ctext', b); if (t) t.textContent = on ? 'Connected' : 'Connect'; });
-  dock.setBadge('connect', !on);
   $('#k-status').hidden = !on;
   $('#k-status-text').textContent = viaLink() ? 'Connected through your private link' : 'This device is connected';
   $('#k-change').hidden = viaLink();
@@ -191,7 +190,8 @@ $('#k-share').addEventListener('click', () => {
   copyOut('<a href="' + esc(link) + '">' + esc(link) + '</a>', link, 'Setup link copied. Send it privately, then delete the message once it has been opened.');
 });
 bus.on('key', paintConn);
-bus.on('need-key', () => openConnect());
+/* No engine key on this device yet. Teachers get it from their personal link, so only the admin is offered Connect. */
+bus.on('need-key', () => { if (isAdmin()) openConnect(); });
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (!$('#fallback').hidden) { $('#fallback').hidden = true; return; }
@@ -207,6 +207,7 @@ initSettings();
 initChat();
 initFeedback();
 initPlay();
+initSync();
 wirePresent();
 initSlides();
 engineCards();

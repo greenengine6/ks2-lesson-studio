@@ -1,22 +1,28 @@
 /* Rabinder's dashboard (only after "Hello Admin"): teaching time, deviations, engines, class voice, teacher
-   feedback, enrolment with personal links and PINs, activity files from teachers, the downloadable report,
-   CSV, Symphony's analysis, and this device's passkey. */
+   feedback, enrolment with personal links and PINs, teachers' activity arriving by itself from the inbox (sync.js),
+   the downloadable report, CSV, Symphony's analysis, and this device's passkey. Only the admin downloads. */
 import { $, $$, esc, el, icon, store, bus, toast, copyOut, hasKey, askClaude, errorCopy, CONFIG } from './core.js';
-import { evAll, evPutMany, evClear, kvGet, kvSet } from './idb.js';
+import { evAll, evClear, kvGet, kvSet } from './idb.js';
 import { roster, enrol, resetPin, unenrol, linkFor, newPin, isAdmin, adminKey, unlockWithPassword, hasPasskey, setUpPasskey, removePasskey, passkeyOK, platformPasskey, signOut, ADMIN_NAME, initials, forgetAdminKey } from './people.js';
-import { unseal } from './crypto.js';
+import { INBOX, pull, lastPull } from './sync.js';
 import { metrics, period, digest, spoken, reportHTML, csv, fmtDur, fmtDay, fmtDate, fmtTime, ENGINE_NAMES, moodOf } from './report.js';
 import { download, FACE_NAMES, FACE_COLOURS, faceSVG } from './feedback.js';
 
 const RANGE_KEY = 'ks2-engine.adminrange.v1';
-let range = store.get(RANGE_KEY) || 'week', lastM = null, analysis = '', view = null, busyAnalysis = null, pending = [];
+let range = store.get(RANGE_KEY) || 'week', lastM = null, analysis = '', view = null, busyAnalysis = null, pulledAt = 0;
 
 export async function briefing(kind) {
   const evs = await evAll();
   const m = metrics(evs, period(kind || range), roster());
   return { m, digest: digest(m), spoken: spoken(m), label: m.per.label };
 }
+/* Before a download, fetch anything new from the teachers (waiting at most a few seconds). */
+async function freshen() {
+  if (!INBOX || !adminKey()) return;
+  try { await Promise.race([pull(), new Promise((r) => setTimeout(r, 8000))]); } catch (e) { /* use what is here */ }
+}
 export async function downloadReport(kind) {
+  await freshen();
   const b = await briefing(kind);
   const subs = (await kvGet('subs')) || [];
   const html = reportHTML(b.m, { sources: 1 + new Set(subs.map((s) => s.from)).size, analysis: analysis ? analysisHTML(analysis) : '' });
@@ -59,7 +65,7 @@ export async function renderAdmin(host) {
       '<td class="aact"><button type="button" class="btn small" data-link="' + esc(p.id) + '">' + icon('link') + 'Copy link</button><button type="button" class="btn small" data-repin="' + esc(p.id) + '">' + icon('key') + 'New PIN</button><button type="button" class="btn small icon" data-unenrol="' + esc(p.id) + '" aria-label="Remove ' + esc(p.n) + '">' + icon('trash') + '</button></td></tr>';
   }).join('');
   host.innerHTML = '<div class="wrap adm">' +
-    '<header class="adm-head"><div><p class="kicker">' + icon('key') + 'Hello Admin</p><h1>' + esc(ADMIN_NAME) + '’s dashboard</h1><p>Everything your teachers did on the engine, worked out on this device. ' + esc(m.per.label) + '.</p></div>' +
+    '<header class="adm-head"><div><p class="kicker">' + icon('key') + 'Hello Admin</p><h1>' + esc(ADMIN_NAME) + '’s dashboard</h1><p>Everything your teachers did on the engine. It arrives by itself and is worked out on this device. ' + esc(m.per.label) + '.</p></div>' +
       '<div class="adm-tools"><div class="seg" role="group" aria-label="Period">' + [['week', '7 days'], ['month', '30 days'], ['term', 'School year'], ['all', 'All']].map(([k, l]) => '<button type="button" data-range="' + k + '" aria-pressed="' + (range === k) + '">' + l + '</button>').join('') + '</div>' +
       '<div class="adm-btns"><button type="button" class="btn" data-enrol>' + icon('plus') + 'Enrol a teacher</button><button type="button" class="btn primary" data-dl-report>' + icon('download') + 'Download report</button><button type="button" class="btn" data-analysis>' + icon('spark') + (analysis ? 'Refresh analysis' : 'Symphony’s analysis') + '</button><button type="button" class="btn" data-ask>' + icon('chat') + 'Ask Symphony</button><button type="button" class="btn" data-csv>' + icon('download') + 'CSV</button></div></div></header>' +
     '<div class="akpis">' +
@@ -84,17 +90,54 @@ export async function renderAdmin(host) {
         (m.best.length ? '<p class="fine"><b>Favourite parts:</b> ' + esc(m.best.slice(0, 4).map(([k, v]) => k + ' (' + v + ')').join(', ')) + '</p>' : '<p class="fine">Use “Class feedback” in Present mode to hear from pupils.</p>') + '</section>' +
       '<section class="card asec"><h2>' + icon('star') + 'Teacher feedback</h2>' + (m.feedback.length ? '<ul class="afb">' + m.feedback.slice(0, 6).map((f) => '<li><b>' + esc(f.tn) + '</b> <span class="astars">' + '★'.repeat(f.rating || 0) + '<i>' + '★'.repeat(5 - (f.rating || 0)) + '</i></span><small>' + esc(fmtDay(f.at)) + '</small>' + (f.good ? '<p>+ ' + esc(f.good) + '</p>' : '') + (f.better ? '<p>→ ' + esc(f.better) + '</p>' : '') + '</li>').join('') + '</ul>' : '<p class="fine">No feedback yet. Teachers use “Give feedback” in their menu.</p>') + '</section>' +
       '<section class="card asec"><h2>' + icon('play') + 'Lessons presented</h2>' + (m.lessons.length ? '<ul class="alog">' + m.lessons.slice(0, 8).map((l) => '<li><b>' + esc(l.title || l.eng) + '</b><small>' + esc(l.who + ' · ' + l.eng + ' · ' + fmtDay(l.at) + ' · ' + fmtDur(l.ms)) + (l.mood ? ' · mood ' + r1(l.mood) : '') + '</small></li>').join('') + '</ul>' : '<p class="fine">No lessons presented in this period.</p>') + '</section>' +
-      '<section class="card asec"><h2>' + icon('download') + 'Activity from teachers</h2><p class="fine">Teachers press “Send my activity to Rabinder” and send you the file. Drop the files here: only this dashboard can open them.</p>' +
-        '<label class="adrop" id="a-drop"><input type="file" id="a-file" accept=".ks2,.json,application/json,application/octet-stream" multiple hidden>' + icon('download') + '<b>Drop activity files here</b><small>or tap to choose them</small></label>' +
-        (adminKey() ? '' : '<form class="aunlock" id="a-unlock" novalidate><input type="text" name="username" autocomplete="username" value="' + esc(ADMIN_NAME) + '" hidden><label class="fld"><span>Admin password, to open files on this device</span><input type="password" id="a-pw" autocomplete="current-password" placeholder="Your admin password"></label><button type="submit" class="btn small">' + icon('key') + 'Unlock</button></form>') +
-        '<div class="notice" id="a-drop-out" hidden></div>' + (subs.length ? '<ul class="alog">' + subs.slice(0, 8).map((s) => '<li><b>' + esc(s.from) + '</b><small>' + esc(s.n + ' records · sent ' + fmtDay(s.sent || s.at) + ' · added ' + fmtDay(s.at)) + '</small></li>').join('') + '</ul>' : '') + '</section>' +
+      inboxCard(subs, await lastPull()) +
       '<section class="card asec"><h2>' + icon('check') + 'This device</h2><ul class="alog"><li><b>Passkey</b><small>' + (pk ? 'Set up. Sign in with Face ID, fingerprint or the screen lock.' : pkOK ? 'Not set up yet.' : 'This device does not offer passkeys. Use your password.') + '</small></li>' +
-        '<li><b>Activity file key</b><small>' + (adminKey() ? 'Unlocked: activity files open here.' : 'Locked. You will be asked for your password when you add a file.') + '</small></li></ul>' +
+        '<li><b>Teachers’ activity key</b><small>' + (adminKey() ? 'Unlocked: your teachers’ activity opens on this device.' : 'Locked: type your password in “From your teachers” to open their activity here.') + '</small></li></ul>' +
         '<div class="aact">' + (pkOK && !pk ? '<button type="button" class="btn small" data-pk-make>' + icon('check') + 'Set up passkey</button>' : '') + (pk ? '<button type="button" class="btn small" data-pk-rm>' + icon('trash') + 'Remove passkey</button>' : '') +
         '<button type="button" class="btn small" data-signout-admin>' + icon('close') + 'Sign out</button><button type="button" class="btn small" data-clear>' + icon('trash') + 'Clear activity data</button></div></section>' +
     '</div></div>';
   wire(host, m);
   $('#a-pin', host).value = newPin();
+  if (INBOX && adminKey() && Date.now() - pulledAt > 60000) checkInbox(false);
+}
+
+/* ---------------- from your teachers (the inbox) ---------------- */
+function inboxStatus(l) {
+  if (!l || !l.tried) return 'Checking for new activity…';
+  if (l.error && (!l.at || l.tried > l.at)) return l.error === 'access' ? 'The inbox answered with a sign-in page: in Apps Script, its access must be set to “Anyone”.' : 'The inbox could not be reached just now. Check the internet connection, then press Check now.';
+  return 'Last checked ' + fmtDay(l.at) + ' at ' + fmtTime(l.at) + (l.added ? ': ' + pl(l.added, 'new record', 'new records') + ' from ' + l.people.join(', ') + '.' : ': nothing new.');
+}
+function inboxCard(subs, last) {
+  let body;
+  if (!INBOX) body = '<p class="ainbox"><b>Not switched on yet.</b> Your teachers’ activity waits safely on their own devices and arrives here by itself as soon as the inbox is on. There is nothing for you or your teachers to send.</p>';
+  else if (!adminKey()) body = '<p class="fine">Your teachers’ activity arrives here by itself, locked so only you can open it. Type your admin password once on this device to open it.</p>' +
+    '<form class="aunlock" id="a-unlock" novalidate><input type="text" name="username" autocomplete="username" value="' + esc(ADMIN_NAME) + '" hidden><label class="fld"><span>Admin password</span><input type="password" id="a-pw" autocomplete="current-password" placeholder="Your admin password"></label><button type="submit" class="btn small">' + icon('key') + 'Unlock</button></form>';
+  else body = '<p class="ainbox on"><b>On.</b> <span class="ainbox-st">' + esc(inboxStatus(last)) + '</span></p><p class="fine">Teachers’ devices send their activity every few minutes, locked so only this dashboard can open it.</p>' +
+    '<div class="aact"><button type="button" class="btn small" data-pull>' + icon('refresh') + 'Check now</button></div>';
+  return '<section class="card asec" id="a-inbox"><h2>' + icon('send') + 'From your teachers</h2>' + body + '<div class="notice" id="a-inbox-out" hidden></div>' +
+    (subs.length ? '<ul class="alog">' + subs.slice(0, 6).map((x) => '<li><b>' + esc(x.from) + '</b><small>' + esc(pl(x.n, 'record', 'records') + ' · arrived ' + fmtDay(x.at) + ' at ' + fmtTime(x.at)) + '</small></li>').join('') + '</ul>' : '') + '</section>';
+}
+function typing() {
+  if (!view) return false;
+  const a = document.activeElement, n = $('#a-name', view);
+  return !!((a && view.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) || (n && n.value.trim()));
+}
+async function checkInbox(byHand) {
+  pulledAt = Date.now();
+  const btn = view && $('[data-pull]', view);
+  if (btn) btn.disabled = true;
+  const r = await pull();
+  if (!view || !isAdmin()) return r;
+  const st = $('.ainbox-st', view), out = $('#a-inbox-out', view), b = $('[data-pull]', view);
+  if (b) b.disabled = false;
+  if (r && r.added) {
+    toast(pl(r.added, 'new record', 'new records') + ' from ' + r.people.join(', ') + ' arrived.');
+    if (!view.hidden && !typing()) { await renderAdmin(view); return r; }
+    if (out) { notice(out, esc(pl(r.added, 'new record', 'new records') + ' arrived.') + ' <button type="button" class="btn small" id="a-inbox-redo">' + icon('refresh') + 'Update the dashboard</button>', false); const u = $('#a-inbox-redo', view); if (u) u.addEventListener('click', () => renderAdmin(view)); }
+  }
+  if (st) st.textContent = inboxStatus(await lastPull());
+  if (byHand && out && !(r && r.added)) notice(out, r && r.error ? '' : 'Up to date.', false);
+  return r;
 }
 
 function wire(host, m) {
@@ -102,6 +145,7 @@ function wire(host, m) {
   $('[data-dl-report]', host).addEventListener('click', () => downloadReport());
   $('[data-enrol]', host).addEventListener('click', () => { const n = $('#a-name', host); $('#a-people', host).scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => n.focus({ preventScroll: true }), 350); });
   $('[data-csv]', host).addEventListener('click', async () => {
+    await freshen();
     const evs = (await evAll()).filter((e) => (e.end || e.at) >= m.per.from && e.at <= m.per.to);
     download('KS2 activity - ' + m.per.label + ' - ' + new Date().toISOString().slice(0, 10) + '.csv', csv(evs), 'text/csv;charset=utf-8');
     toast('CSV downloaded. It opens in Excel and Google Sheets.');
@@ -111,15 +155,17 @@ function wire(host, m) {
   const un = $('#a-unlock', host);
   if (un) un.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const out = $('#a-drop-out', host), pw = $('#a-pw', host).value;
+    const out = $('#a-inbox-out', host), pw = $('#a-pw', host).value;
     if (!pw) { notice(out, 'Type your admin password.', true); return; }
     let ok = false;
     try { ok = await unlockWithPassword(pw); } catch (er) { ok = false; }
     if (!ok) { notice(out, 'That password did not match.', true); return; }
-    const files = pending; pending = [];
+    pulledAt = 0;
     await renderAdmin(host);
-    if (files.length) addFiles(files); else notice($('#a-drop-out', host), 'Unlocked. Activity files now open on this device.', false);
+    toast('Unlocked. Your teachers’ activity now opens on this device.');
   });
+  const pb = $('[data-pull]', host);
+  if (pb) pb.addEventListener('click', () => checkInbox(true));
   $('#a-pin-new', host).addEventListener('click', () => { $('#a-pin', host).value = newPin(); });
   $('#a-enrol', host).addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -144,11 +190,6 @@ function wire(host, m) {
   }));
   const cl = $('[data-classroom]', host);
   if (cl) cl.addEventListener('click', () => copyLink(roster(), 'Classroom link copied. Open it once on the shared laptop: every enrolled teacher can then sign in there with their own PIN.'));
-  const drop = $('#a-drop', host), file = $('#a-file', host);
-  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
-  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-  drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); addFiles(Array.from(e.dataTransfer.files || [])); });
-  file.addEventListener('change', () => { addFiles(Array.from(file.files || [])); file.value = ''; });
   const pkm = $('[data-pk-make]', host);
   if (pkm) pkm.addEventListener('click', async () => { try { await setUpPasskey(); toast('Passkey ready on this device.'); renderAdmin(host); } catch (e) { toast('The passkey was not set up.'); } });
   const pkr = $('[data-pk-rm]', host);
@@ -172,35 +213,6 @@ function showEnrolled(p, pin, repin) {
   $('#a-copy-new', view).addEventListener('click', () => copyLink([p], 'Personal link for ' + p.n + ' copied. Send it privately.'));
   out.scrollIntoView({ behavior: 'smooth', block: 'center' });
   $('#a-name', view).value = '';
-}
-
-/* ---------------- activity files ---------------- */
-async function addFiles(files) {
-  const out = $('#a-drop-out', view);
-  if (!files.length) return;
-  if (!adminKey()) {
-    pending = files;
-    notice(out, 'Type your admin password above, then press Unlock. The ' + files.length + (files.length > 1 ? ' files open' : ' file opens') + ' straight after.', true);
-    const pw = $('#a-pw', view); if (pw) pw.focus();
-    return;
-  }
-  const subs = (await kvGet('subs')) || [];
-  let added = 0, bad = 0, people = new Set();
-  for (const f of files) {
-    try {
-      const box = JSON.parse(await f.text());
-      if (!box || box.kind !== 'ks2-sealed') throw new Error('not ours');
-      const data = JSON.parse(await unseal(adminKey(), box));
-      if (!data || data.kind !== 'ks2-activity' || !Array.isArray(data.events)) throw new Error('bad');
-      const evs = data.events.filter((e) => e && e.id && e.k && e.at).map((e) => Object.assign({}, e, { imp: Date.now(), src: (data.dev && data.dev.id) || '' }));
-      await evPutMany(evs);
-      subs.push({ from: (data.from && data.from.n) || box.from || 'Teacher', n: evs.length, sent: data.at || box.at || 0, at: Date.now(), file: f.name.slice(0, 120) });
-      added += evs.length; people.add((data.from && data.from.n) || 'Teacher');
-    } catch (e) { bad++; }
-  }
-  await kvSet('subs', subs.slice(-200));
-  await renderAdmin(view);
-  notice($('#a-drop-out', view), (added ? 'Added ' + added + ' records from ' + Array.from(people).join(', ') + '.' : '') + (bad ? ' ' + bad + ' file' + (bad > 1 ? 's' : '') + ' could not be opened (not an activity file, or made for another dashboard).' : ''), !!bad && !added);
 }
 
 /* ---------------- Symphony's analysis (written by the engine, added to the report) ---------------- */

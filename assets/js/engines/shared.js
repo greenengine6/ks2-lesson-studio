@@ -191,8 +191,8 @@ async function generate(eng, input) {
     return;
   }
   if (!hasKey()) {
-    notice(esc(errorCopy('no_key')) + '<br><button type="button" class="btn small" data-connect>' + icon('key') + 'Connect</button>', true);
-    say('I need to be connected first. Press <b>Connect</b> and paste the key once.', 'idle');
+    notice(esc(errorCopy('no_key')), true);
+    say(esc(errorCopy('no_key')), 'idle');
     bus.emit('need-key');
     return;
   }
@@ -232,7 +232,8 @@ async function generate(eng, input) {
     track('gen', { eng: eng.id, title: topicOf(), year: input.year || '', ok: 0, err: code || 'error', ms: Date.now() - t0 });
     if (code === 'cancelled') say('Stopped. Change anything you like and press the button again.', 'idle');
     else {
-      notice(esc(errorCopy(code, 'this activity')) + (code === 'no_key' || code === 'bad_key' ? '<br><button type="button" class="btn small" data-connect>' + icon('key') + 'Connect</button>' : ''), true);
+      notice(esc(errorCopy(code, 'this activity')) + ((code === 'no_key' || code === 'bad_key') && document.documentElement.getAttribute('data-who') === 'admin' ? '<br><button type="button" class="btn small" data-connect>' + icon('key') + 'Connect this device</button>' : ''), true);
+      if (code === 'no_key') bus.emit('need-key');
       say(esc(errorCopy(code, 'this activity')), 'idle');
     }
     showItem(page.item || exampleItem(eng));

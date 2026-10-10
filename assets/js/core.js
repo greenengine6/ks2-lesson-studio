@@ -124,7 +124,7 @@ export function ages(year) {
   return ({ 'Year 3': '7 to 8', 'Year 4': '8 to 9', 'Year 5': '9 to 10', 'Year 6': '10 to 11' })[year] || '7 to 11';
 }
 
-/* ---------------- Claude connection ---------------- */
+/* ---------------- engine connection ---------------- */
 const KEY_STORE = 'ks2-lesson-studio.key.v1';      // same names as the first version, so saved keys keep working
 const ACCESS_STORE = 'ks2-lesson-studio.access.v1';
 let memKey = store.get(KEY_STORE);
@@ -226,11 +226,19 @@ export async function askJSON(prompt, o) {
 export async function testConnection(key) {
   await askClaude('Reply with the single word OK.', { model: CONFIG.quickModel, maxTokens: 8, key });
 }
-export const NEED_KEY = 'This device is not connected yet. Open your one-tap setup link once, or press Connect and paste the key.';
+/* What to say when this device has no engine key yet: teachers get it from their personal link; the admin from the
+   site's one-tap setup link, or Connect. */
+export function needKeyText() {
+  const r = document.documentElement.getAttribute('data-who');
+  if (r === 'teacher') return 'This device is not set up for lessons yet. Open the personal link Rabinder sent you once on this device, then sign in again.';
+  if (r === 'admin') return 'The engine is not on for this device yet. Open the site’s one-tap setup link once on this device, or press Connect.';
+  return 'This device is not set up yet. Open your personal link once on this device.';
+}
+export const NEED_KEY = 'This device is not set up yet. Open your personal link once on this device.';
 export function errorCopy(code, what) {
   const thing = what || 'this';
   switch (code) {
-    case 'no_key': return NEED_KEY;
+    case 'no_key': return needKeyText();
     case 'bad_key': return 'That key did not work. Paste it again, or ask for a new setup link.';
     case 'forbidden': return 'This key is not allowed to do that. Ask the person who manages the key to check it.';
     case 'no_credit': return 'The engine account is out of credit. Ask the person who manages the key to top it up, then try again.';

@@ -1,14 +1,12 @@
-/* Feedback. Teachers: a short form about the site (stars, what they used, what worked, what to change), saved for
-   Rabinder's report, with a downloadable copy. Pupils: the class feedback screen in Present mode, five big faces
-   the teacher taps as answers come in ("type 1 to 5 in the chat"), plus "best bit". And "Send my activity to
-   Rabinder": a locked file that only her dashboard can open. */
+/* Feedback. Teachers: a short form about the site (stars, what they used, what worked, what to change). Pupils:
+   the class feedback screen in Present mode, five big faces the teacher taps as answers come in ("type 1 to 5 in
+   the chat"), plus "best bit". Both go to Rabinder's report by themselves (sync.js): teachers never download
+   anything. download() is used by the admin dashboard only. */
 import { $, $$, esc, el, icon, bus, toast, prefs } from './core.js';
-import { track, eventsFor, device } from './track.js';
-import { who, ADMIN } from './people.js';
-import { seal, importAdminPublic, cryptoOK } from './crypto.js';
+import { track } from './track.js';
+import { who } from './people.js';
 import { ENGINES } from './engines/registry.js';
 import { confetti } from './fx/particles.js';
-import { fmtDate, fmtTime } from './report.js';
 
 export const FACE_NAMES = ['Lost', 'Tricky', 'OK', 'Good', 'Loved it'];
 export const FACE_COLOURS = ['#E5484D', '#F2804A', '#F2B84B', '#7CC24F', '#2BB673'];
@@ -25,8 +23,6 @@ export function download(name, text, type) {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
-const safeName = (s) => String(s || '').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
-const today = () => new Date().toISOString().slice(0, 10);
 
 /* ---------------- teacher feedback about the site ---------------- */
 let fbm = null, rating = 0;
@@ -47,18 +43,14 @@ function feedbackModal() {
       '<label class="fld"><span>What should we change?</span><textarea id="fb-better" rows="3" maxlength="1200" placeholder="For example: Year 3 needed simpler words"></textarea></label>' +
       '<label class="fld"><span>How did your pupils respond? <span class="opt">(optional)</span></span><textarea id="fb-pupils" rows="2" maxlength="800" placeholder="No names, please"></textarea></label>' +
       '<button class="btn primary big wide" type="submit">' + icon('check') + 'Submit</button><p class="notice err" hidden role="alert"></p></form></section>' +
-    '<section data-fp="done" hidden><h2><i>' + icon('heart') + '</i>Thank you!</h2><p>Your feedback is saved for Rabinder’s report.</p>' +
-      '<div class="form"><button type="button" class="btn primary big wide" data-who-teacher-only data-fb-send>' + icon('download') + 'Send my activity to Rabinder</button>' +
-      '<button type="button" class="btn big wide" data-fb-copy>' + icon('download') + 'Download a copy</button>' +
-      '<p class="fine" data-who-teacher-only>The activity file is locked: only Rabinder’s dashboard can open it. Send it to her on WhatsApp, Teams or email.</p></div></section></div>';
+    '<section data-fp="done" hidden><h2><i>' + icon('heart') + '</i>Thank you!</h2><p class="fb-done-t"></p>' +
+      '<div class="form"><button type="button" class="btn primary big wide" data-fbm-x>' + icon('check') + 'Done</button></div></section></div>';
   document.body.appendChild(fbm);
   const paintStars = () => { $$('[data-star]', fbm).forEach((b) => { const on = Number(b.dataset.star) <= rating; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(Number(b.dataset.star) === rating)); }); $('.star-say', fbm).textContent = rating ? ['', 'Not useful', 'A little useful', 'Useful', 'Very useful', 'Brilliant'][rating] : ''; };
   fbm.addEventListener('click', (e) => {
     if (e.target === fbm || e.target.closest('[data-fbm-x]')) { closeFeedback(); return; }
     const s = e.target.closest('[data-star]'); if (s) { rating = Number(s.dataset.star); paintStars(); return; }
     const p = e.target.closest('[data-used] .pill'); if (p) { p.setAttribute('aria-pressed', p.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); return; }
-    if (e.target.closest('[data-fb-send]')) { sendToRabinder(); return; }
-    if (e.target.closest('[data-fb-copy]')) { downloadFeedback(fbm.last); }
   });
   fbm.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeFeedback(); } });
   $('#fbm-form').addEventListener('submit', (e) => {
@@ -68,11 +60,11 @@ function feedbackModal() {
     const used = $$('[data-used] .pill[aria-pressed="true"]', fbm).map((b) => b.dataset.v);
     if (!rating) { n.textContent = 'Tap a star rating first.'; n.hidden = false; return; }
     n.hidden = true;
-    const ev = track('fb', { rating, used, good, better, pupils });
-    fbm.last = ev || { at: Date.now(), tn: who.name, rating, used, good, better, pupils };
+    track('fb', { rating, used, good, better, pupils });
+    $('.fb-done-t', fbm).textContent = who.role === 'admin' ? 'Your feedback is saved in your report.' : 'It goes to Rabinder by itself, locked so only she can read it. There is nothing to send or download.';
     $$('[data-fp]', fbm).forEach((s) => { s.hidden = s.dataset.fp !== 'done'; });
-    $$('[data-who-teacher-only]', fbm).forEach((x) => { x.hidden = who.role !== 'teacher'; });
-    toast('Thank you. Your feedback is saved.');
+    setTimeout(() => { const b = $('[data-fp="done"] [data-fbm-x]', fbm); if (b) b.focus(); }, 60);
+    toast(who.role === 'admin' ? 'Thank you. Your feedback is saved.' : 'Thank you. Your feedback will reach Rabinder by itself.');
   });
   fbm.paintStars = paintStars;
   return fbm;
@@ -87,36 +79,6 @@ export function openFeedback() {
   setTimeout(() => { const b = $('[data-star="4"]', m); if (b) b.focus(); }, 60);
 }
 function closeFeedback() { if (fbm) fbm.hidden = true; }
-function downloadFeedback(f) {
-  if (!f) return;
-  const row = (h, v) => v ? '<h3>' + esc(h) + '</h3><p>' + esc(v) + '</p>' : '';
-  const html = '<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My feedback · KS2 Lesson Engine</title><style>' +
-    'body{margin:0;background:#EEF1F7;font:15px/1.6 "Segoe UI",system-ui,-apple-system,Arial,sans-serif;color:#1F2733}.c{max-width:680px;margin:32px auto;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 20px 40px -26px rgba(30,40,70,.5)}' +
-    '.h{padding:26px 28px;color:#fff;background:linear-gradient(130deg,#4F46E5,#6C63FF 45%,#2C9C96)}.h small{letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.85}.h h1{margin:6px 0 2px;font-size:26px}.b{padding:22px 28px 28px}' +
-    '.st{font-size:26px;letter-spacing:4px;color:#F59E0B}.st span{color:#CBD5E1}h3{margin:18px 0 4px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#64748B}p{margin:0}.chips span{display:inline-block;margin:4px 6px 0 0;padding:3px 10px;border-radius:99px;background:#EEF1F7;font-size:13px}</style></head><body><div class="c">' +
-    '<div class="h"><small>KS2 Lesson Engine · Feedback</small><h1>' + esc(f.tn || who.name || 'My feedback') + '</h1><p>' + esc(fmtDate(f.at) + ' at ' + fmtTime(f.at)) + '</p></div><div class="b">' +
-    '<div class="st">' + '★'.repeat(f.rating || 0) + '<span>' + '★'.repeat(5 - (f.rating || 0)) + '</span></div>' +
-    (f.used && f.used.length ? '<h3>Used</h3><div class="chips">' + f.used.map((u) => '<span>' + esc(u) + '</span>').join('') + '</div>' : '') +
-    row('What worked well', f.good) + row('What should change', f.better) + row('How pupils responded', f.pupils) + '</div></div></body></html>';
-  download('KS2 feedback - ' + safeName(f.tn || who.name) + ' - ' + today() + '.html', html);
-  toast('Your copy is downloaded.');
-}
-
-/* ---------------- send my activity to Rabinder (a locked file) ---------------- */
-export async function sendToRabinder() {
-  if (who.role !== 'teacher') { toast('Only teachers send activity files. Your own activity is already on your dashboard.'); return; }
-  if (!ADMIN || !ADMIN.pub || !cryptoOK) { toast('Sending needs the secure (https) site address.'); return; }
-  try {
-    const events = await eventsFor(who.id, Date.now() - 180 * 864e5);
-    const payload = { v: 1, kind: 'ks2-activity', from: { id: who.id, n: who.name }, dev: device, at: Date.now(), events };
-    const box = await seal(await importAdminPublic(ADMIN.pub), JSON.stringify(payload));
-    box.from = who.name; box.at = Date.now(); box.count = events.length;
-    download('KS2 activity - ' + safeName(who.name) + ' - ' + today() + '.ks2', JSON.stringify(box), 'application/octet-stream');
-    track('sub', { n: events.length });
-    toast('Your activity file is ready. Send it to Rabinder on WhatsApp, Teams or email.');
-  } catch (e) { toast('The file could not be made. Please try again.'); }
-}
-
 /* ---------------- class feedback in Present mode ---------------- */
 let tk = null;
 export function openTicket(o) {
@@ -178,7 +140,6 @@ export const ticketOpen = () => !!tk;
 
 export function initFeedback() {
   bus.on('feedback', openFeedback);
-  bus.on('submit', sendToRabinder);
   bus.on('ticket', openTicket);
   bus.on('present', (on) => { if (!on) closeTicket(); });
 }

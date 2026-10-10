@@ -134,7 +134,7 @@ function teacherForm() {
     '<button class="btn glow big hg-go" type="submit">' + icon('play') + 'Start teaching</button></div><datalist id="hg-names"></datalist>' +
     '<p class="hg-err" role="alert" hidden></p>' +
     '<p class="hg-none" hidden>' + icon('link') + '<span><b>First time on this device?</b> Open the personal link Rabinder sent you once, then sign in here with your name and PIN. Your PIN is yours: please do not share it.</span></p>' +
-    '<p class="hg-note">' + icon('info') + '<span>For Rabinder’s reports this site records your teaching time, lessons made and taught, and class feedback. It never records pupils’ names or what you ask Symphony.</span></p>' +
+    '<p class="hg-note">' + icon('info') + '<span>For Rabinder’s reports, this site records your teaching time, lessons made and taught, and class feedback, and sends them to her by itself, locked so only she can open them. It never records pupils’ names or what you ask Symphony.</span></p>' +
     '<p class="hg-links"><button type="button" class="hg-admin" data-admin-signin>' + icon('key') + 'Admin sign-in</button></p>';
   host.addEventListener('click', (e) => {
     const pick = e.target.closest('[data-person]');
@@ -310,11 +310,10 @@ export function initPeople() {
     '<div class="who-pop" id="who-pop" hidden role="menu">' +
     '<button type="button" role="menuitem" data-who-admin data-go-admin>' + icon('layers') + 'Dashboard</button>' +
     '<button type="button" role="menuitem" data-who-any data-feedback>' + icon('star') + 'Give feedback</button>' +
-    '<button type="button" role="menuitem" data-who-teacher data-submit>' + icon('download') + 'Send my activity to Rabinder</button>' +
     '<button type="button" role="menuitem" data-who-any data-signout>' + icon('close') + 'Sign out</button></div>';
   top.insertBefore(menu, top.querySelector('.conn'));
   const mn = $('#mnav');
-  if (mn) mn.insertAdjacentHTML('beforeend', '<div class="mnav-who" data-who-any hidden><a href="#/admin" data-who-admin hidden>Dashboard</a><a href="#" data-feedback>Give feedback</a><a href="#" data-who-teacher data-submit hidden>Send my activity to Rabinder</a><a href="#" data-signout>Sign out</a></div>');
+  if (mn) mn.insertAdjacentHTML('beforeend', '<div class="mnav-who" data-who-any hidden><a href="#/admin" data-who-admin hidden>Dashboard</a><a href="#" data-feedback>Give feedback</a><a href="#" data-signout>Sign out</a></div>');
   const btn = $('#who'), pop = $('#who-pop');
   btn.addEventListener('click', () => { pop.hidden = !pop.hidden; btn.setAttribute('aria-expanded', String(!pop.hidden)); });
   document.addEventListener('click', (e) => {
@@ -322,7 +321,6 @@ export function initPeople() {
     if (e.target.closest('[data-signout]')) { e.preventDefault(); pop.hidden = true; signOut(); toast('Signed out. See you next time.'); }
     else if (e.target.closest('[data-go-admin]')) { pop.hidden = true; location.hash = '#/admin'; }
     else if (e.target.closest('[data-feedback]')) { e.preventDefault(); pop.hidden = true; bus.emit('feedback'); }
-    else if (e.target.closest('[data-submit]')) { e.preventDefault(); pop.hidden = true; bus.emit('submit'); }
     else if (e.target.closest('[data-admin-signin]')) { e.preventDefault(); openAdmin(); }
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) { pop.hidden = true; btn.setAttribute('aria-expanded', 'false'); btn.focus(); } });

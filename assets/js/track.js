@@ -1,7 +1,7 @@
 /* The activity log behind Rabinder's reports. It records who is teaching (the name from the PIN sign-in), when
    and for how long (active time only: the page is open and someone used it in the last two minutes), which
    engines were used, lessons made and presented, and class feedback. It never records pupils' names or what
-   anyone asks Symphony. Everything stays on this device until the teacher sends it to Rabinder. */
+   anyone asks Symphony. sync.js sends it to Rabinder by itself, locked so only her dashboard can open it. */
 import { store, bus, uid } from './core.js';
 import { evPut, evAll } from './idb.js';
 

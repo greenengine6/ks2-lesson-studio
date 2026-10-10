@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.anthropic.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.anthropic.com https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>KS2 Lesson Engine</title>
 <meta name="description" content="Ten online-lesson engines and a slide studio for Key Stage 2: two-way class screens, teacher notes and slides, made in about a minute.">
 <meta name="robots" content="noindex, nofollow">
@@ -44,6 +44,7 @@
 <link rel="modulepreload" href="assets/js/admin.js">
 <link rel="modulepreload" href="assets/js/report.js">
 <link rel="modulepreload" href="assets/js/play.js">
+<link rel="modulepreload" href="assets/js/sync.js">
 <link rel="modulepreload" href="assets/js/fx/tubes.js">
 <link rel="modulepreload" href="assets/js/fx/dock.js">
 <link rel="modulepreload" href="assets/js/fx/cardswap.js">
@@ -51,6 +52,7 @@
 <link rel="modulepreload" href="assets/js/fx/waves.js">
 <link rel="modulepreload" href="assets/js/fx/ribbons.js">
 <link rel="modulepreload" href="assets/js/fx/sound.js">
+<link rel="modulepreload" href="assets/js/fx/voice.js">
 <link rel="modulepreload" href="assets/js/fx/particles.js">
 <link rel="modulepreload" href="assets/js/engines/registry.js">
 <link rel="modulepreload" href="assets/js/engines/shared.js">
@@ -104,7 +106,7 @@
 
   <section class="sec" id="show" aria-labelledby="show-h">
     <div class="show">
-      <div><p class="kicker" style="--c:var(--accent)">What pupils see</p><h2 id="show-h" style="margin:14px 0 0;font-size:clamp(2rem,4vw,3rem);font-weight:800;line-height:1.05;letter-spacing:-.035em">Two-way screens, not worksheets.</h2>
+      <div><p class="kicker" style="--c:var(--accent)">What pupils see</p><h2 id="show-h" style="margin:14px 0 0;font-size:max(9px,calc(clamp(2rem,4vw,3rem) * var(--m,1)));font-weight:800;line-height:1.05;letter-spacing:-.035em">Two-way screens, not worksheets.</h2>
         <ul>
           <li style="--c:var(--indigo)"><i><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg></i><span><b>Pupils answer all the time.</b> Chat waterfalls, live votes, code locks and a robot to program.</span></li>
           <li style="--c:var(--teal)"><i><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></i><span><b>Answers stay hidden</b> until you tap, so you can share your screen.</span></li>
@@ -148,7 +150,7 @@
   </section>
   <footer class="foot"><p>Made with <span class="hrt">♥</span> by <b>Rabinder Kaur</b>, Head of Key Stage 2</p>
     <p><button type="button" class="linkbtn" data-feedback>Give feedback</button> · <a class="linkbtn" href="#/play">Wonder Window</a></p>
-    <p>Your key, saved activities and activity log stay in this browser. Nothing leaves this device except the request the engine sends when you press a button, and the activity file you choose to send to Rabinder.</p></footer>
+    <p>Your key and saved activities stay in this browser. Only two things leave it: the request the engine sends when you press a button, and your activity for Rabinder’s reports, locked so only she can open it.</p></footer>
 </div>
 
 <div id="view-engine" class="view" hidden></div>

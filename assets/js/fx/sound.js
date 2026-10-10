@@ -1,5 +1,6 @@
-/* Ambient soundscapes made live with the Web Audio API (no audio files), plus read-aloud with the browser's voices.
+/* Ambient soundscapes made live with the Web Audio API (no audio files), plus read-aloud in Symphony's voice.
    Scenes: rain, ocean, wind, river, forest, birds, night, city, market. Crossfades between scenes. */
+import { Voice } from './voice.js';
 
 let ctx = null;
 function ac() {
@@ -163,35 +164,11 @@ export const Ambient = {
   stop() { this.fadeOutAll(0.8); this.kind = 'none'; }
 };
 
-/* ---------------- read aloud ---------------- */
+/* ---------------- read aloud: always Symphony's voice (see voice.js) ---------------- */
 export const Speech = {
-  supported: 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window,
-  pick(lang) {
-    if (!this.supported) return null;
-    const vs = window.speechSynthesis.getVoices() || [];
-    const base = (lang || 'en-GB').toLowerCase();
-    const exact = vs.filter((v) => v.lang && v.lang.toLowerCase().replace('_', '-') === base);
-    const near = vs.filter((v) => v.lang && v.lang.toLowerCase().startsWith(base.split('-')[0]));
-    const pool = exact.length ? exact : near;
-    const nice = pool.find((v) => /natural|neural|google|libby|sonia|serena|kate|female/i.test(v.name));
-    return nice || pool[0] || null;
-  },
-  hasVoice(lang) { return !!this.pick(lang); },
-  speak(text, o) {
-    o = o || {};
-    return new Promise((resolve) => {
-      if (!this.supported || !text) { resolve(false); return; }
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = o.lang || 'en-GB';
-      const v = this.pick(u.lang); if (v) u.voice = v;
-      u.rate = o.rate || 0.92; u.pitch = o.pitch || 1;
-      let done = false;
-      const end = (ok) => { if (!done) { done = true; resolve(ok); } };
-      u.onend = () => end(true); u.onerror = () => end(false);
-      try { window.speechSynthesis.speak(u); } catch (e) { end(false); }
-      setTimeout(() => end(false), Math.max(4000, text.length * 120));   // never hang if the browser drops the event
-    });
-  },
-  stop() { if (this.supported) try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } }
+  supported: Voice.supported,
+  pick: (lang) => Voice.pick(lang),
+  hasVoice: (lang) => Voice.hasVoice(lang),
+  speak: (text, o) => Voice.say(text, { lang: (o && o.lang) || 'en-GB', rate: (o && o.rate) || 0.95 }),
+  stop: () => Voice.stop()
 };
-if (Speech.supported) { try { window.speechSynthesis.getVoices(); window.speechSynthesis.addEventListener && window.speechSynthesis.addEventListener('voiceschanged', () => {}); } catch (e) { /* ignore */ } }

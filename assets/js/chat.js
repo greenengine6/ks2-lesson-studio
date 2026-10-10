@@ -9,6 +9,7 @@ import { settings, paintSwitches } from './settings.js';
 import { isAdmin, ADMIN_NAME } from './people.js';
 import { briefing, downloadReport } from './admin.js';
 import { track } from './track.js';
+import { Voice } from './fx/voice.js';
 
 const LANG_KEY = 'ks2-engine.symlang.v1';
 const T = {
@@ -20,7 +21,7 @@ const T = {
     hi: 'Hello! It is lovely to hear from you. What would you like to know?',
     site: 'This site has ten lesson engines, a Slide Studio and a Wonder Window play area. Pick an engine from the dock at the bottom, type your topic, and you get a class screen to share plus teacher notes. Press Present to share it on Teams, Zoom or Meet, with a magic pointer, a timer and your notes. You can also switch on Night mode, and collect feedback from your class for a report.',
     toEn: 'Of course. I will speak English. What would you like to know?',
-    noKey: 'I can tell you about me and about this site right now. To answer anything else, this device needs connecting first: open your one-tap setup link, or press Connect.',
+    noKey: 'I can tell you about me and about this site right now. For anything else, this device needs setting up once: open the personal link Rabinder sent you.',
     micDenied: 'Please allow the microphone, then tap the mic again so I can hear you.',
     noMic: 'Speaking to me needs Chrome, Edge or Safari. You can still type your question.',
     noSpeech: 'I did not hear anything. Tap the mic and try again.',
@@ -37,7 +38,7 @@ const T = {
     hi: 'Hai! Seronok mendengar daripada anda. Apa yang anda ingin tahu?',
     site: 'Laman ini ada sepuluh enjin pelajaran, Slide Studio dan ruang main Wonder Window. Pilih enjin dari dok di bawah, taip topik anda, dan anda akan mendapat skrin kelas serta nota guru. Tekan Present untuk berkongsi di Teams, Zoom atau Meet. Anda juga boleh menghidupkan mod malam dan mengumpul maklum balas kelas untuk laporan.',
     toMs: 'Baiklah, saya akan bercakap dalam bahasa Melayu. Apa yang anda ingin tahu?',
-    noKey: 'Saya boleh bercerita tentang diri saya dan laman ini sekarang. Untuk soalan lain, peranti ini perlu disambungkan dahulu: buka pautan persediaan anda, atau tekan Connect.',
+    noKey: 'Saya boleh bercerita tentang diri saya dan laman ini sekarang. Untuk soalan lain, peranti ini perlu disediakan sekali: buka pautan peribadi yang Rabinder hantar kepada anda.',
     micDenied: 'Sila benarkan mikrofon, kemudian tekan mikrofon sekali lagi supaya saya boleh mendengar anda.',
     noMic: 'Untuk bercakap dengan saya, gunakan Chrome, Edge atau Safari. Anda masih boleh menaip soalan.',
     noSpeech: 'Saya tidak dengar apa-apa. Tekan mikrofon dan cuba lagi.',
@@ -70,64 +71,30 @@ async function adminGreeting() {
 const history = [];
 let panel, fab, logEl, input, mic, stageWord, stageBar, stageWrap, statusEl, avatar;
 
-/* ---------------- voice out ---------------- */
-const PREF_EN = ['Libby', 'Sonia', 'Maisie', 'Mia', 'Google UK English Female', 'Serena', 'Kate', 'Stephanie', 'Martha', 'Samantha', 'Karen', 'Moira', 'Tessa', 'Aria', 'Jenny', 'Ava', 'Allison', 'Susan', 'Hazel', 'Zira', 'Female'];
-const PREF_MS = ['Yasmin', 'Amira', 'Malay', 'Melayu', 'Gadis', 'Damayanti', 'Indonesia'];
-const Voice = {
-  ok: 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window,
-  pending: 0, unlocked: false, ticks: [], tickT: 0,
-  pick() {
-    if (!this.ok) return null;
-    const vs = speechSynthesis.getVoices() || [];
-    const want = lang === 'ms' ? ['ms', 'id'] : ['en-gb', 'en'];
-    const pool = [];
-    want.forEach((w) => vs.forEach((v) => { const l = (v.lang || '').toLowerCase().replace('_', '-'); if ((l === w || l.startsWith(w + '-') || (w.length === 2 && l.startsWith(w))) && !pool.includes(v)) pool.push(v); }));
-    const prefs = lang === 'ms' ? PREF_MS : PREF_EN;
-    for (const n of prefs) { const v = pool.find((x) => x.name.toLowerCase().includes(n.toLowerCase())); if (v) return v; }
-    return pool[0] || null;
-  },
-  unlock() { if (!this.ok || this.unlocked) return; this.unlocked = true; try { const u = new SpeechSynthesisUtterance(''); u.volume = 0; speechSynthesis.speak(u); } catch (e) { /* ignore */ } },
-  say(text) {
-    text = String(text || '').trim();
-    if (!text) return;
-    if (!this.ok || !settings.voice) { this.tick(text); return; }
-    const u = new SpeechSynthesisUtterance(text);
-    const v = this.pick();
-    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = lang === 'ms' ? 'ms-MY' : 'en-GB';
-    u.pitch = 1.12; u.rate = lang === 'ms' ? 0.95 : 1;
-    let boundary = false, fallback = 0, started = false;
-    const watchdog = setTimeout(() => { if (started) return; try { speechSynthesis.cancel(); } catch (e) { /* ignore */ } this.pending = 0; this.tick(text); }, 1600);
-    u.onstart = () => { started = true; clearTimeout(watchdog); setState('speak'); fallback = setTimeout(() => { if (!boundary) this.tick(text, true); }, 450); };
-    u.onboundary = (e) => {
-      if (e.name && e.name !== 'word') return;
-      boundary = true;
-      const rest = text.slice(e.charIndex), m = /^[^\s]+/.exec(rest);
-      if (m) showWord(m[0]);
-    };
-    const end = () => { clearTimeout(fallback); clearTimeout(watchdog); this.pending = Math.max(0, this.pending - 1); if (!this.pending) this.finished(); };
-    u.onend = end; u.onerror = end;
-    this.pending++;
-    try { speechSynthesis.speak(u); } catch (e) { end(); }
-  },
-  tick(text, alongside) {
-    text.split(/\s+/).filter(Boolean).forEach((w) => this.ticks.push(w));
-    if (!alongside) setState('speak');
-    if (!this.tickT) this.next();
-  },
-  next() {
-    const w = this.ticks.shift();
-    if (!w) { this.tickT = 0; if (!this.pending) this.finished(); return; }
-    showWord(w);
-    this.tickT = setTimeout(() => this.next(), 170 + Math.min(14, w.length) * 30);
-  },
-  stop() { if (this.ok) { try { speechSynthesis.cancel(); } catch (e) { /* ignore */ } } this.pending = 0; this.ticks = []; clearTimeout(this.tickT); this.tickT = 0; },
-  finished() {
-    if (this.pending || this.ticks.length || this.tickT) return;
-    if (busy) return;
-    setTimeout(() => { if (state === 'speak') { setState('idle'); showWord(''); } if (talk && lastFrom === 'voice' && panel && !panel.hidden) listen(); }, 350);
-  }
-};
-if (Voice.ok) { try { speechSynthesis.getVoices(); speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', () => {}); } catch (e) { /* ignore */ } }
+/* ---------------- voice out: Symphony's voice (fx/voice.js), one part at a time ---------------- */
+let sayGen = 0, lastSay = null;
+function say(text) {
+  text = String(text || '').trim();
+  if (!text) return;
+  const g = sayGen;
+  lastSay = Voice.say(text, {
+    lang: lang === 'ms' ? 'ms' : 'en-GB', rate: lang === 'ms' ? 0.95 : 1, silent: !settings.voice,
+    onStart: () => { if (g === sayGen && state !== 'listen') setState('speak'); },
+    onWord: (w) => { if (g === sayGen) showWord(w); }
+  });
+}
+function hush() { sayGen++; lastSay = null; Voice.stop(); }
+/* When the last part has been said: back to idle, and in a spoken conversation, listen again. */
+async function afterSpeaking() {
+  const g = sayGen, p = lastSay;
+  if (p) await p;
+  if (g !== sayGen || busy) return;
+  setTimeout(() => {
+    if (g !== sayGen || busy) return;
+    if (state === 'speak') { setState('idle'); showWord(''); }
+    if (talk && lastFrom === 'voice' && panel && !panel.hidden) listen();
+  }, 350);
+}
 
 /* ---------------- stage (one word at a time) ---------------- */
 function showWord(w) {
@@ -171,14 +138,13 @@ function addMsg(who, text, o) {
       const tools = $('.msg-tools', m); if (!tools) return;
       tools.hidden = false;
       $('[data-copy]', tools).addEventListener('click', () => { const t = mt.textContent; copyOut('<div style="' + MAIL_WRAP + '"><p style="margin:0">' + esc(t) + '</p></div>', t, T[lang].copied); });
-      $('[data-again]', tools).addEventListener('click', () => { Voice.unlock(); Voice.stop(); speakAll(mt.textContent); });
+      $('[data-again]', tools).addEventListener('click', () => { Voice.unlock(); hush(); speakAll(mt.textContent); });
     }
   };
   if (!o.pending && who === 'sym') api.done();
   return api;
 }
-function speakAll(text) { sentences(text).forEach((s) => Voice.say(s)); if (!Voice.ok || !settings.voice) { /* ticker started inside say */ } }
-function sentences(t) { return (String(t).match(/[^.!?…]+[.!?…]*["”’)]*\s*/g) || [t]).map((x) => x.trim()).filter(Boolean); }
+function speakAll(text) { say(text); afterSpeaking(); }
 function reply(text, o) {
   o = o || {};
   addMsg('sym', text, { muted: o.muted, action: o.action });
@@ -210,7 +176,7 @@ async function ask(text, from) {
   if (!text) return;
   lastFrom = from || 'text';
   if (lastFrom !== 'voice') talk = false;
-  Voice.stop();
+  hush();
   if (busy) { busy.abort(); busy = null; }
   addMsg('me', text);
   history.push({ role: 'user', content: text });
@@ -238,7 +204,7 @@ async function ask(text, from) {
     re.lastIndex = said;
     let mm, end = said;
     while ((mm = re.exec(t))) end = re.lastIndex;
-    if (end > said) { Voice.say(t.slice(said, end)); said = end; }
+    if (end > said) { say(t.slice(said, end)); said = end; }
   };
   try {
     const r = await askClaude('', { model: CONFIG.quickModel, maxTokens: 700, system: systemPrompt(), messages: history.slice(-14), signal: ctl.signal, onText: feed });
@@ -247,8 +213,8 @@ async function ask(text, from) {
     m.update(out); m.done();
     history.push({ role: 'assistant', content: out });
     busy = null;
-    if (out.length > said) Voice.say(out.slice(said));
-    else Voice.finished();
+    if (out.length > said) say(out.slice(said));
+    afterSpeaking();
   } catch (e) {
     if (busy !== ctl) return;
     busy = null;
@@ -267,7 +233,7 @@ function listen() {
   Voice.unlock();
   if (!SR) { note(T[lang].noMic); return; }
   if (state === 'listen' && rec) { talk = false; try { rec.stop(); } catch (e) { /* ignore */ } return; }
-  Voice.stop();
+  hush();
   if (busy) { busy.abort(); busy = null; }
   talk = true;
   let finalText = '';
@@ -323,7 +289,7 @@ export function openChat(o) {
   fab.setAttribute('aria-expanded', 'true');
   document.body.classList.add('symc-open');
   if (o.brief && isAdmin()) { Voice.unlock(); greeted = true; adminGreeting(); }
-  else if (o.about) { Voice.unlock(); Voice.stop(); addMsg('me', lang === 'ms' ? 'Siapa awak, Symphony?' : 'Who are you, Symphony?'); history.push({ role: 'user', content: lang === 'ms' ? 'Siapa awak?' : 'Who are you?' }); reply(SYMPHONY_ABOUT[lang]); greeted = true; }
+  else if (o.about) { Voice.unlock(); hush(); addMsg('me', lang === 'ms' ? 'Siapa awak, Symphony?' : 'Who are you, Symphony?'); history.push({ role: 'user', content: lang === 'ms' ? 'Siapa awak?' : 'Who are you?' }); reply(SYMPHONY_ABOUT[lang]); greeted = true; }
   else if (first && !greeted) { greeted = true; if (isAdmin()) adminGreeting(); else { addMsg('sym', T[lang].hello); stageLine(T[lang].stageHello, 300); } }
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) setTimeout(() => input.focus(), 60);
 }
@@ -333,7 +299,7 @@ export function closeChat() {
   talk = false;
   if (rec) { try { rec.abort(); } catch (e) { /* ignore */ } rec = null; }
   if (busy) { busy.abort(); busy = null; }
-  Voice.stop();
+  hush();
   setState('idle');
   fab.setAttribute('aria-expanded', 'false');
   document.body.classList.remove('symc-open');
@@ -359,7 +325,7 @@ function build() {
   document.body.appendChild(panel);
   logEl = $('#symc-log'); input = $('#symc-in'); mic = $('#symc-mic'); stageWord = $('#sam-word'); stageBar = $('#sam-bar'); statusEl = $('#symc-st'); avatar = $('.symc-ava', panel); stageWrap = $('.symc-stage', panel);
   $('#symc-x').addEventListener('click', closeChat);
-  $('#symc-new').addEventListener('click', () => { Voice.stop(); if (busy) { busy.abort(); busy = null; } history.length = 0; logEl.innerHTML = ''; addMsg('sym', T[lang].hello); stageLine(T[lang].stageHello, 300); setState('idle'); });
+  $('#symc-new').addEventListener('click', () => { hush(); if (busy) { busy.abort(); busy = null; } history.length = 0; logEl.innerHTML = ''; addMsg('sym', T[lang].hello); stageLine(T[lang].stageHello, 300); setState('idle'); });
   $('#symc-form').addEventListener('submit', (e) => { e.preventDefault(); Voice.unlock(); const t = input.value; input.value = ''; ask(t, 'text'); });
   mic.addEventListener('click', listen);
   panel.addEventListener('click', (e) => {
@@ -389,6 +355,6 @@ export function initChat() {
   bus.on('symphony', (o) => openChat(o || {}));
   bus.on('present', (on) => { fab.classList.toggle('away', !!on); if (on) closeChat(); });
   bus.on('header', (h) => fab.classList.toggle('tone-dark', !!h));
-  bus.on('voice', (v) => { if (!v) Voice.stop(); });
+  bus.on('voice', (v) => { if (!v) hush(); });
   bus.on('who', () => { closeChat(); history.length = 0; if (logEl) logEl.innerHTML = ''; greeted = false; opened = false; adminDigest = ''; adminSpoken = ''; });
 }

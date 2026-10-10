@@ -32,7 +32,7 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 | **Brain Break** | A timed calm-down led by Symphony, who breathes with the class. |
 | **Big Debate** | A news story becomes a fair debate with before-and-after votes. |
 | **Wonder Window** | A full-screen play area for the whole class: starlings dodging a falcon, fireflies that learn to flash together, the planets at their real relative speeds, and the northern lights. Symphony reads the facts, and wonder questions appear for the chat. |
-| **Symphony** | The helper. She is a girl who speaks English and Malay and was named for her musical voice. Click her, or tap **Ask Symphony**, to ask anything by text or by voice. On phones she answers out loud, then listens again. |
+| **Symphony** | The helper. She is a girl who speaks English and Malay and was named for her musical voice. Click her, or tap **Ask Symphony**, to ask anything by text or by voice. On phones she answers out loud, then listens again. Every voice on the site is hers: Brain Break, Sound Journey and Wonder Window read in the same girl's voice. |
 
 **Present mode** (every engine and Slide Studio) gives you:
 - full screen;
@@ -46,6 +46,8 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 - Teaching online.
 
 Class screens stay bright in Night mode, because they are what pupils see.
+
+On phones, all the site’s text is 25% smaller (never below 9px), so more fits on the screen. Typing boxes stay at 16px so iPhones do not zoom in, and class screens and slides keep their own sizing.
 
 ## Rabinder’s dashboard and report
 
@@ -70,19 +72,22 @@ From the dashboard, Rabinder can:
 - **Symphony’s analysis:** a written analysis that is added to the next report.
 - **Ask Symphony:** she gives a prepared briefing, answers questions about the data by voice or text, and points to *Download report* for the full detail.
 - **Teachers and PINs:** enrol a teacher, copy their personal link, give a new PIN, or remove them.
-- **Activity from teachers:** each teacher presses **Send my activity to Rabinder**, which downloads a locked file (ECDH P-256 + AES-GCM) that only this dashboard can open. Drop the files in.
+- **From your teachers:** teachers’ activity arrives by itself. Each teacher’s device locks it (ECDH P-256 + AES-GCM, sealed to this dashboard’s key) and sends it to the inbox every few minutes, when a lesson is made or presented, when feedback is saved, and when the page is closed. The dashboard fetches and opens it, and **Check now** fetches straight away. Offline devices keep it and send it later.
 
-The activity log lives in each browser (IndexedDB). It never records pupils’ names or what anyone asks Symphony.
+Only Rabinder downloads anything (the report and the CSV). Teachers never see a download, apart from the PowerPoint of their own slides.
+
+The activity log lives in each browser (IndexedDB) until it is sent. It never records pupils’ names or what anyone asks Symphony.
 
 ## Setup
 
 1. **Connect once.** On the first device, press **Connect** and paste the engine key, or open the owner’s one-tap link. The key stays in that browser.
 2. **Admin.** Rabinder signs in with her password (handed over privately; it is not stored in this repository). Only a salted PBKDF2 check and an encrypted key are in `index.html`. She then sets up a passkey on each device.
 3. **Teachers.** Enrol each one on the dashboard and send them their personal link privately. Tell them their PIN yourself.
+4. **Inbox (once).** Teachers’ activity reaches the dashboard through a small Google Apps Script web app (`inbox/Code.gs`). In Apps Script: New project, paste `Code.gs`, then Deploy > New deployment > Web app, *Execute as: Me*, *Who has access: Anyone*. Put the web app address (it ends in `/exec`) in `index.html` as `"inbox"` in the config. The script only ever stores locked data: it cannot read it.
 
 ## Privacy and protection
 
-- The site is hidden from search engines. The page’s security policy only allows requests to the engine API and Google Fonts.
+- The site is hidden from search engines. The page’s security policy only allows requests to the engine API, Google Fonts and the Apps Script inbox.
 - It blocks right-click, text selection and copying (except the site’s own Copy buttons), dragging, printing, and the save, view-source and developer-tools shortcuts.
 - It blanks the page when a screenshot shortcut is pressed, and pauses while developer tools are open.
 - These are deterrents. No website can stop a phone camera or someone reading published code.
@@ -100,7 +105,10 @@ assets/js/people.js      landing sign-in, Hello Admin, passkeys, enrolment links
 assets/js/track.js       activity log (sessions, lessons, feedback)
 assets/js/report.js      metrics, deviations, briefing, report template, CSV
 assets/js/admin.js       Rabinder's dashboard
-assets/js/feedback.js    teacher feedback, class feedback, Send to Rabinder
+assets/js/feedback.js    teacher feedback, class feedback
+assets/js/sync.js        sends teachers' activity (locked) to the inbox; the dashboard fetches and opens it
+assets/js/fx/voice.js    Symphony's voice: a girl's voice, one sentence at a time, used by every read-aloud
+inbox/Code.gs            the Apps Script inbox (stores locked activity only)
 assets/js/chat.js        Symphony chat (voice and text, English and Malay)
 assets/js/play.js        Wonder Window scenes
 assets/js/security.js    protection deterrents

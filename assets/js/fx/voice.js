@@ -1,0 +1,298 @@
+/* Symphony's voice: the only voice on the site. Everything read aloud (Symphony's chat, Brain Break, Sound Journey,
+   Wonder Window and the "Hear it" greetings) is spoken here, so it is always her: a girl's voice, in English or
+   Malay. It picks the best female voice the device has (a girl's voice first where there is one, such as Maisie on
+   Edge) and never a man's voice while a woman's or girl's voice exists.
+
+   Text is spoken one short part at a time: the next part starts only when the last one has finished, and nothing
+   is cut off while it is still being spoken. (Queuing several parts at once and cancelling the ones that had not
+   started made phones stop after the first word.) If the device cannot speak, or reading aloud is off, the words
+   are still timed one by one, so Symphony's stage can show them. */
+
+const OK = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+const synth = OK ? window.speechSynthesis : null;
+const MAXP = 160;                      // characters per spoken part (some browsers stop long parts after ~15 s)
+
+/* ---------------- choosing her voice ---------------- */
+const words = (list) => new RegExp('\\b(' + list.join('|') + ')\\b', 'i');
+const GIRL = words(['maisie', 'ana']);
+const FEMALE = words([
+  // English: Edge natural voices, Google, Apple, Windows
+  'libby', 'sonia', 'mia', 'hollie', 'bella', 'abbi', 'olivia', 'jenny', 'aria', 'emma', 'ava', 'michelle', 'natasha', 'annette', 'carly', 'elsie', 'freya',
+  'joanne', 'kim', 'tina', 'clara', 'molly', 'neerja', 'emily', 'leah', 'luna', 'rosa', 'yan', 'asilia', 'ezinne', 'imani', 'female', 'google us english',
+  'martha', 'kate', 'serena', 'stephanie', 'samantha', 'karen', 'moira', 'tessa', 'fiona', 'veena', 'nicky', 'allison', 'susan', 'zoe', 'catherine', 'isha',
+  'joelle', 'noelle', 'hazel', 'zira', 'heera', 'linda', 'eva',
+  // Malay and Indonesian
+  'yasmin', 'amira', 'gadis', 'damayanti', 'google bahasa indonesia',
+  // other languages, for the "Hear it" greetings
+  'kyoko', 'nanami', 'aoi', 'mayu', 'shiori', 'haruka', 'ayumi', 'yuna', 'sunhi', 'seoyeon', 'heami', 'tingting', 'xiaoxiao', 'xiaoyi', 'xiaochen', 'xiaohan',
+  'xiaomo', 'xiaoxuan', 'meijia', 'sinji', 'hiumaan', 'hsiaochen', 'hsiaoyu', 'huihui', 'yaoyao', 'hanhan', 'tracy', 'amelie', 'amélie', 'audrey', 'aurelie',
+  'denise', 'eloise', 'celeste', 'coralie', 'julie', 'hortense', 'sylvie', 'anna', 'petra', 'marlene', 'katja', 'hedda', 'amala', 'elke', 'gisela', 'louisa',
+  'maja', 'tanja', 'ingrid', 'helena', 'laura', 'elvira', 'monica', 'mónica', 'paulina', 'dalia', 'marisol', 'sabina', 'lucia', 'alice', 'federica', 'isabella',
+  'elsa', 'palmira', 'luciana', 'francisca', 'joana', 'fernanda', 'raquel', 'thalita', 'maria', 'milena', 'svetlana', 'dariya', 'ekaterina', 'katya', 'irina',
+  'zuzana', 'vlasta', 'sara', 'christel', 'melina', 'athina', 'carmit', 'hila', 'lekha', 'swara', 'kalpana', 'aditi', 'lana', 'gabrijela', 'tünde', 'noemi',
+  'kanya', 'premwadee', 'achara', 'yelda', 'emel', 'seda', 'lesya', 'polina', 'linh', 'hoaimy', 'montserrat', 'alva', 'sofie', 'hillevi', 'nora', 'pernille',
+  'iselin', 'zosia', 'agnieszka', 'ewa', 'ioana', 'alina', 'satu', 'noora', 'selma', 'ellen', 'colette', 'fenna', 'dena', 'zariyah', 'salma', 'hoda', 'mariam',
+  'laila', 'amany', 'fatima', 'rana', 'sana', 'uzma', 'gul'
+]);
+const PLAIN_FEMALE = words(['flo', 'sandy', 'shelley']);   // older robotic voices: only if nothing better
+const MALE = words([
+  'male', 'man', 'boy', 'daniel', 'arthur', 'oliver', 'alex', 'aaron', 'tom', 'gordon', 'rishi', 'david', 'mark', 'george', 'ryan', 'thomas', 'guy', 'osman',
+  'ardi', 'andika', 'william', 'alfie', 'elliot', 'ethan', 'noah', 'james', 'brian', 'christopher', 'eric', 'roger', 'steffan', 'andrew', 'davis', 'jason',
+  'tony', 'liam', 'connor', 'duncan', 'luke', 'mitchell', 'chilemba', 'abeo', 'elimu', 'wayne', 'prabhat', 'ravi', 'hemant', 'kumar', 'prakash', 'madhur',
+  'ken', 'sam', 'neil', 'darren', 'lee', 'evan', 'nathan', 'eddy', 'reed', 'rocko', 'otoya', 'ichiro', 'keita', 'kangkang', 'yunyang', 'yunxi', 'yunjian',
+  'yunhao', 'injoon', 'hyunsu', 'pavel', 'dmitry', 'yuri', 'maxim', 'xander', 'majed', 'naayf', 'hamed', 'jorge', 'juan', 'diego', 'carlos', 'pablo', 'raul',
+  'alvaro', 'luca', 'cosimo', 'giorgio', 'paul', 'stefan', 'conrad', 'killian', 'henri', 'remy', 'antoine', 'jean', 'nicolas', 'antonio', 'rafael', 'duarte',
+  'filip', 'jakub', 'marek', 'lukas', 'magnus', 'mattias', 'finn', 'jon', 'niwat', 'tolga', 'ahmet', 'namminh'
+]);
+const NOVELTY = words(['albert', 'bad news', 'bahh', 'bells', 'boing', 'bubbles', 'cellos', 'good news', 'jester', 'organ', 'superstar', 'trinoids', 'whisper',
+  'wobble', 'zarvox', 'deranged', 'hysterical', 'princess', 'grandma', 'grandpa', 'junior', 'ralph', 'fred', 'bruce', 'kathy', 'agnes', 'vicki', 'victoria']);
+
+function kindOf(v) {
+  const n = (v && v.name) || '';
+  if (!v) return 'unknown';
+  if (NOVELTY.test(n)) return 'never';
+  if (GIRL.test(n)) return 'girl';
+  if (PLAIN_FEMALE.test(n)) return 'plain';
+  if (FEMALE.test(n)) return 'female';
+  if (MALE.test(n)) return 'male';
+  return 'unknown';
+}
+const KIND_SCORE = { girl: 95, female: 85, unknown: 55, plain: 30, male: 5 };
+const PITCH = { girl: 1.0, female: 1.08, unknown: 1.14, plain: 1.04, male: 1.32 };
+
+function wantOf(lang) {
+  const l = String(lang || 'en-GB').toLowerCase().replace('_', '-');
+  const b = l.split('-')[0], r = l.split('-')[1] || '';
+  if (b === 'ms' || b === 'zsm' || b === 'may') return { base: 'ms', region: 'my', tag: 'ms-MY', key: 'ms' };
+  if (!b || b === 'en') return { base: 'en', region: r || 'gb', tag: 'en-' + (r || 'gb').toUpperCase(), key: 'en-' + (r || 'gb') };
+  return { base: b, region: r, tag: l, key: l };
+}
+function langOf(v) { const l = String((v && v.lang) || '').toLowerCase().replace('_', '-'); return { b: l.split('-')[0], r: l.split('-')[1] || '' }; }
+function score(v, w) {
+  const k = kindOf(v);
+  if (k === 'never') return -1;
+  const { b, r } = langOf(v);
+  let lg;
+  if (w.base === 'ms') lg = b === 'ms' ? 40 : b === 'id' ? 22 : b === 'en' ? (r === 'gb' ? 1 : 0) : -1;
+  else if (w.base === 'en') lg = b !== 'en' ? -1 : r === w.region ? 8 : r === 'gb' ? 6 : /^(ie|au|nz|za)$/.test(r) ? 4 : r === 'us' ? 2 : 1;
+  else lg = b === w.base ? (r && r === w.region ? 42 : 40) : b === 'en' ? (r === 'gb' ? 1 : 0) : -1;
+  if (lg < 0) return -1;
+  const n = v.name || '';
+  const q = (/natural|neural|online|premium|enhanced/i.test(n) ? 6 : 0) + (/google/i.test(n) ? 3 : 0) + (v.localService ? 2 : 0);
+  return KIND_SCORE[k] + lg + q;
+}
+
+let voices = [], cache = {}, waited = 0;
+const bad = new Set(), marks = new Set();         // voices that failed; voices that report each word as they say it
+const vid = (v) => (v && (v.voiceURI || v.name)) || '';
+function loadVoices() { try { voices = (synth && synth.getVoices()) || []; } catch (e) { voices = []; } cache = {}; return voices; }
+if (OK) {
+  loadVoices();
+  try { synth.addEventListener('voiceschanged', loadVoices); } catch (e) { try { synth.onvoiceschanged = loadVoices; } catch (er) { /* ignore */ } }
+}
+/* Chrome lists its voices a moment after the page opens: wait for them (once), so her voice is right first time. */
+let readyP = null;
+function ready() {
+  if (!OK || voices.length || Date.now() - waited < 30000) return Promise.resolve();
+  if (!readyP) readyP = new Promise((res) => {
+    let n = 0;
+    const t = setInterval(() => { if (loadVoices().length || ++n >= 16) { clearInterval(t); readyP = null; if (!voices.length) waited = Date.now(); res(); } }, 100);
+  });
+  return readyP;
+}
+export function pick(lang) {
+  if (!OK) return null;
+  if (!voices.length) loadVoices();
+  const w = wantOf(lang);
+  if (w.key in cache) return cache[w.key];
+  let best = null, top = -1;
+  voices.forEach((v) => { if (bad.has(vid(v))) return; const s = score(v, w); if (s > top) { top = s; best = v; } });
+  cache[w.key] = best;
+  return best;
+}
+export function hasVoice(lang) {
+  if (!OK) return false;
+  if (!voices.length) loadVoices();
+  const w = wantOf(lang);
+  return voices.some((v) => { const b = langOf(v).b; return b === w.base || (w.base === 'ms' && b === 'id'); });
+}
+
+/* ---------------- speaking, one part at a time ---------------- */
+function partsOf(text) {
+  const flat = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!flat) return [];
+  const pieces = [];
+  (flat.match(/[^.!?…]+(?:[.!?…]+["”’)\]]*|$)\s*/g) || [flat]).forEach((s) => {
+    s = s.trim();
+    while (s.length > MAXP) {
+      const head = s.slice(0, MAXP);
+      let cut = Math.max(head.lastIndexOf(', '), head.lastIndexOf('; '), head.lastIndexOf(': '), head.lastIndexOf(' – '), head.lastIndexOf(' - '));
+      if (cut < 40) cut = head.lastIndexOf(' ');
+      if (cut < 20) cut = MAXP - 1;
+      pieces.push(s.slice(0, cut + 1).trim());
+      s = s.slice(cut + 1).trim();
+    }
+    if (s) pieces.push(s);
+  });
+  const parts = [];                                   // join short sentences so the speech flows
+  pieces.forEach((s) => { const l = parts.length - 1; if (l >= 0 && parts[l].length + 1 + s.length <= MAXP) parts[l] += ' ' + s; else parts.push(s); });
+  return parts;
+}
+const wordsOf = (t) => String(t).split(/\s+/).filter(Boolean);
+const wordMs = (w, rate) => (170 + Math.min(14, w.length) * 34) / Math.max(0.5, rate || 1);
+const estimate = (p) => wordsOf(p.text).reduce((a, w) => a + wordMs(w, p.job.rate), 0);
+const call = (fn, a) => { if (typeof fn === 'function') { try { fn(a); } catch (e) { /* ignore */ } } };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const Q = [];
+let cur = null, unlocked = false, lastCancel = 0, blipAt = 0, simT = 0;
+
+function hushBrowser() {
+  if (!OK) return;
+  try { synth.cancel(); lastCancel = Date.now(); } catch (e) { /* ignore */ }
+}
+function finish(job, ok) { if (job.over) return; job.over = true; job.resolve(ok); }
+function stopSim() { clearTimeout(simT); simT = 0; }
+function clear(p) { clearTimeout(p.wd); clearTimeout(p.capT); clearTimeout(p.simT); p.u = null; }
+
+function pump() {
+  if (cur) return;
+  let p = Q.shift();
+  while (p && p.job.over) p = Q.shift();
+  if (!p) return;
+  cur = p;
+  if (!OK || p.job.silent || p.job.mute) simulate(p, true);
+  else speakPart(p);
+}
+function done(p) {
+  if (cur !== p) return;
+  clear(p); stopSim();
+  cur = null;
+  p.job.left -= 1;
+  if (p.job.left <= 0) finish(p.job, true);
+  setTimeout(pump, 0);
+}
+/* Show the words one by one at a natural pace: alongside the speech when the browser does not report each word,
+   or on their own when there is no sound. */
+function simulate(p, owns) {
+  stopSim();
+  if (owns && !p.job.begun) { p.job.begun = true; call(p.job.onStart); }
+  const ws = wordsOf(p.text);
+  let i = 0;
+  const step = () => {
+    if (cur !== p) return;
+    if (i >= ws.length) { simT = 0; if (owns) done(p); return; }
+    const w = ws[i++];
+    call(p.job.onWord, w);
+    simT = setTimeout(step, wordMs(w, p.job.rate));
+  };
+  step();
+}
+function started(p) {
+  if (p.started) return;
+  p.started = true;
+  clearTimeout(p.wd);
+  if (!p.job.begun) { p.job.begun = true; call(p.job.onStart); }
+  p.capT = setTimeout(() => done(p), estimate(p) * 2.2 + 5000);           // never wait for ever if the end is not reported
+  if (marks.has(vid(p.voice))) p.simT = setTimeout(() => { if (cur === p && !p.bound) simulate(p, false); }, 600);
+  else simulate(p, false);                                               // time the words until the voice reports its own
+}
+async function speakPart(p) {
+  await ready();
+  if (cur !== p) return;
+  const gap = 170 - (Date.now() - lastCancel);                         // phones ignore speech that starts straight after a cancel
+  if (gap > 0) { await sleep(gap); if (cur !== p) return; }
+  const v = pick(p.job.lang), k = kindOf(v);
+  let u;
+  try { u = new SpeechSynthesisUtterance(p.text); } catch (e) { p.job.mute = true; simulate(p, true); return; }
+  if (v) { u.voice = v; u.lang = v.lang; } else u.lang = wantOf(p.job.lang).tag;
+  u.rate = Math.min(1.6, Math.max(0.5, p.job.rate || 1));
+  u.pitch = PITCH[k] || 1.1;
+  u.volume = 1;
+  p.u = u; p.voice = v; p.started = false; p.bound = false;
+  const mine = () => cur === p && p.u === u;
+  u.onstart = () => { if (mine()) started(p); };
+  u.onboundary = (e) => {
+    if (!mine() || (e && e.name && e.name !== 'word')) return;
+    started(p);
+    p.bound = true;
+    marks.add(vid(p.voice));
+    if (simT) stopSim();
+    const m = /^\S+/.exec(p.text.slice((e && e.charIndex) || 0));
+    if (m) call(p.job.onWord, m[0]);
+  };
+  u.onend = () => { if (mine()) done(p); };
+  u.onerror = (e) => { if (mine()) failed(p, (e && e.error) || 'error'); };
+  try { if (synth.paused) synth.resume(); } catch (e) { /* ignore */ }
+  try { synth.speak(u); } catch (e) { failed(p, 'speak'); return; }
+  p.wd = setTimeout(() => stalled(p, u), v && v.localService === false ? 6000 : 3000);
+}
+function stalled(p, u) {
+  if (cur !== p || p.u !== u || p.started) return;
+  let talking = false;
+  try { talking = synth.speaking && !synth.pending; } catch (e) { talking = false; }
+  if (talking) { started(p); return; }                                   // it is speaking; the browser just did not say so
+  if (!p.retried) {
+    p.retried = true; clear(p); hushBrowser();
+    if (p.voice && p.voice.localService === false) { bad.add(vid(p.voice)); cache = {}; }   // an online voice that did not answer: use the next best
+    speakPart(p); return;
+  }
+  clear(p); p.job.mute = true; simulate(p, true);                        // no sound right now: show the words instead
+}
+function failed(p, err) {
+  if (p.started) { done(p); return; }
+  clear(p);
+  if (err === 'not-allowed') { p.job.mute = true; simulate(p, true); return; }   // the browser wants a tap first
+  if (!p.retried) {
+    p.retried = true;
+    if (p.voice && /network|synthesis|voice|language|unavailable/.test(err)) { bad.add(vid(p.voice)); cache = {}; }
+    setTimeout(() => { if (cur === p) speakPart(p); }, 120);
+    return;
+  }
+  p.job.mute = true; simulate(p, true);
+}
+
+/* Say something in Symphony's voice. Resolves true when it has all been said, false if it was stopped.
+   o: { lang: 'en' | 'ms' | any language tag, rate, silent (time the words without sound), onStart(), onWord(word) } */
+export function say(text, o) {
+  o = o || {};
+  const parts = partsOf(text);
+  return new Promise((resolve) => {
+    if (!parts.length) { resolve(true); return; }
+    const job = { lang: o.lang || 'en-GB', rate: o.rate || 1, silent: !!o.silent, onStart: o.onStart, onWord: o.onWord, left: parts.length, resolve, over: false, begun: false, mute: false };
+    parts.forEach((t) => Q.push({ text: t, job }));
+    if (!cur) pump();
+  });
+}
+export function stop() {
+  const jobs = new Set(Q.map((p) => p.job));
+  Q.length = 0;
+  const had = cur;
+  if (cur) { jobs.add(cur.job); clear(cur); cur = null; }
+  stopSim();
+  jobs.forEach((j) => finish(j, false));
+  let busy = false;
+  try { busy = OK && (synth.speaking || synth.pending); } catch (e) { busy = false; }
+  if (had || (busy && Date.now() - blipAt > 1500)) hushBrowser();   // leave the silent first-tap blip alone
+}
+/* Phones only allow speech after a tap: speak a silent blip on the first tap anywhere, then all speech works. */
+export function unlock() {
+  if (!OK || unlocked) return;
+  unlocked = true;
+  blipAt = Date.now();
+  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; u.rate = 2; u.lang = 'en-GB'; synth.speak(u); } catch (e) { /* ignore */ }
+}
+if (OK) {
+  const EV = ['pointerup', 'touchend', 'keydown', 'click'];
+  const once = () => { unlock(); EV.forEach((t) => window.removeEventListener(t, once, true)); };
+  EV.forEach((t) => window.addEventListener(t, once, { capture: true, passive: true }));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { try { if (synth.paused) synth.resume(); } catch (e) { /* ignore */ } } });
+}
+
+export const Voice = {
+  supported: OK,
+  say, stop, pick, hasVoice, unlock,
+  get busy() { return !!cur || Q.length > 0; },
+  name(lang) { const v = pick(lang || 'en-GB'); return v ? v.name : ''; },
+  kind(lang) { return kindOf(pick(lang || 'en-GB')); }
+};
