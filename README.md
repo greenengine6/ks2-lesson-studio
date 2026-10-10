@@ -1,6 +1,6 @@
 # KS2 Lesson Studio
 
-Two-way lesson slides for Key Stage 2. Made for **Rabinder Kaur, Head of Key Stage 2**.
+Two-way lesson slides for Key Stage 2 teachers. Made for Rabinder.
 
 **Live site:** https://greenengine6.github.io/ks2-lesson-studio/
 
