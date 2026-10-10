@@ -1,9 +1,9 @@
 /* lkie.like exports: a PowerPoint deck (opens in PowerPoint, Keynote and Google Slides, and saves as PDF from any of
    them) with the diagrams as pictures and the teacher notes in the speaker notes, and the worksheet as an editable
    Word document (opens in Word and Google Docs). */
-import { esc } from '../core.js?v=5e78cc38';
-import { KIND, TONE, diagramSVG, answersOf, learnText, respondText } from './render.js?v=5e78cc38';
-import { TIERS } from './model.js?v=5e78cc38';
+import { esc } from '../core.js?v=cfc5dfc4';
+import { KIND, TONE, diagramSVG, answersOf, learnText, respondText } from './render.js?v=cfc5dfc4';
+import { TIERS } from './model.js?v=cfc5dfc4';
 
 /* ---------------- diagrams as pictures ---------------- */
 export function svgSize(svg) { const m = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg); return m ? [Number(m[1]), Number(m[2])] : [640, 200]; }

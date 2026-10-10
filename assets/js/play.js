@@ -3,12 +3,12 @@
    something to do with the mouse: starlings that dodge a falcon, fireflies that slowly learn to flash together,
    the planets at their real relative speeds, and the northern lights over snowy mountains. All drawn live
    (no images or videos to download). */
-import { $, $$, esc, el, icon, bus, reduceMotion, toast } from './core.js?v=5e78cc38';
-import { Sound, sfx } from './fx/audio.js?v=5e78cc38';
-import { Ambient, Speech } from './fx/sound.js?v=5e78cc38';
-import { track } from './track.js?v=5e78cc38';
-import { MINI } from './fx/symphony.js?v=5e78cc38';
-import { settings } from './settings.js?v=5e78cc38';
+import { $, $$, esc, el, icon, bus, reduceMotion, toast } from './core.js?v=cfc5dfc4';
+import { Sound, sfx } from './fx/audio.js?v=cfc5dfc4';
+import { Ambient, Speech } from './fx/sound.js?v=cfc5dfc4';
+import { track } from './track.js?v=cfc5dfc4';
+import { MINI } from './fx/symphony.js?v=cfc5dfc4';
+import { settings } from './settings.js?v=cfc5dfc4';
 
 const TAU = Math.PI * 2;
 const rnd = (a, b) => a + Math.random() * (b - a);

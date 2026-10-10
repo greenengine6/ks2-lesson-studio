@@ -36,10 +36,30 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 | **Symphony** | The helper. She is a girl who speaks English and Malay and was named for her musical voice. Click her, or tap **Ask Symphony**, to ask anything by text. Tap the **mic** for voice mode: everything else disappears, a glow along the bottom follows your voice while she listens, sweeps while she thinks and follows her words while she speaks, and her answer appears word by word. She then listens again. Every voice on the site is hers: Brain Break, Sound Journey and Wonder Window read in the same girl's voice. |
 | **The Earth** | The landing page background: day colour, night lights, relief, sunlight glinting off the oceans, drifting clouds and a glowing atmosphere, lit for this exact moment. Drag to spin it on a laptop; tilt the phone to look around (iPhones ask once). Space sound pans around you as it turns. |
 
-**Present mode** (every engine and Slide Studio) gives you:
+**Present mode** (every engine, Slide Studio and lkie.like) gives you:
 - full screen;
 - **Magic pointer** (P), timer (T) and teacher notes (N);
-- **Class feedback** (C): five faces, keys 1–5 to count, and "best bit".
+- **Draw** (D): pen, highlighter, rubber, six colours, three sizes, undo (Ctrl+Z) and clear. Each slide keeps its own drawing while the page is open; a tap while drawing is a dot, never "next slide"; Esc stops drawing;
+- **Join** (J): a live lesson on pupils' own devices (below). The button then shows how many have joined;
+- **Class moments:** every "how pupils respond" pill on a screen (Use a reaction, Hold your work up to the camera, Vote, Type it in the chat, Talk, Think…) is a button. It opens the moment with the instruction, a timer (+30s, pause) and the answers: tap to count hands and reactions, a 3-2-1 countdown for the chat waterfall and for "hold it up", vote bars with the right answer on Reveal. In a live lesson the answers come from pupils' devices;
+- **Class feedback** (C): five faces, keys 1–5 to count, and "best bit". In a live lesson pupils tap a face on their own device and it counts here.
+
+## Live lessons: pupils join with a QR code
+
+Press **Join** in Present mode. The screen shows a QR code, the address `…/ks2-lesson-studio/join` with a 6-digit code (for laptops), and **Copy link for the chat** (for Teams, Zoom or Meet). Pupils type a first name or nickname: no accounts, no sign-in.
+
+| Moment | On the pupil's device | On the class screen |
+|---|---|---|
+| Reaction | 👍 Got it, 👌 Nearly, 👎 Not yet, and ❤️ 😮 👏 | counts, and the reactions float up the screen |
+| Vote | the real options (A to D) | bars hidden until Reveal; then pupils see if they were right |
+| Answer (chat, waterfall) | a box, or one box per exit-ticket question | answers face down until Reveal, all at once; how many match each expected answer |
+| Show me | a mini whiteboard: four pens, rubber, undo, clear | the boards face down until Reveal; tap one to enlarge |
+| Talk, think | the instruction and the timer, "We are ready", "I have an idea" | how many are ready |
+| Class feedback | five faces | the faces count by themselves |
+
+The teacher can **lock joining**, remove a name, and **End live lesson** (every device shows that it has ended). If the teacher's page reloads, the lesson carries on in that tab for up to 4 hours.
+
+**Privacy.** Everything is locked on the device before it is sent. Pupils' answers are sealed to the teacher's screen (ECDH P-256, HKDF-SHA-256, AES-256-GCM), so neither the relay nor other pupils can read them; what the teacher sends to the class is locked with a key that only the join link carries (AES-128-GCM). Names and answers stay on the teacher's screen and are never saved or sent to Rabinder's reports. Until the school relay is on, messages travel through the public relay ntfy.sh, which only ever sees scrambled text and deletes it after 12 hours. Updating `inbox/Code.gs` (Setup, step 4) turns on the school relay: the same Apps Script then carries live lessons in its short-term cache (6 hours at most), and the site uses it by itself. For a whole class on one school network, the school relay is the better choice: the public relay limits how many devices on one internet address can join at once.
 
 **Switches** (header, menu and the lit cards on the home page):
 - Sound (the small speaker in the header): the little sounds and the space sound. Everything drops to a whisper while Symphony speaks;
@@ -103,11 +123,11 @@ The numbers are in `index.html` (`"limits"` in the config). These rules live on 
 1. **Connect once.** On the first device, press **Connect** and paste the engine key, or open the owner’s one-tap link. The key stays in that browser.
 2. **Admin.** Rabinder signs in with her password (handed over privately; it is not stored in this repository). Only a salted PBKDF2 check and an encrypted key are in `index.html`. She then sets up a passkey on each device.
 3. **Teachers.** Enrol each one on the dashboard and send them their personal link privately. Tell them their PIN yourself.
-4. **Inbox (once).** Teachers’ activity reaches the dashboard through a small Google Apps Script web app (`inbox/Code.gs`). In Apps Script: New project, paste `Code.gs`, then Deploy > New deployment > Web app, *Execute as: Me*, *Who has access: Anyone*. Put the web app address (it ends in `/exec`) in `index.html` as `"inbox"` in the config. The script only ever stores locked data: it cannot read it.
+4. **Inbox and school relay (once).** Teachers’ activity reaches the dashboard through a small Google Apps Script web app (`inbox/Code.gs`), which is also the school relay for live lessons. In Apps Script: New project, paste `Code.gs`, then Deploy > New deployment > Web app, *Execute as: Me*, *Who has access: Anyone*. Put the web app address (it ends in `/exec`) in `index.html` as `"inbox"` in the config. The script only ever stores locked data: it cannot read it. If an older copy is already deployed, paste the new file over it and choose Deploy > Manage deployments > Edit > New version.
 
 ## Privacy and protection
 
-- The site is hidden from search engines. The page’s security policy only allows requests to the engine API, Google Fonts and the Apps Script inbox.
+- The site is hidden from search engines. The page’s security policy only allows requests to the engine API, Google Fonts, the Apps Script inbox, the live-lesson relay (ntfy.sh), Wikipedia and Wikimedia (pictures), and YouTube's privacy-enhanced player (videos a teacher adds).
 - It blocks right-click, text selection and copying (except the site’s own Copy buttons), dragging, printing, and the save, view-source and developer-tools shortcuts.
 - It blanks the page when a screenshot shortcut is pressed, and pauses while developer tools are open.
 - These are deterrents. No website can stop a phone camera or someone reading published code.
@@ -141,6 +161,13 @@ assets/js/security.js    protection deterrents
 assets/js/guard.js       the engine guard: real presses only, rests, caps, one at a time
 assets/js/lkie/          lkie.like: curriculum map and matcher, prompts, data checks, drawing, exports, example, page
 assets/css/lkie.css      lkie.like styles
+assets/js/live/          live lessons: relay.js (locking, the two relays, the 6-digit code), session.js (the teacher's
+                         side), panel.js (the Join screen), qr.js (QR codes), pupil.js (the pupils' page)
+join/index.html          the pupils' page (no sign-in), with assets/css/join.css
+assets/js/moments.js     class moments: reactions, votes, answers, mini whiteboards, talk and think time
+assets/js/presentkit.js  Present-mode tools: Draw, Join, timer
+assets/js/draw.js        pen, highlighter and rubber strokes (slides and pupils' whiteboards)
+assets/css/live.css      Join screen, class moments, drawing tray
 assets/js/crypto.js, idb.js, settings.js, theme.js, slides.js, engines/, fx/
 ```
 
@@ -150,5 +177,6 @@ assets/js/crypto.js, idb.js, settings.js, theme.js, slides.js, engines/, fx/
 - Voice glow: written for this site, after the idea of Libraries.dev's Voice (voice-glow).
 - Other visual effects are vanilla re-implementations (no libraries), inspired by CardSwap and Ribbons (React Bits), MagnificationDock and Interactive Waves.
 - PowerPoint export: [PptxGenJS](https://github.com/gitbrent/PptxGenJS) 4.0.1, MIT licence (`assets/PPTXGENJS-LICENSE.txt`).
+- QR codes: [QR Code generator library](https://www.nayuki.io/page/qr-code-generator-library) by Project Nayuki, MIT licence, compiled from its TypeScript source (`assets/vendor/qrcodegen-3c6d0b3/`).
 - lkie.like curriculum map: statutory statements from the National Curriculum in England (2014) and the Relationships and Health Education guidance, lightly shortened (Crown copyright, Open Government Licence v3.0); RE after the RE Council's national framework (2013); Bahasa Melayu after the KSSR skill areas (Malaysia), paraphrased. The objective codes are this site's own.
 - Slide fonts: TeX Gyre Adventor and Schola, GUST Font Licence. Interface fonts: Plus Jakarta Sans, DM Sans and JetBrains Mono from Google Fonts.

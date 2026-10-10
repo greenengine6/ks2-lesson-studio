@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.anthropic.com https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://upload.wikimedia.org https://i.ytimg.com; media-src 'self' blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self' https://api.anthropic.com https://script.google.com https://script.googleusercontent.com https://ntfy.sh https://en.wikipedia.org https://simple.wikipedia.org https://upload.wikimedia.org https://i.ytimg.com https://www.googleapis.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>KS2 Lesson Engine</title>
 <meta name="description" content="Ten online-lesson engines and a slide studio for Key Stage 2: two-way class screens, teacher notes and slides, made in about a minute.">
 <meta name="robots" content="noindex, nofollow">
@@ -21,53 +21,54 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=JetBrains+Mono:wght@500;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap">
-<link rel="stylesheet" href="assets/css/app.css?v=5e78cc38">
-<link rel="stylesheet" href="assets/css/board.css?v=5e78cc38">
-<link rel="stylesheet" href="assets/css/slides.css?v=5e78cc38">
-<link rel="stylesheet" href="assets/css/lumen.css?v=5e78cc38">
-<link rel="stylesheet" href="assets/css/chat.css?v=5e78cc38">
-<link rel="stylesheet" href="assets/css/people.css?v=5e78cc38">
-<link rel="stylesheet" href="assets/css/play.css?v=5e78cc38">
-<link rel="stylesheet" href="assets/css/lkie.css?v=5e78cc38">
-<script src="assets/js/theme.js?v=5e78cc38"></script>
-<link rel="modulepreload" href="assets/js/app.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/security.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/core.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/slides.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/slides-example.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/settings.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/chat.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/people.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/crypto.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/idb.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/track.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/feedback.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/admin.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/report.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/play.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/sync.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/fx/dock.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/fx/cardswap.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/fx/symphony.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/fx/waves.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/fx/ribbons.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/fx/sound.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/fx/voice.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/fx/particles.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/registry.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/shared.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/prompt.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/widgets.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/maths.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/story.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/reading.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/science.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/journey.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/code.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/steps.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/escape.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/brainbreak.js?v=5e78cc38">
-<link rel="modulepreload" href="assets/js/engines/debate.js?v=5e78cc38">
+<link rel="stylesheet" href="assets/css/app.css?v=cfc5dfc4">
+<link rel="stylesheet" href="assets/css/board.css?v=cfc5dfc4">
+<link rel="stylesheet" href="assets/css/slides.css?v=cfc5dfc4">
+<link rel="stylesheet" href="assets/css/lumen.css?v=cfc5dfc4">
+<link rel="stylesheet" href="assets/css/chat.css?v=cfc5dfc4">
+<link rel="stylesheet" href="assets/css/people.css?v=cfc5dfc4">
+<link rel="stylesheet" href="assets/css/play.css?v=cfc5dfc4">
+<link rel="stylesheet" href="assets/css/lkie.css?v=cfc5dfc4">
+<link rel="stylesheet" href="assets/css/live.css?v=cfc5dfc4">
+<script src="assets/js/theme.js?v=cfc5dfc4"></script>
+<link rel="modulepreload" href="assets/js/app.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/security.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/core.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/slides.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/slides-example.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/settings.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/chat.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/people.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/crypto.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/idb.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/track.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/feedback.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/admin.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/report.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/play.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/sync.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/fx/dock.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/fx/cardswap.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/fx/symphony.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/fx/waves.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/fx/ribbons.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/fx/sound.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/fx/voice.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/fx/particles.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/registry.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/shared.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/prompt.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/widgets.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/maths.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/story.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/reading.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/science.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/journey.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/code.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/steps.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/escape.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/brainbreak.js?v=cfc5dfc4">
+<link rel="modulepreload" href="assets/js/engines/debate.js?v=cfc5dfc4">
 <script type="application/json" id="config">{"mainModel": "claude-sonnet-5-5", "quickModel": "claude-haiku-5-5", "limits": {"rest": 5, "hour": 15, "day": 40, "editGap": 8, "editHour": 40, "chatGap": 3, "chatTen": 20, "chatDay": 150}, "admin": {"name": "Rabinder Kaur", "iter": 400000, "salt": "9m8DAyZLstgOdjN48kJsHQ", "check": "_1XJXZO3aEhYQbN8qVhHoQUSexIYU2wxPA-jddQ_Plo", "pub": "BDySIQy1KVdnMX9f2Selpt8E8IHPlnpnL0Rssq8jumx1fFJx01fw6D-xuIszATP6wr48ooqH_qzhAMHyGsVX7jo", "key": "FCnshmCVWYNgK-yr3ei2Htz1jtFCXkyMuPLqBp9WfqH0lwODJzo10mp9EgSLC9TUBh7SyPBraHE7dHIFJoPW3Us8NaJYSo1BGrxMyw3oqL2-5csUuaW-H0_J6Rwxi6oKfnrmrdyYuTThV_6o6dduosyNuqyhV5-MsyBb2qycPlRZMDaF_tdL499-AeO8qapwiIlW5cjhroVR-w", "iv": "ykf7_pbMiGoTr8UN"}}</script>
 </head>
 <body>
@@ -256,6 +257,8 @@
     <button type="button" class="pbtn" id="pr-pointer" aria-pressed="false" title="Magic pointer (P)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span>Magic pointer</span><i class="lsw mini violet" aria-hidden="true"><i class="lsw-handle"></i></i></button>
     <div style="position:relative"><button type="button" class="pbtn" id="pr-timer-btn" aria-expanded="false" title="Timer (T)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Timer</span></button>
       <div class="pr-menu" id="pr-timer-menu" hidden><button type="button" class="pbtn" data-min="1">1 min</button><button type="button" class="pbtn" data-min="2">2</button><button type="button" class="pbtn" data-min="3">3</button><button type="button" class="pbtn" data-min="5">5</button><button type="button" class="pbtn" data-min="10">10</button><button type="button" class="pbtn" data-min="0">Stop</button></div></div>
+    <button type="button" class="pbtn" data-kit="draw" aria-pressed="false" title="Draw on the screen (D)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.6L15.6 5a2.1 2.1 0 0 1 3 3L8.2 18.4z"/><path d="M13.5 7.2l3 3"/></svg><span>Draw</span></button>
+    <button type="button" class="pbtn kit-join" data-kit="join" title="Pupils join on their own device (J)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h2.5v2.5H14zM18 18h2.5v2.5H18zM14 18.5v2M18 14h2.5"/></svg><span>Join</span></button>
     <button type="button" class="pbtn" id="pr-ticket" title="Class feedback (C)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.9 2 5.1 2 7 0"/><path d="M9 9.5v.5M15 9.5v.5"/></svg><span>Class feedback</span></button>
     <button type="button" class="pbtn" id="pr-notes-btn" aria-pressed="false" title="Teacher notes (N)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>Notes</span><i class="lsw mini amber" aria-hidden="true"><i class="lsw-handle"></i></i></button>
     <button type="button" class="pbtn" id="pr-full" aria-label="Full screen" title="Full screen (F)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -276,6 +279,8 @@
     <button type="button" class="pbtn" id="spr-reveal" aria-label="Reveal"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Reveal answers</span></button>
     <button type="button" class="pbtn" id="spr-timer-btn" aria-label="Timer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Timer</span></button>
     <button type="button" class="pbtn" id="spr-pointer" aria-pressed="false" title="Magic pointer (P)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span>Magic pointer</span><i class="lsw mini violet" aria-hidden="true"><i class="lsw-handle"></i></i></button>
+    <button type="button" class="pbtn" data-kit="draw" aria-pressed="false" title="Draw on the slide (D)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.6L15.6 5a2.1 2.1 0 0 1 3 3L8.2 18.4z"/><path d="M13.5 7.2l3 3"/></svg><span>Draw</span></button>
+    <button type="button" class="pbtn kit-join" data-kit="join" title="Pupils join on their own device (J)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h2.5v2.5H14zM18 18h2.5v2.5H18zM14 18.5v2M18 14h2.5"/></svg><span>Join</span></button>
     <button type="button" class="pbtn" id="spr-ticket" title="Class feedback (C)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.9 2 5.1 2 7 0"/><path d="M9 9.5v.5M15 9.5v.5"/></svg><span>Class feedback</span></button>
     <button type="button" class="pbtn" id="spr-notes-btn" aria-pressed="false" aria-label="Teacher notes"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>Notes</span></button>
     <span class="pr-sep"></span>
@@ -309,7 +314,7 @@
     <div class="fb-text" id="fb-text" tabindex="0"></div>
     <button type="button" class="btn" id="fb-close">Done</button></div>
 </div>
-<script type="module" src="assets/js/app.js?v=5e78cc38"></script>
+<script type="module" src="assets/js/app.js?v=cfc5dfc4"></script>
 <script defer src="assets/pptxgen.bundle.js"></script>
 </body>
 </html>

@@ -1,11 +1,12 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
-import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=5e78cc38';
-import { track } from './track.js?v=5e78cc38';
-import EXAMPLE_RAW from './slides-example.js?v=5e78cc38';
-import { Ribbons } from './fx/ribbons.js?v=5e78cc38';
-import { sfx } from './fx/audio.js?v=5e78cc38';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=5e78cc38';
+import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=cfc5dfc4';
+import { track } from './track.js?v=cfc5dfc4';
+import EXAMPLE_RAW from './slides-example.js?v=cfc5dfc4';
+import { Ribbons } from './fx/ribbons.js?v=cfc5dfc4';
+import { sfx } from './fx/audio.js?v=cfc5dfc4';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=cfc5dfc4';
+import { presentKit } from './presentkit.js?v=cfc5dfc4';
 
 const I = {
   flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
@@ -125,7 +126,21 @@ function normalizeDeck(raw, p) {
 const totalMinutes = (d) => d.slides.reduce((t, s) => t + (s.minutes || 0), 0) || d.minutes;
 
 /* ================= slide rendering ================= */
-function respondChip(s) { const text = s.respond && s.respond !== 'none' ? RESPOND[mode()][s.respond] : ''; return text ? '<span class="sl-respond">' + icon(RESPOND_ICON[s.respond]) + '<span>' + esc(text) + '</span></span>' : ''; }
+/* In Present mode the pill is a button that opens the class moment (moments.js), carrying what the moment needs:
+   the question and options of a check point, or the questions of a starter or exit ticket. */
+function momentInfo(d, s) {
+  const o = { title: s.title || KINDS[s.type].label, lesson: d.title };
+  if (s.type === 'hinge') Object.assign(o, { q: s.question, opts: s.options, answer: s.answer });
+  else if (QTYPES.has(s.type)) o.qs = s.questions.map((q) => ({ q: q.q, a: q.a }));
+  else if (s.type === 'hook' || s.type === 'talk') o.q = s.prompt;
+  return esc(JSON.stringify(o));
+}
+function respondChip(s, d, pres) {
+  const text = s.respond && s.respond !== 'none' ? RESPOND[mode()][s.respond] : '';
+  if (!text) return '';
+  return pres ? '<span class="sl-respond" role="button" tabindex="0" data-moment="' + s.respond + '" data-info="' + momentInfo(d, s) + '" title="Start this moment on the class screen">' + icon(RESPOND_ICON[s.respond]) + '<span>' + esc(text) + '</span></span>'
+    : '<span class="sl-respond">' + icon(RESPOND_ICON[s.respond]) + '<span>' + esc(text) + '</span></span>';
+}
 function maxReveal(s) { if (QTYPES.has(s.type) || s.type === 'hinge') return 1; if (s.type === 'example') return s.steps.length + (s.answer ? 1 : 0); return 0; }
 function bodyHTML(d, s, rv) {
   switch (s.type) {
@@ -147,10 +162,10 @@ function bodyHTML(d, s, rv) {
     default: return '';
   }
 }
-export function slideHTML(d, s, i, rv) {
+export function slideHTML(d, s, i, rv, pres) {
   const k = KINDS[s.type];
   return '<div class="sl sl--' + s.type + '" style="' + tone(k.tone) + '">' + EDGE +
-    '<div class="sl-head"><span class="sl-kind">' + icon(k.icon) + esc(k.label) + '</span>' + respondChip(s) + '</div>' +
+    '<div class="sl-head"><span class="sl-kind">' + icon(k.icon) + esc(k.label) + '</span>' + respondChip(s, d, pres) + '</div>' +
     (s.type === 'title' ? '' : '<h3 class="sl-title">' + esc(s.title || k.label) + '</h3>') +
     '<div class="sl-body">' + bodyHTML(d, s, rv) + '</div>' +
     '<div class="sl-foot"><span>' + esc(d.year) + (d.subject ? ' · ' + esc(d.subject) : '') + ' · ' + esc(d.title) + '</span><span>' + (i + 1) + ' / ' + d.slides.length + '</span></div></div>';
@@ -566,7 +581,7 @@ async function exportPptx() {
 }
 
 /* ================= presenting (light stage + magic pointer) ================= */
-let ribbons = null;
+let ribbons = null, kit = null;
 const POINTER_KEY = 'ks2-engine.pointer.v1';
 function openPresent(i) {
   sfx('present');
@@ -586,6 +601,7 @@ function openPresent(i) {
 function closePresent() {
   if (state.pr.open && state.deck) track('present', { eng: 'slides', title: state.deck.title, ms: Date.now() - (state.pr.t0 || Date.now()), screens: state.deck.slides.length, seen: (state.pr.seen || 0) + 1, ex: state.deckId ? 0 : 1 });
   state.pr.open = false; stopTimer();
+  if (kit) kit.close();
   if (ribbons) ribbons.stop();
   $('#spresent').hidden = true;
   document.documentElement.style.overflow = '';
@@ -596,7 +612,7 @@ function setPointer(on) { store.set(POINTER_KEY, on ? 'on' : ''); $('#spr-pointe
 function renderPresent() {
   const pr = state.pr, d = state.deck, s = d.slides[pr.i], frame = $('#spr-frame');
   pr.seen = Math.max(pr.seen || 0, pr.i);
-  frame.innerHTML = slideHTML(d, s, pr.i, pr.reveal);
+  frame.innerHTML = slideHTML(d, s, pr.i, pr.reveal, true);
   fitSlide(frame.firstElementChild);
   $('#spr-count').textContent = (pr.i + 1) + ' / ' + d.slides.length;
   $('#spr-prev').disabled = pr.i === 0; $('#spr-next').disabled = pr.i === d.slides.length - 1;
@@ -610,6 +626,7 @@ function renderPresent() {
   nb.hidden = !pr.notes;
   if (pr.notes) { const ans = answersLine(s).replace(/<p class="sans">|<\/p>/g, ''); nb.innerHTML = '<b>Say:</b> ' + esc(s.say || 'No notes for this slide.') + (ans ? '<br>' + ans : ''); }
   $('#spr-notes-btn').setAttribute('aria-pressed', String(pr.notes));
+  if (kit) kit.paint();
 }
 function go(delta) { const pr = state.pr, n = state.deck.slides.length, j = Math.max(0, Math.min(n - 1, pr.i + delta)); if (j === pr.i) return; sfx('page'); pr.i = j; pr.reveal = 0; stopTimer(); renderPresent(); }
 function reveal() { const pr = state.pr, s = state.deck.slides[pr.i]; if (pr.reveal < maxReveal(s)) { pr.reveal += 1; renderPresent(); return true; } return false; }
@@ -645,6 +662,7 @@ export function initSlides() {
   $('#a-ppt').addEventListener('click', exportPptx);
   $('#a-quiz').addEventListener('click', copyQuiz);
   $('#a-plan').addEventListener('click', copyPlan);
+  kit = presentKit({ root: $('#spresent'), frame: () => $('#spr-frame'), key: () => (state.deckId || 'example') + ':' + state.pr.i, title: () => state.deck ? state.deck.title : '' });
   $('#spr-prev').addEventListener('click', () => go(-1));
   $('#spr-next').addEventListener('click', () => go(1));
   $('#spr-reveal').addEventListener('click', reveal);

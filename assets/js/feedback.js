@@ -2,12 +2,13 @@
    the class feedback screen in Present mode, five big faces the teacher taps as answers come in ("type 1 to 5 in
    the chat"), plus "best bit". Both go to Rabinder's report by themselves (sync.js): teachers never download
    anything. download() is used by the admin dashboard only. */
-import { $, $$, esc, el, icon, bus, toast, prefs } from './core.js?v=5e78cc38';
-import { track } from './track.js?v=5e78cc38';
-import { who } from './people.js?v=5e78cc38';
-import { ENGINES } from './engines/registry.js?v=5e78cc38';
-import { confetti } from './fx/particles.js?v=5e78cc38';
-import { sfx } from './fx/audio.js?v=5e78cc38';
+import { $, $$, esc, el, icon, bus, toast, prefs } from './core.js?v=cfc5dfc4';
+import { track } from './track.js?v=cfc5dfc4';
+import { who } from './people.js?v=cfc5dfc4';
+import { ENGINES } from './engines/registry.js?v=cfc5dfc4';
+import { confetti } from './fx/particles.js?v=cfc5dfc4';
+import { sfx } from './fx/audio.js?v=cfc5dfc4';
+import { Live, onLive, setMoment, endMoment } from './live/session.js?v=cfc5dfc4';
 
 export const FACE_NAMES = ['Lost', 'Tricky', 'OK', 'Good', 'Loved it'];
 export const FACE_COLOURS = ['#E5484D', '#F2804A', '#F2B84B', '#7CC24F', '#2BB673'];
@@ -89,7 +90,7 @@ export function openTicket(o) {
   const st = { faces: [0, 0, 0, 0, 0], best: {}, log: [] };
   tk = el('div', 'ticket');
   tk.setAttribute('role', 'dialog'); tk.setAttribute('aria-label', 'Class feedback');
-  const hint = prefs.mode === 'online' ? 'Type a number from 1 to 5 in the chat' : 'Show me 1 to 5 fingers';
+  const hint = Live.on ? 'Tap a face on your own device, or type a number from 1 to 5 in the chat' : prefs.mode === 'online' ? 'Type a number from 1 to 5 in the chat' : 'Show me 1 to 5 fingers';
   const screens = (o.screens || []).filter(Boolean).slice(0, 8);
   tk.innerHTML = '<div class="tk-card"><div class="tk-top"><p class="tk-k">' + icon('smile') + 'Class feedback</p><button type="button" class="pbtn" data-tk-x aria-label="Close class feedback">' + icon('close') + '</button></div>' +
     '<h2>How did today’s lesson feel?</h2><p class="tk-say">' + icon('chat') + '<span>' + esc(hint) + '. 5 means you loved it.</span></p>' +
@@ -131,12 +132,24 @@ export function openTicket(o) {
     else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeTicket(); }
   };
   document.addEventListener('keydown', tk.keyHandler, true);
+  // In a live lesson, pupils tap a face on their own device and it counts here (a changed answer moves its count).
+  if (Live.on) {
+    tk.mo = setMoment({ kind: 'ticket', q: 'How did today’s lesson feel?' });
+    tk.unsub = onLive((w) => {
+      if (!tk || !w || w.ans !== tk.mo || typeof w.v !== 'number' || w.v > 4) return;
+      if (typeof w.prev === 'number' && st.faces[w.prev] > 0) st.faces[w.prev] -= 1;
+      st.faces[w.v] += 1; sfx('pop', w.v); paint();
+      const b = $('.tk-face[data-face="' + w.v + '"]', tk); if (b) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+    });
+  }
   paint();
   setTimeout(() => { const b = $('.tk-face', tk); if (b) b.focus(); }, 50);
 }
 export function closeTicket() {
   if (!tk) return;
   document.removeEventListener('keydown', tk.keyHandler, true);
+  if (tk.unsub) tk.unsub();
+  if (tk.mo) endMoment(tk.mo);
   tk.remove(); tk = null;
 }
 export const ticketOpen = () => !!tk;

@@ -1,8 +1,8 @@
 /* lkie.like drawing: slides (with diagrams drawn exactly from the numbers), key words, activities, the worksheet in
    three tiers, and the teacher notes. Everything is plain HTML and SVG, so it works offline and on old laptops. */
-import { esc, icon, normAnswer } from '../core.js?v=5e78cc38';
-import { TIERS, totalMinutes, sheetBalance } from './model.js?v=5e78cc38';
-import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=5e78cc38';
+import { esc, icon, normAnswer } from '../core.js?v=cfc5dfc4';
+import { TIERS, totalMinutes, sheetBalance } from './model.js?v=cfc5dfc4';
+import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=cfc5dfc4';
 
 /* ---------------- slide kinds ---------------- */
 export const KIND = {
@@ -179,12 +179,27 @@ function bodyHTML(p, s, rv, tone) {
     default: return '';
   }
 }
-/* o: { reveal, mode, theme } */
+/* What a class moment needs from this slide (moments.js): the check question and its options, or the recap and
+   exit questions with their answers, or the prompt. */
+export function momentInfo(p, s) {
+  const o = { title: s.title || (KIND[s.layout] || KIND.concept).label, lesson: p.title };
+  if (s.layout === 'check') Object.assign(o, { q: s.question, opts: s.options, answer: s.answer });
+  else if (s.layout === 'recap' || s.layout === 'exit') o.qs = s.questions.map((q) => ({ q: q.q, a: q.a }));
+  else if (s.layout === 'hook' || s.layout === 'talk') o.q = s.prompt;
+  else if (s.layout === 'plenary' && s.prompt) o.q = s.prompt;
+  return o;
+}
+function respondPill(p, s, rt, present) {
+  if (!rt) return '';
+  const inner = icon(RESPOND_ICON[s.respond] || 'chat') + '<span>' + esc(rt) + '</span>';
+  return present ? '<span class="sl-respond" role="button" tabindex="0" data-moment="' + s.respond + '" data-info="' + esc(JSON.stringify(momentInfo(p, s))) + '" title="Start this moment on the class screen">' + inner + '</span>' : '<span class="sl-respond">' + inner + '</span>';
+}
+/* o: { reveal, mode, theme, present } */
 export function slideHTML(p, s, i, o) {
   o = o || {};
   const k = KIND[s.layout] || KIND.concept, rt = respondText(s.respond, o.mode);
   return '<div class="sl lk-sl lk--' + s.layout + (o.theme === 'calm' ? ' lk-calm' : '') + '" style="' + toneVars(k.tone) + '">' + (o.theme === 'calm' ? '' : EDGE) +
-    '<div class="sl-head"><span class="sl-kind">' + icon(k.icon) + esc(k.label) + '</span>' + (rt ? '<span class="sl-respond">' + icon(RESPOND_ICON[s.respond] || 'chat') + '<span>' + esc(rt) + '</span></span>' : '') + '</div>' +
+    '<div class="sl-head"><span class="sl-kind">' + icon(k.icon) + esc(k.label) + '</span>' + respondPill(p, s, rt, o.present) + '</div>' +
     (s.layout === 'title' ? '' : '<h3 class="sl-title">' + esc(s.title || k.label) + '</h3>') +
     '<div class="sl-body">' + bodyHTML(p, s, o.reveal || 0, k.tone) + '</div>' +
     '<div class="sl-foot"><span>' + esc(p.input.year) + ' · ' + esc(p.input.subjectName) + ' · ' + esc(p.title) + '</span><span>' + (i + 1) + ' / ' + p.slides.length + '</span></div></div>';

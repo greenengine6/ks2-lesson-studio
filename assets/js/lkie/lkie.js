@@ -3,19 +3,20 @@
    the curriculum with checked codes. Slides change in plain English with undo; a unit planner sequences up to 25
    lessons with recaps and assessments; packs open instantly from this device; PowerPoint and Word downloads.
    Every engine button goes through the shared guard (guard.js). */
-import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=5e78cc38';
-import { track } from '../track.js?v=5e78cc38';
-import { sfx } from '../fx/audio.js?v=5e78cc38';
-import { Voice } from '../fx/voice.js?v=5e78cc38';
-import { evAll } from '../idb.js?v=5e78cc38';
-import { moodOf } from '../report.js?v=5e78cc38';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=5e78cc38';
-import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=5e78cc38';
-import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=5e78cc38';
-import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes } from './model.js?v=5e78cc38';
-import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText } from './render.js?v=5e78cc38';
-import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=5e78cc38';
-import EXAMPLE from './example.js?v=5e78cc38';
+import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=cfc5dfc4';
+import { track } from '../track.js?v=cfc5dfc4';
+import { sfx } from '../fx/audio.js?v=cfc5dfc4';
+import { Voice } from '../fx/voice.js?v=cfc5dfc4';
+import { evAll } from '../idb.js?v=cfc5dfc4';
+import { moodOf } from '../report.js?v=cfc5dfc4';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=cfc5dfc4';
+import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=cfc5dfc4';
+import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=cfc5dfc4';
+import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes } from './model.js?v=cfc5dfc4';
+import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText } from './render.js?v=cfc5dfc4';
+import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=cfc5dfc4';
+import EXAMPLE from './example.js?v=cfc5dfc4';
+import { presentKit, kitButtons } from '../presentkit.js?v=cfc5dfc4';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', UNITS = 'ks2-engine.lkie.units.v1', RULES = 'ks2-engine.lkie.rules.v1', THEME = 'ks2-engine.lkie.theme.v1', FORM = 'ks2-engine.lkie.form.v1';
 const YEARS = ['Year 3', 'Year 4', 'Year 5', 'Year 6'];
@@ -114,6 +115,7 @@ function presentHTML() {
   return '<div class="spr-stage"><div class="spr-frame" id="lp-frame" title="Click to reveal or go to the next slide"></div><div class="spr-notes" id="lp-notes" hidden></div></div>' +
     '<div class="spr-bar"><button type="button" class="pbtn" data-lp="prev" aria-label="Previous slide">' + icon('left') + '</button><span class="spr-count" id="lp-count">1 / 1</span><button type="button" class="pbtn" data-lp="next" aria-label="Next slide">' + icon('right') + '</button>' +
     '<span class="pr-sep"></span><button type="button" class="pbtn" data-lp="reveal">' + icon('eye') + '<span>Reveal</span></button><button type="button" class="pbtn" data-lp="notes" aria-pressed="false">' + icon('notes') + '<span>Notes</span></button>' +
+    kitButtons(true) +
     '<button type="button" class="pbtn" data-lp="ticket">' + icon('smile') + '<span>Class feedback</span></button><button type="button" class="pbtn" data-lp="full" aria-label="Full screen">' + icon('expand') + '</button>' +
     '<span class="pr-sep"></span><button type="button" class="pbtn" data-lp="exit">' + icon('close') + '<span>Exit</span></button></div>';
 }
@@ -508,7 +510,7 @@ function openPresent(i) {
 function renderPresent() {
   const p = S.pack, pr = S.pr, s = p.slides[pr.i], frame = $('#lp-frame', lp);
   pr.seen = Math.max(pr.seen, pr.i);
-  frame.innerHTML = slideHTML(p, s, pr.i, { reveal: pr.reveal, mode: prefs.mode, theme: S.theme });
+  frame.innerHTML = slideHTML(p, s, pr.i, { reveal: pr.reveal, mode: prefs.mode, theme: S.theme, present: true });
   fitSlide(frame.firstElementChild);
   $('#lp-count', lp).textContent = (pr.i + 1) + ' / ' + p.slides.length;
   $('[data-lp="prev"]', lp).disabled = pr.i === 0; $('[data-lp="next"]', lp).disabled = pr.i === p.slides.length - 1;
@@ -519,6 +521,7 @@ function renderPresent() {
   nb.hidden = !pr.notes;
   if (pr.notes) { const a = answersOf(s); nb.innerHTML = '<b>Say:</b> ' + esc(s.say || 'No notes for this slide.') + (a ? '<br><b>Answers:</b> ' + esc(a) : '') + (s.visual ? '<br><b>Picture idea:</b> ' + esc(s.visual) : ''); }
   $('[data-lp="notes"]', lp).setAttribute('aria-pressed', String(pr.notes));
+  if (S.kit) S.kit.paint();
 }
 function lpGo(d) { const pr = S.pr, n = S.pack.slides.length, j = Math.max(0, Math.min(n - 1, pr.i + d)); if (j === pr.i) return; sfx('page'); pr.i = j; pr.reveal = 0; renderPresent(); }
 function lpReveal() { const pr = S.pr, s = S.pack.slides[pr.i]; if (pr.reveal < maxReveal(s)) { pr.reveal += 1; renderPresent(); return true; } return false; }
@@ -526,6 +529,7 @@ function closePresent() {
   if (!S.pr.open) return;
   const p = S.pack;
   track('present', { eng: 'lkie', title: p.title, ms: Date.now() - (S.pr.t0 || Date.now()), screens: p.slides.length, seen: S.pr.seen + 1, ex: isExample(p) ? 1 : 0 });
+  if (S.kit) S.kit.close();
   S.pr.open = false; lp.hidden = true; document.body.classList.remove('presenting');
   try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); } catch (e) { /* ignore */ }
   bus.emit('present', false);
@@ -536,6 +540,7 @@ function wirePresent() {
   lp.setAttribute('role', 'dialog'); lp.setAttribute('aria-modal', 'true'); lp.setAttribute('aria-label', 'Presenting the lesson pack');
   lp.innerHTML = presentHTML();
   document.body.appendChild(lp);
+  S.kit = presentKit({ root: lp, frame: () => $('#lp-frame', lp), key: () => (S.pack ? S.pack.id : '') + ':' + S.pr.i, title: () => S.pack ? S.pack.title : '', timer: true });
   lp.addEventListener('click', (e) => {
     const b = e.target.closest('[data-lp]');
     if (!b) { if (e.target.closest('#lp-frame')) { if (!lpReveal()) lpGo(1); } return; }

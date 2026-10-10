@@ -1,11 +1,12 @@
 /* The engine framework: every engine is a small definition (fields, prompt, normaliser, class screens, notes).
    This file renders the engine page, talks to Claude, keeps saved activities, and runs Present mode. */
-import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=5e78cc38';
-import { Ribbons } from '../fx/ribbons.js?v=5e78cc38';
-import { sfx } from '../fx/audio.js?v=5e78cc38';
-import { Ambient, Speech } from '../fx/sound.js?v=5e78cc38';
-import { track } from '../track.js?v=5e78cc38';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=5e78cc38';
+import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=cfc5dfc4';
+import { Ribbons } from '../fx/ribbons.js?v=cfc5dfc4';
+import { sfx } from '../fx/audio.js?v=cfc5dfc4';
+import { Ambient, Speech } from '../fx/sound.js?v=cfc5dfc4';
+import { track } from '../track.js?v=cfc5dfc4';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=cfc5dfc4';
+import { presentKit } from '../presentkit.js?v=cfc5dfc4';
 
 /* ---------------- how pupils respond (online or in class) ---------------- */
 export const RESPOND = {
@@ -13,9 +14,10 @@ export const RESPOND = {
   class: { chat: 'Write it on your whiteboard', waterfall: 'Write it, then show me on 3-2-1', vote: 'Show me with your fingers', show: 'Show me your whiteboard', talk: 'Turn and talk to your partner', react: 'Thumbs up, sideways or down', think: 'Think quietly first', listen: 'Close your eyes and listen', move: 'Stand up behind your chair' }
 };
 const RESPOND_ICON = { chat: 'chat', waterfall: 'chat', vote: 'vote', show: 'eye', talk: 'debate', react: 'thumb', think: 'bulb', listen: 'sound', move: 'bolt' };
+/* The pill is a button: it opens the class moment (moments.js), with live answers if pupils have joined. */
 export function respond(kind, mode) {
   const m = mode || prefs.mode;
-  return RESPOND[m][kind] ? '<span class="b-say">' + icon(RESPOND_ICON[kind] || 'chat') + '<span>' + esc(RESPOND[m][kind]) + '</span></span>' : '';
+  return RESPOND[m][kind] ? '<button type="button" class="b-say" data-moment="' + kind + '" title="Start this moment on the class screen">' + icon(RESPOND_ICON[kind] || 'chat') + '<span>' + esc(RESPOND[m][kind]) + '</span></button>' : '';
 }
 
 /* ---------------- board helpers ---------------- */
@@ -342,7 +344,7 @@ function copyChat(eng, item) {
 }
 
 /* ---------------- Present mode ---------------- */
-const P = { open: false, eng: null, item: null, i: 0, ribbons: null, timer: null, ctx: null, pointer: false };
+const P = { open: false, eng: null, item: null, i: 0, ribbons: null, timer: null, ctx: null, pointer: false, kit: null };
 const POINTER_KEY = 'ks2-engine.pointer.v1';
 export function leaveEngine() {
   if (!page) return;
@@ -372,6 +374,7 @@ export function closePresent() {
   track('present', { eng: P.eng.id, title: P.eng.presentTitle ? P.eng.presentTitle(P.item.data) : P.eng.title(P.item.data), ms: Date.now() - (P.t0 || Date.now()), screens: P.eng.screens(P.item.data).length, seen: (P.seen || 0) + 1, ex: P.item.example ? 1 : 0 });
   P.open = false;
   stopTimer();
+  if (P.kit) P.kit.close();
   if (P.ctx && P.ctx.cleanup) P.ctx.cleanup();
   if (P.ribbons) P.ribbons.stop();
   Ambient.stop(); Speech.stop();
@@ -394,6 +397,7 @@ function paintPresent() {
   $$('#pr-dots button').forEach((b) => b.addEventListener('click', () => { P.i = Number(b.dataset.j); paintPresent(); }));
   $('#pr-prev').disabled = P.i === 0;
   $('#pr-next').disabled = P.i === screens.length - 1;
+  if (P.kit) P.kit.paint();
 }
 function go(delta) { const n = P.eng.screens(P.item.data).length, j = Math.max(0, Math.min(n - 1, P.i + delta)); if (j !== P.i) { sfx('page'); P.i = j; paintPresent(); } }
 function setPointer(on) {
@@ -421,6 +425,7 @@ function startTimer(min) {
 function stopTimer() { if (P.timer) clearInterval(P.timer.id); P.timer = null; const el = $('#pr-timer'); if (el) { el.hidden = true; el.className = 'pr-timer'; } }
 
 export function wirePresent() {
+  P.kit = presentKit({ root: $('#present'), frame: () => $('#pr-fit'), key: () => (P.item ? P.item.id : '') + ':' + P.i, title: () => P.open ? P.eng.name + ': ' + (P.eng.presentTitle ? P.eng.presentTitle(P.item.data) : P.eng.title(P.item.data)) : '' });
   $('#pr-prev').addEventListener('click', () => go(-1));
   $('#pr-next').addEventListener('click', () => go(1));
   $('#pr-exit').addEventListener('click', closePresent);

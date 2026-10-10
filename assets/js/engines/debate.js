@@ -1,9 +1,9 @@
 /* Engine 10: Big Debate. Turns a news story the teacher pastes into a balanced class debate or assembly:
    a child-friendly summary, a motion, live before-and-after votes, arguments on both sides and oracy stems. */
-import { esc, str, arr, strs, num, clamp, icon } from '../core.js?v=5e78cc38';
-import { B } from './shared.js?v=5e78cc38';
-import { buildPrompt } from './prompt.js?v=5e78cc38';
-import { mountVote } from './widgets.js?v=5e78cc38';
+import { esc, str, arr, strs, num, clamp, icon } from '../core.js?v=cfc5dfc4';
+import { B } from './shared.js?v=cfc5dfc4';
+import { buildPrompt } from './prompt.js?v=cfc5dfc4';
+import { mountVote } from './widgets.js?v=cfc5dfc4';
 
 const OPTS = [{ label: 'Agree', letter: '✓', color: '#3B9A62' }, { label: 'Disagree', letter: '✗', color: '#D9534A' }, { label: 'Not sure yet', letter: '?', color: '#C38A12' }];
 

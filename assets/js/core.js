@@ -1,5 +1,5 @@
 /* KS2 Lesson Engine: shared helpers, Claude connection, copying and small UI pieces. */
-import { sfx } from './fx/audio.js?v=5e78cc38';
+import { sfx } from './fx/audio.js?v=cfc5dfc4';
 
 export const $ = (s, r) => (r || document).querySelector(s);
 export const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -80,7 +80,20 @@ export const I = {
   send: '<path d="M4.5 11.8 20 4.5l-4.6 15.2-3.7-6.4z"/><path d="M11.7 13.3 20 4.5"/>',
   moon: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/>',
   smile: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.9 2 5.1 2 7 0"/><path d="M9 9.5v.5M15 9.5v.5"/>',
-  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>'
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
+  qr: '<rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h2.5v2.5H14zM18 18h2.5v2.5H18zM14 18.5v2M18 14h2.5"/>',
+  board: '<rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8 20l2-3.5M16 20l-2-3.5M7 9.5c1.5-1.6 3-1.6 4.5 0s3 1.6 4.5 0"/>',
+  pen: '<path d="M4 20l1.2-4.6L15.6 5a2.1 2.1 0 0 1 3 3L8.2 18.4z"/><path d="M13.5 7.2l3 3"/>',
+  marker: '<path d="M9 14.5 16.8 6.7a2 2 0 0 1 2.8 2.8L11.8 17.3z"/><path d="M9 14.5 7 16.5l2.5 2.5 2.3-1.7"/><path d="M4 21h7"/>',
+  eraser: '<path d="M8.5 20H20"/><path d="M5.2 15.2 14.4 6a2 2 0 0 1 2.8 0l2.8 2.8a2 2 0 0 1 0 2.8L12 19.6H8.6z"/><path d="M9.6 10.8l4.6 4.6"/>',
+  image: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17.5l5.2-4.6 3.6 3.2 2.7-2.4L20 17.5"/>',
+  video: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10.5 21 8v8l-5-2.5z"/>',
+  palette: '<path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.2 0 1.8-.8 1.8-1.7 0-1.2-1-1.6-1-2.6 0-1 .8-1.7 1.9-1.7H17a3.5 3.5 0 0 0 3.5-3.5c0-4.2-3.8-7.5-8.5-7.5z"/><circle cx="7.6" cy="11" r="1.1" class="f"/><circle cx="10.4" cy="7.4" r="1.1" class="f"/><circle cx="14.6" cy="7.6" r="1.1" class="f"/>',
+  type: '<path d="M5 6.5V5h14v1.5M12 5v14M9 19h6"/>',
+  pin: '<path d="M14.5 3.5l6 6-2.3.8-3.9 3.9.4 3.6-1.6 1.6-3.4-3.4L5 20.7 3.3 19l4.7-4.7-3.4-3.4 1.6-1.6 3.6.4 3.9-3.9z"/>',
+  undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  upload: '<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
+  textsize: '<path d="M3 18 7.5 6 12 18M4.7 14h5.6"/><path d="M14 18l3-8 3 8M15 15.5h4"/>'
 };
 export const icon = (n, cls) => '<svg class="i' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (I[n] || '') + '</svg>';
 
