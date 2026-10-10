@@ -5,15 +5,15 @@
    speaks, and her answer appears word by word as she says it. After she answers she listens again, until the mic is
    tapped or nothing is heard. Questions about her, the site, greetings and language changes are answered on the
    device; everything else needs the device to be connected. */
-import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP } from './core.js?v=51f31f48';
-import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=51f31f48';
-import { settings, paintSwitches } from './settings.js?v=51f31f48';
-import { isAdmin, ADMIN_NAME } from './people.js?v=51f31f48';
-import { briefing, downloadReport } from './admin.js?v=51f31f48';
-import { track } from './track.js?v=51f31f48';
-import { Voice } from './fx/voice.js?v=51f31f48';
-import { Beam } from './fx/beam.js?v=51f31f48';
-import { sfx } from './fx/audio.js?v=51f31f48';
+import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=5de985bf';
+import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=5de985bf';
+import { settings, paintSwitches } from './settings.js?v=5de985bf';
+import { isAdmin, ADMIN_NAME } from './people.js?v=5de985bf';
+import { briefing, downloadReport } from './admin.js?v=5de985bf';
+import { track } from './track.js?v=5de985bf';
+import { Voice } from './fx/voice.js?v=5de985bf';
+import { Beam } from './fx/beam.js?v=5de985bf';
+import { sfx } from './fx/audio.js?v=5de985bf';
 
 const LANG_KEY = 'ks2-engine.symlang.v1';
 const T = {
@@ -275,7 +275,7 @@ function systemPrompt() {
     'You speak English and Malay. You were named Symphony because of your musical voice. You talk with teachers, and with children aged 7 to 11 who are watching or joining in. ' +
     'Answer any question helpfully: brainstorming lessons and activities, explaining ideas simply, facts about planet Earth, nature, animals, birds and space, maths, reading and writing, and how to use this website. ' +
     'Your reply is read aloud, so write plain spoken sentences: no markdown, no asterisks, no bullet symbols, no headings, no emojis, no links. Keep it short, 2 to 5 sentences, unless someone asks for a list, a plan or ideas; then give up to 5 short numbered sentences such as "One, ..." and keep each one brief. ' +
-    'Use British English spelling. If the person writes in Malay, reply in Malay (Bahasa Melayu). The current reply language is ' + (lang === 'ms' ? 'Malay' : 'English') + '. ' +
+    'Use British English spelling. ' + HOUSE_WORDS + ' If the person writes in Malay, reply in Malay (Bahasa Melayu). The current reply language is ' + (lang === 'ms' ? 'Malay' : 'English') + '. ' +
     'For children be kind, simple and encouraging, and keep everything suitable for primary school. Never ask for personal details such as full names, addresses, phone numbers or photos; if someone shares them, gently say you do not need them. ' +
     'If someone asks who you are, say you are Symphony, the helper in the KS2 Lesson Engine, a girl who speaks English and Malay and was named for her musical voice. ' +
     'The site has ten lesson engines (Maths Reasoning, Story Spark, Reading Ladder, Science Mystery, Sound Journey, Unplugged Code, Step-by-Step, Escape Room, Brain Break, Big Debate), Slide Studio for slides and a PowerPoint download, the Wonder Window play area, Present mode with a magic pointer, timer and teacher notes, Night mode, and class feedback reports.' +
@@ -284,7 +284,7 @@ function systemPrompt() {
       'If she wants the full detail, tables, charts, a file, something to print or share, or everything at once, tell her the full report is ready and to tap Download report.' : '');
 }
 function clean(t) {
-  return String(t || '').replace(/```[\s\S]*?```/g, '').replace(/\*\*|__|`/g, '').replace(/^\s*#+\s*/gm, '').replace(/^\s*[-*•]\s+/gm, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\n{3,}/g, '\n\n').trim();
+  return houseText(String(t || '').replace(/```[\s\S]*?```/g, '').replace(/\*\*|__|`/g, '').replace(/^\s*#+\s*/gm, '').replace(/^\s*[-*•]\s+/gm, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\n{3,}/g, '\n\n').trim());
 }
 async function ask(text, from) {
   text = String(text || '').trim();

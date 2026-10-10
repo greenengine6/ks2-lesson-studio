@@ -1,5 +1,5 @@
 /* KS2 Lesson Engine: shared helpers, Claude connection, copying and small UI pieces. */
-import { sfx } from './fx/audio.js?v=51f31f48';
+import { sfx } from './fx/audio.js?v=5de985bf';
 
 export const $ = (s, r) => (r || document).querySelector(s);
 export const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -222,7 +222,30 @@ export function parseJSON(text) {
 export async function askJSON(prompt, o) {
   const r = await askClaude(prompt, o);
   if (r.stop === 'max_tokens') throw new AiError('truncated');
-  return parseJSON(r.text);
+  return houseFix(parseJSON(r.text));
+}
+
+/* ---------------- the school's own words ----------------
+   Rounding numbers is "rounding off" here. Every prompt asks for it, and everything the engine writes is tidied the
+   same way: a key word "Round" becomes "Rounding off", and "Round 3,486 to the nearest 100" becomes
+   "Round off 3,486 to the nearest 100". "Round up", "round down" and other rounds (a round shape) are left alone. */
+export const HOUSE_WORDS = 'Rounding numbers is called “rounding off” at this school. Write “Round off 3,486 to the nearest 100”, “Rounding off to the nearest 10” and “3,486 rounded off to the nearest 100 is 3,500”, and use “rounding off” in key words and titles. Never call it just “round” or “rounding”.';
+const ROUND_WORD = /^(?:to\s+)?round(?:ing)?$/i;
+const ROUNDING_NUMBERS = /^([Rr])ounding(\s+(?:whole\s+|decimal\s+)?numbers?)$/;
+const ROUND_NEAR = /\b([Rr])ound(ed|ing)?\b(?!\s+(?:off|up|down)\b)(?=(?:[^.?!\n]|\.(?=\d)){0,48}?\bto\s+(?:(?:the\s+)?nearest\b|(?:\d+|one|two|three|a)\s+(?:decimal|significant)\b))/g;
+export function houseText(s) {
+  if (typeof s !== 'string' || !/round/i.test(s)) return s;
+  const t = s.trim();
+  if (ROUND_WORD.test(t)) return (/^[A-Z]/.test(t) ? 'R' : 'r') + 'ounding off';
+  const n = ROUNDING_NUMBERS.exec(t);
+  if (n) return n[1] + 'ounding off' + n[2];
+  return s.replace(ROUND_NEAR, (m, r, end) => r + 'ound' + (end || '') + ' off');
+}
+export function houseFix(v) {
+  if (typeof v === 'string') return houseText(v);
+  if (Array.isArray(v)) return v.map(houseFix);
+  if (v && typeof v === 'object') { const o = {}; Object.keys(v).forEach((k) => { o[k] = houseFix(v[k]); }); return o; }
+  return v;
 }
 export async function testConnection(key) {
   await askClaude('Reply with the single word OK.', { model: CONFIG.quickModel, maxTokens: 8, key });

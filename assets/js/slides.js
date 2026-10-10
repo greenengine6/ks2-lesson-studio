@@ -1,10 +1,11 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
-import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP } from './core.js?v=51f31f48';
-import { track } from './track.js?v=51f31f48';
-import EXAMPLE_RAW from './slides-example.js?v=51f31f48';
-import { Ribbons } from './fx/ribbons.js?v=51f31f48';
-import { sfx } from './fx/audio.js?v=51f31f48';
+import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=5de985bf';
+import { track } from './track.js?v=5de985bf';
+import EXAMPLE_RAW from './slides-example.js?v=5de985bf';
+import { Ribbons } from './fx/ribbons.js?v=5de985bf';
+import { sfx } from './fx/audio.js?v=5de985bf';
+import { restLeft, restStart, restClear, onRest, clock, clockAt } from './cooldown.js?v=5de985bf';
 
 const I = {
   flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
@@ -106,6 +107,7 @@ function normSlide(s) {
 }
 function normalizeDeck(raw, p) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  raw = houseFix(raw);                 // "rounding off", also in lessons saved before the school's words were added
   const plan = raw.plan && typeof raw.plan === 'object' ? raw.plan : {};
   const d = {
     title: str(raw.title) || str(p.topic) || 'Lesson', year: str(raw.year) || str(p.year) || 'Key Stage 2', subject: str(raw.subject) || str(p.subject) || '',
@@ -231,6 +233,7 @@ function lessonPrompt(p) {
     'You are an outstanding primary school teacher in England. Write a ' + p.minutes + '-minute ' + p.subject + ' lesson for ' + p.year + ' (Key Stage 2) pupils.',
     'Topic: ' + p.topic, p.goal ? 'What pupils should learn: ' + p.goal : '', 'The lesson is taught ' + where + '.', '',
     'Follow the National Curriculum for England. Use British English spelling. Write for the age group: short sentences and child-friendly words on the slides.',
+    HOUSE_WORDS,
     'Every fact and every answer must be correct. Check all maths twice.',
     'Make it two-way: pupils respond every few minutes (starter, check point, talk time, your turn, exit ticket).',
     'Use this slide order, leaving a type out only if it truly does not fit the subject: title, starter, hook, vocab, teach, example, practice, hinge, talk, tasks, exit, reflect. For a 60-minute lesson you may add a second teach slide.',
@@ -252,22 +255,63 @@ const ADAPT = {
   shorter: { label: '30 minutes long', text: 'Turn this into a 30-minute lesson: keep the most important slides (about 8) and make the minutes add up to 30.' },
   twoway: { label: 'more interactive', text: 'Make this lesson more interactive: add more two-way moments (votes, show me, talk time) so pupils respond at least every 3 minutes.' }
 };
-function adaptPrompt(d, how) { return 'Here is a Key Stage 2 lesson as JSON:\n' + JSON.stringify(d) + '\n\n' + ADAPT[how].text + '\nKeep exactly the same JSON format, the same topic and the same year group. British English. Every answer must be correct.\nReply with only the new JSON object.'; }
+function adaptPrompt(d, how) { return 'Here is a Key Stage 2 lesson as JSON:\n' + JSON.stringify(d) + '\n\n' + ADAPT[how].text + '\nKeep exactly the same JSON format, the same topic and the same year group. British English. ' + HOUSE_WORDS + ' Every answer must be correct.\nReply with only the new JSON object.'; }
 function setBusy(on, title) {
   $('#busy').hidden = !on;
   $('#f-go').disabled = !!on; $('#u-go').disabled = !!on;
   $$('[data-adapt]').forEach((b) => { b.disabled = !!on; });
   if (on) { $('#busy-title').textContent = title; $('#busy-msg').textContent = 'Thinking about the lesson…'; $('#busy-bar').style.width = '6%'; }
+  else paintRest();
+}
+
+/* ================= only a real press makes a lesson; then the button rests for 5 minutes ================= */
+const REST = 5 * 60 * 1000;            // one lesson every 5 minutes, per person on this device (Make my slides, Adapt, a unit's Make slides)
+let landedAt = -1e9, lastScroll = -1e9, down = null, restTimer = 0;
+const when = (e) => (e && e.timeStamp > 0 ? e.timeStamp : performance.now());   // when it really happened, even if a busy phone handles it late
+document.addEventListener('pointerdown', (e) => { down = { el: e.target, x: e.clientX, y: e.clientY, sy: window.scrollY, t: when(e) }; }, { capture: true, passive: true });
+window.addEventListener('scroll', (e) => { lastScroll = when(e); }, { passive: true });
+/* True only for a person pressing `btn` on purpose: not a script, not the tap that opened Slide Studio, not a swipe or a
+   fling that ended on the button, and not the Enter key in the Topic box. */
+function deliberate(e, btn) {
+  const d = down;
+  down = null;
+  if (!e || !e.isTrusted || !btn) return false;
+  const now = when(e);
+  if (now - landedAt < 1200) return false;                                   // Slide Studio has only just opened (or it came before)
+  if (e.detail === 0) return document.activeElement === btn;                  // Enter or Space on the button itself
+  if (!d || !btn.contains(d.el) || now - d.t > 15000) return now - lastScroll > 250;
+  return Math.hypot(e.clientX - d.x, e.clientY - d.y) < 14 && Math.abs(window.scrollY - d.sy) < 8;   // the finger did not slide
+}
+/* The Make button, the Adapt choices and a unit's Make slides buttons, while the 5 minutes run: a clock instead of
+   the spark, the time left, and a bar that fills back up. */
+function paintRest() {
+  const go = $('#f-go');
+  if (!go) return;
+  const left = restLeft('slides', REST), resting = left > 0 && !state.busy;
+  if (go.classList.contains('resting') !== resting) { go.classList.toggle('resting', resting); $('svg', go).innerHTML = I[resting ? 'clock' : 'spark']; }
+  $('span', go).textContent = resting ? 'Next lesson in ' + clock(left) : 'Make my slides';
+  go.style.setProperty('--rest', resting ? (1 - left / REST).toFixed(4) : '0');
+  if (!state.busy) { go.disabled = resting; $$('[data-adapt],[data-unit]').forEach((b) => { b.disabled = resting; }); }
+  const at = resting ? clockAt(left) : '';
+  $('#f-fine').textContent = resting ? 'One lesson every 5 minutes. Your next one is ready at ' + at + '.' : 'Takes about a minute. One lesson every 5 minutes.';
+  const note = $('#adapt-rest');
+  if (note) { note.hidden = !resting; note.textContent = resting ? 'Ready again at ' + at + '. One lesson every 5 minutes.' : ''; }
+  clearTimeout(restTimer);
+  if (resting) restTimer = setTimeout(paintRest, ((left % 1000) || 1000) + 20);
 }
 function showNotice(sel, msg, isErr, html) { const n = $(sel); if (html) n.innerHTML = msg; else n.textContent = msg; n.className = 'notice' + (isErr ? ' err' : ''); n.hidden = !msg; }
 function needKey(sel) { showNotice(sel, esc(errorCopy('no_key')), true, true); bus.emit('need-key'); }
 async function runLesson(prompt, params, title) {
   if (state.busy) return;
   showNotice('#make-notice', '', false);
+  const left = restLeft('slides', REST);
+  if (left > 0) { paintRest(); showNotice('#make-notice', 'You can make one lesson every 5 minutes. Your next one is ready at ' + clockAt(left) + '.', false); return; }
   if (!hasKey()) { needKey('#make-notice'); return; }
   const ctl = new AbortController();
+  restStart('slides');                 // the 5 minutes count from this press; lifted below if no lesson comes back
   state.busy = ctl; setBusy(true, title); scrollToLesson(); sfx('send');
   const expected = 12, t0 = Date.now();
+  let made = false;
   try {
     const raw = await askJSON(prompt, {
       model: CONFIG.mainModel, maxTokens: 8000, signal: ctl.signal,
@@ -279,6 +323,7 @@ async function runLesson(prompt, params, title) {
     });
     const deck = normalizeDeck(raw, params);
     if (!deck) throw { code: 'invalid_json' };
+    made = true;
     state.deck = deck; state.deckId = addRecent(deck); state.tab = 'slides';
     track('deck', { eng: 'slides', title: deck.title, year: deck.year, subject: deck.subject, slides: deck.slides.length, ok: 1, ms: Date.now() - t0 });
     renderLesson(); sfx('success'); toast('Your lesson is ready.');
@@ -286,7 +331,7 @@ async function runLesson(prompt, params, title) {
     const code = e && e.code;
     track('deck', { eng: 'slides', title: params && params.topic || '', year: params && params.year || '', ok: 0, err: code || 'error', ms: Date.now() - t0 });
     if (code !== 'cancelled') { sfx('error'); showNotice('#make-notice', errorCopy(code, 'the lesson'), true); }
-  } finally { state.busy = null; setBusy(false); }
+  } finally { if (!made) restClear('slides'); state.busy = null; setBusy(false); }
 }
 function readForm() { return { year: $('#f-year').value, subject: $('#f-subject').value, topic: str($('#f-topic').value), goal: str($('#f-goal').value), minutes: Number($('#f-min').value) || 45 }; }
 function makeLesson() {
@@ -311,7 +356,7 @@ async function planUnit() {
   btn.disabled = true; btn.textContent = 'Planning…';
   try {
     const raw = await askJSON('Plan a sequence of ' + n + ' lessons for ' + year + ' ' + subject + ' in a primary school in England, on the unit "' + unit + '". ' +
-      'Build from the basics to harder ideas, following the National Curriculum for England. British English. ' +
+      'Build from the basics to harder ideas, following the National Curriculum for England. British English. ' + HOUSE_WORDS + ' ' +
       'Reply with only a JSON array of ' + n + ' objects like {"title": "Equivalent fractions", "objective": "To recognise and show families of equivalent fractions."}.', { model: CONFIG.quickModel, maxTokens: 1500 });
     const list = arr(raw).map((x) => ({ title: str(x && x.title), objective: str(x && x.objective) })).filter((x) => x.title).slice(0, 8);
     if (!list.length) throw { code: 'invalid_json' };
@@ -323,6 +368,7 @@ async function planUnit() {
 }
 function renderUnit() {
   $('#u-list').innerHTML = state.unit.map((x, i) => '<li><b>' + (i + 1) + '. ' + esc(x.title) + '</b>' + (x.objective ? '<p>' + esc(x.objective) + '</p>' : '') + '<button type="button" class="btn small" data-unit="' + i + '">' + icon('wand') + 'Make slides</button></li>').join('');
+  paintRest();
 }
 function makeFromUnit(i) { const x = state.unit[i]; if (!x) return; $('#f-year').value = x.year; $('#f-subject').value = x.subject; $('#f-topic').value = x.title; $('#f-goal').value = x.objective; makeLesson(); }
 
@@ -599,7 +645,12 @@ function toggleTimer() {
 
 /* ================= wiring ================= */
 export function initSlides() {
-  $('#make-form').addEventListener('submit', (e) => { e.preventDefault(); makeLesson(); });
+  // A lesson starts only from a real press on Make my slides. Submitting the form any other way (the Enter key, a
+  // phone's Go key, a script) makes nothing, and Enter in the Topic box moves on to the next box instead.
+  const goBtn = $('#f-go');
+  $('#make-form').addEventListener('submit', (e) => { e.preventDefault(); });
+  goBtn.addEventListener('click', (e) => { e.preventDefault(); if (deliberate(e, goBtn)) makeLesson(); });
+  $('#f-topic').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); $('#f-goal').focus(); } });
   $('#u-go').addEventListener('click', planUnit);
   $('#busy-stop').addEventListener('click', () => { if (state.busy) state.busy.abort(); });
   $('#a-present').addEventListener('click', () => openPresent(0));
@@ -622,8 +673,8 @@ export function initSlides() {
     else if (t.dataset.remove) {
       state.recent = state.recent.filter((r) => r.id !== t.dataset.remove); saveRecent();
       if (state.deckId === t.dataset.remove) { state.deck = EXAMPLE; state.deckId = 'example'; renderLesson(); } else renderRecent();
-    } else if (t.dataset.unit != null) makeFromUnit(Number(t.dataset.unit));
-    else if (t.dataset.adapt) adaptLesson(t.dataset.adapt);
+    } else if (t.dataset.unit != null) { if (deliberate(e, t)) makeFromUnit(Number(t.dataset.unit)); }
+    else if (t.dataset.adapt) { if (deliberate(e, t)) adaptLesson(t.dataset.adapt); }
     else if (t.dataset.stab) { state.tab = t.dataset.stab; renderLesson(); }
   });
   document.addEventListener('keydown', (e) => {
@@ -642,9 +693,14 @@ export function initSlides() {
   let rz;
   window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { $$('.sthumb .sl').forEach(fitSlide); if (state.pr.open) renderPresent(); }, 150); });
   bus.on('mode', () => { renderLesson(); if (state.pr.open) renderPresent(); });
+  bus.on('who', paintRest);            // the 5 minutes belong to the person signed in
+  onRest(paintRest);                   // a lesson made in another tab
   renderLesson(); renderUnit();
 }
 export function refitSlides() { requestAnimationFrame(() => $$('.sthumb .sl').forEach(fitSlide)); }
+/* Slide Studio has just come on screen. Nothing can be pressed for a moment, so the tap that opened it (or a tap
+   still travelling on a phone) can never make a lesson by itself. */
+export function enterSlides() { landedAt = performance.now(); down = null; paintRest(); refitSlides(); }
 
 /* For the class feedback screen: what is being presented right now. */
 export function slidesPresentInfo() {

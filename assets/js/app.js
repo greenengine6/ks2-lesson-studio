@@ -1,21 +1,21 @@
 /* KS2 Lesson Engine: start-up, routing, header, dock, landing page and the Connect dialog. */
-import './security.js?v=51f31f48';
-import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=51f31f48';
-import { Dock } from './fx/dock.js?v=51f31f48';
-import { CardSwap } from './fx/cardswap.js?v=51f31f48';
-import { Symphony } from './fx/symphony.js?v=51f31f48';
-import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=51f31f48';
-import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=51f31f48';
-import { initSlides, examplePreview, fitSlide, refitSlides, slidesPresentInfo } from './slides.js?v=51f31f48';
-import { initSettings } from './settings.js?v=51f31f48';
-import { initChat } from './chat.js?v=51f31f48';
-import { track } from './track.js?v=51f31f48';
-import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=51f31f48';
-import { initFeedback } from './feedback.js?v=51f31f48';
-import { renderAdmin } from './admin.js?v=51f31f48';
-import { initPlay } from './play.js?v=51f31f48';
-import { initSync } from './sync.js?v=51f31f48';
-import { sfx } from './fx/audio.js?v=51f31f48';
+import './security.js?v=5de985bf';
+import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=5de985bf';
+import { Dock } from './fx/dock.js?v=5de985bf';
+import { CardSwap } from './fx/cardswap.js?v=5de985bf';
+import { Symphony } from './fx/symphony.js?v=5de985bf';
+import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=5de985bf';
+import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=5de985bf';
+import { initSlides, examplePreview, fitSlide, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=5de985bf';
+import { initSettings } from './settings.js?v=5de985bf';
+import { initChat } from './chat.js?v=5de985bf';
+import { track } from './track.js?v=5de985bf';
+import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=5de985bf';
+import { initFeedback } from './feedback.js?v=5de985bf';
+import { renderAdmin } from './admin.js?v=5de985bf';
+import { initPlay } from './play.js?v=5de985bf';
+import { initSync } from './sync.js?v=5de985bf';
+import { sfx } from './fx/audio.js?v=5de985bf';
 
 const PLAY = { id: 'play', name: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'A play area for the whole class: starlings, fireflies, the planets and the northern lights, with facts Symphony reads aloud.', chips: ['Earth, nature and space', 'Shared screen'] };
 const SLIDES = { id: 'slides', name: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
@@ -94,7 +94,7 @@ function startEarth() {
   if (earthTried) { runEarth(); return; }
   earthTried = true;
   const hero = $('#hero'), fail = () => { earth = null; hero.classList.add('earth-off'); const t = $('#hero-hint'); if (t) t.hidden = true; };
-  import('./fx/earth.js?v=51f31f48').then(async (m) => {
+  import('./fx/earth.js?v=5de985bf').then(async (m) => {
     earth = new m.Earth($('#earth'), { onFail: fail });
     if (!(await earth.init())) return;
     earthTip();
@@ -141,7 +141,7 @@ function show(id) {
   if (id === 'home') { startEarth(); if (showcase && !reduceMotion()) showcase.start(); }
   else { if (earth) earth.stop(); if (showcase) showcase.stopTimer(); }
   if (eng && changed) renderEngine($('#view-engine'), eng);
-  if (id === 'slides') refitSlides();
+  if (id === 'slides') { if (changed) enterSlides(); else refitSlides(); }
   dock.setActive(id);
   $$('.nav a, .mnav a').forEach((a) => { const on = a.getAttribute('href') === '#/' + (id === 'home' ? '' : id); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   document.title = id === 'home' ? 'KS2 Lesson Engine' : (eng ? eng.name : ({ slides: 'Slide Studio', admin: 'Dashboard', play: 'Wonder Window' })[id]) + ' · KS2 Lesson Engine';

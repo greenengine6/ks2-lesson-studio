@@ -1,10 +1,10 @@
 /* The engine framework: every engine is a small definition (fields, prompt, normaliser, class screens, notes).
    This file renders the engine page, talks to Claude, keeps saved activities, and runs Present mode. */
-import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG } from '../core.js?v=51f31f48';
-import { Ribbons } from '../fx/ribbons.js?v=51f31f48';
-import { sfx } from '../fx/audio.js?v=51f31f48';
-import { Ambient, Speech } from '../fx/sound.js?v=51f31f48';
-import { track } from '../track.js?v=51f31f48';
+import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=5de985bf';
+import { Ribbons } from '../fx/ribbons.js?v=5de985bf';
+import { sfx } from '../fx/audio.js?v=5de985bf';
+import { Ambient, Speech } from '../fx/sound.js?v=5de985bf';
+import { track } from '../track.js?v=5de985bf';
 
 /* ---------------- how pupils respond (online or in class) ---------------- */
 export const RESPOND = {
@@ -253,6 +253,7 @@ async function generate(eng, input) {
 /* ---------------- result ---------------- */
 function showItem(item) {
   if (!page) return;
+  item.data = houseFix(item.data);     // "rounding off", also in activities saved before the school's words were added
   page.item = item; page.screen = 0;
   const eng = page.eng, d = item.data;
   const when = item.example ? 'Example · change the boxes above and press “' + (eng.cta || 'Make it') + '”' : 'Made ' + new Date(item.at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });

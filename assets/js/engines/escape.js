@@ -1,18 +1,18 @@
 /* Engine 8: Escape Room. A story mission where every lock is a card in a CardSwap stack. The class works out
    each code, the teacher types the answer in, and a correct code drops the card away to reveal the next lock. */
-import { esc, str, arr, strs, num, clamp, icon, normAnswer } from '../core.js?v=51f31f48';
-import { B, chime } from './shared.js?v=51f31f48';
-import { buildPrompt } from './prompt.js?v=51f31f48';
-import { CardSwap } from '../fx/cardswap.js?v=51f31f48';
-import { confetti } from '../fx/particles.js?v=51f31f48';
-import { sfx } from '../fx/audio.js?v=51f31f48';
+import { esc, str, arr, strs, num, clamp, icon, normAnswer } from '../core.js?v=5de985bf';
+import { B, chime } from './shared.js?v=5de985bf';
+import { buildPrompt } from './prompt.js?v=5de985bf';
+import { CardSwap } from '../fx/cardswap.js?v=5de985bf';
+import { confetti } from '../fx/particles.js?v=5de985bf';
+import { sfx } from '../fx/audio.js?v=5de985bf';
 
 const EXAMPLE = {
   title: 'Escape from Space Station Orion',
   theme: 'Space station',
   intro: 'Alarm! The computer on Space Station Orion has locked every door. To reach the escape pod, your crew must crack four codes. Each code is the answer to a maths puzzle. Work together, check carefully, and don’t run out of oxygen!',
   rooms: [
-    { name: 'The Airlock', story: 'The first door has a number pad. A message flashes on the screen.', puzzle: 'Round 3,486,215 to the nearest million.', type: 'number', answer: '3000000', accept: ['3,000,000', '3 million'], hint: 'Look at the hundred thousands digit. Is it 5 or more?', explain: 'The hundred thousands digit is 4, so we round down to 3,000,000.' },
+    { name: 'The Airlock', story: 'The first door has a number pad. A message flashes on the screen.', puzzle: 'Round off 3,486,215 to the nearest million.', type: 'number', answer: '3000000', accept: ['3,000,000', '3 million'], hint: 'Look at the hundred thousands digit. Is it 5 or more?', explain: 'The hundred thousands digit is 4, which is less than 5, so 3,486,215 rounded off to the nearest million is 3,000,000.' },
     { name: 'The Control Room', story: 'The lights flicker. The control panel needs the value of a digit.', puzzle: 'What is the value of the digit 7 in 2,745,310?', type: 'number', answer: '700000', accept: ['700,000', 'seven hundred thousand'], hint: 'Say the number aloud. Which column is the 7 in?', explain: 'The 7 is in the hundred thousands column, so its value is 700,000.' },
     { name: 'The Oxygen Garden', story: 'The plants are wilting! The sprinkler code is the next number in the pattern.', puzzle: 'Count back in steps of 25,000: 210,000, 185,000, 160,000, … What comes next?', type: 'number', answer: '135000', accept: ['135,000'], hint: 'Take away 25,000 from 160,000.', explain: '160,000 − 25,000 = 135,000.' },
     { name: 'The Escape Pod', story: 'One last lock! Choose the greatest number to launch the pod.', puzzle: 'Which number is the greatest?', type: 'choice', options: ['4,099,999', '4,190,000', '4,109,999', '4,019,999'], answer: '4,190,000', accept: [], hint: 'They all have 4 millions. Compare the hundred thousands digits, then the ten thousands.', explain: '4,190,000 has 1 hundred thousand and 9 ten thousands: the most of the four.' }
@@ -189,12 +189,12 @@ const eng = {
   sym: { hello: 'Tell me the <b>subject and topic</b>, pick a theme, and I’ll lock some doors. Your class cracks the codes to escape.', thinking: 'Locking the doors and writing the codes…', done: 'Present it, read the briefing and press <b>Start the clock</b>.' },
   fields: [
     { id: 'year', type: 'year', label: 'Year group', value: 'Year 6' },
-    { id: 'topic', type: 'text', label: 'Subject and topic', required: true, placeholder: 'For example: Maths, place value and rounding', chips: ['Maths: fractions', 'Spelling: suffixes', 'Science: the solar system', 'History: the Romans', 'Grammar: word classes'], tip: 'Say the subject and the topic, for example “Science: the solar system”.', missing: 'Type the subject and topic first.' },
+    { id: 'topic', type: 'text', label: 'Subject and topic', required: true, placeholder: 'For example: Maths, place value and rounding off', chips: ['Maths: fractions', 'Spelling: suffixes', 'Science: the solar system', 'History: the Romans', 'Grammar: word classes'], tip: 'Say the subject and the topic, for example “Science: the solar system”.', missing: 'Type the subject and topic first.' },
     { id: 'theme', type: 'select', label: 'Theme', options: THEMES, value: 'Space station' },
     { id: 'locks', type: 'pills', label: 'Locks', options: ['3', '4', '5', '6'], value: '4' },
     { id: 'minutes', type: 'pills', label: 'Timer', options: ['10 minutes', '15 minutes', '20 minutes', 'No timer'], value: '15 minutes' }
   ],
-  example: { input: { year: 'Year 6', topic: 'Maths: place value and rounding', theme: 'Space station', locks: '4', minutes: '15 minutes' }, data: EXAMPLE },
+  example: { input: { year: 'Year 6', topic: 'Maths: place value and rounding off', theme: 'Space station', locks: '4', minutes: '15 minutes' }, data: EXAMPLE },
   progress: [['title', 'Writing the mission'], ['intro', 'Writing the briefing'], ['rooms', 'Locking the doors'], ['finale', 'Planning the escape'], ['teacher', 'Writing your notes']],
   maxTokens: 4000,
   prompt, normalize,
