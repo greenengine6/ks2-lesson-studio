@@ -5,11 +5,11 @@
    live lesson stops it on every pupil's device.
    The header's Live button (wireLiveChip) shows a live lesson that is still running when Present mode is closed,
    or one running on another screen, so it can always be found and ended. */
-import { $, esc, icon, toast, copyOut, bus } from '../core.js?v=a20ebde2';
-import { sfx } from '../fx/audio.js?v=a20ebde2';
-import { Live, startLive, endLive, setLock, kick, onLive, joinShort, pupilsIn, setAuto, reconnect } from './session.js?v=a20ebde2';
-import { blocker, endElsewhere } from '../activity.js?v=a20ebde2';
-import { qrSVG } from './qr.js?v=a20ebde2';
+import { $, esc, icon, toast, copyOut, bus } from '../core.js?v=a3c4a34d';
+import { sfx } from '../fx/audio.js?v=a3c4a34d';
+import { Live, startLive, endLive, setLock, kick, onLive, joinShort, pupilsIn, setAuto, reconnect } from './session.js?v=a3c4a34d';
+import { blocker, endElsewhere } from '../activity.js?v=a3c4a34d';
+import { qrSVG } from './qr.js?v=a3c4a34d';
 
 let el = null, unsub = null, keyH = null, shownLink = '', host = null, title = '', offSince = 0;
 const spaced = (c) => String(c || '').replace(/^(\d{3})(\d{3})$/, '$1 $2');

@@ -4,7 +4,7 @@
    paddle. drawCreature(ctx, key, x, y, size, o) draws one with its middle at x, y and about `size` tall. o: { flip
    (face left), rot, ph (its stride, in radians), t (time), rest (standing still), tint ('white' or 'sand' for the
    arctic and fennec foxes), sy (a butterfly's wings closing), glide (a flying frog mid-air), run (racing) }. */
-import { TAU } from './util.js?v=a20ebde2';
+import { TAU } from './util.js?v=a3c4a34d';
 
 /* ---------------- shapes ---------------- */
 const E = (c, x, y, rx, ry, rot) => { c.beginPath(); c.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), rot || 0, 0, TAU); c.fill(); };

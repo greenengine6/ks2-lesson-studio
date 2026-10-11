@@ -3,25 +3,25 @@
    that Symphony reads (facts, then "wonder questions"), a quiz the class can answer together or vote on from their
    own devices, and a "For teachers" panel listing where the facts and photos come from.
    play.js is the frame around them: the picker, the top bar, the caption, sound and full screen. */
-import { $, $$, esc, icon } from '../core.js?v=a20ebde2';
-import { sfx } from '../fx/audio.js?v=a20ebde2';
-import { Voice } from '../fx/voice.js?v=a20ebde2';
-import { leadPicture, creditFor, picURL, creditText } from '../pics.js?v=a20ebde2';
-import { openMoment } from '../moments.js?v=a20ebde2';
-import * as D from './data.js?v=a20ebde2';
-import { NATURE, Pad } from './nature.js?v=a20ebde2';
-import { explorer, distanceKm, flightHours } from './map.js?v=a20ebde2';
-import { makeStage, switcher } from './stage.js?v=a20ebde2';
-import { makeFestival, FEST_SCENES } from './festive.js?v=a20ebde2';
-import { makeWonders, WONDER_SCENES } from './wonders.js?v=a20ebde2';
-import { swapCreatures } from './fauna.js?v=a20ebde2';
+import { $, $$, esc, icon } from '../core.js?v=a3c4a34d';
+import { sfx } from '../fx/audio.js?v=a3c4a34d';
+import { Voice } from '../fx/voice.js?v=a3c4a34d';
+import { leadPicture, creditFor, picURL, creditText } from '../pics.js?v=a3c4a34d';
+import { openMoment } from '../moments.js?v=a3c4a34d';
+import * as D from './data.js?v=a3c4a34d';
+import { NATURE, Pad } from './nature.js?v=a3c4a34d';
+import { explorer, distanceKm, flightHours } from './map.js?v=a3c4a34d';
+import { makeStage, switcher } from './stage.js?v=a3c4a34d';
+import { makeFestival, FEST_SCENES } from './festive.js?v=a3c4a34d';
+import { makeWonders, WONDER_SCENES } from './wonders.js?v=a3c4a34d';
+import { swapCreatures } from './fauna.js?v=a3c4a34d';
 export { swapCreatures };
-import { makeScale, makeRace } from './scale.js?v=a20ebde2';
-import { Music, Fx } from './music.js?v=a20ebde2';
-import { makeBiome } from './biomes.js?v=a20ebde2';
-import { weather, feelsLike } from './weather.js?v=a20ebde2';
-import { seasons, PLACES, MONTHS, dateOf, dayOfYear, seasonOf, daylight } from './seasons.js?v=a20ebde2';
-import { flag, hm } from './util.js?v=a20ebde2';
+import { makeScale, makeRace } from './scale.js?v=a3c4a34d';
+import { Music, Fx } from './music.js?v=a3c4a34d';
+import { makeBiome } from './biomes.js?v=a3c4a34d';
+import { weather, feelsLike } from './weather.js?v=a3c4a34d';
+import { seasons, PLACES, MONTHS, dateOf, dayOfYear, seasonOf, daylight } from './seasons.js?v=a3c4a34d';
+import { flag, hm } from './util.js?v=a3c4a34d';
 
 export { Pad };
 const T = (x, ms) => (x == null ? '' : typeof x === 'string' ? x : ms && x.bm ? x.bm : x.text);

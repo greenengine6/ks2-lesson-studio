@@ -8,12 +8,12 @@
      "how pupils respond" pill) by itself, with a count on the pill of how many have answered.
    - A timer, for screens that have none of their own.
    Each present screen calls kit.paint() after it draws a slide, and kit.close() when it closes. */
-import { $, $$, icon } from './core.js?v=a20ebde2';
-import { sfx } from './fx/audio.js?v=a20ebde2';
-import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=a20ebde2';
-import { Live, onLive, pupilsIn, setBoard, boardQuestion, answersFor } from './live/session.js?v=a20ebde2';
-import { openJoin, closeJoin } from './live/panel.js?v=a20ebde2';
-import { closeMoment, infoOf, liveSpec, MOMENTS } from './moments.js?v=a20ebde2';
+import { $, $$, icon } from './core.js?v=a3c4a34d';
+import { sfx } from './fx/audio.js?v=a3c4a34d';
+import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=a3c4a34d';
+import { Live, onLive, pupilsIn, setBoard, boardQuestion, answersFor } from './live/session.js?v=a3c4a34d';
+import { openJoin, closeJoin } from './live/panel.js?v=a3c4a34d';
+import { closeMoment, infoOf, liveSpec, MOMENTS } from './moments.js?v=a3c4a34d';
 
 const TRAY_COLOURS = [1, 2, 3, 0, 4, 6];          // red, blue, green, black, yellow, white
 const kits = [];

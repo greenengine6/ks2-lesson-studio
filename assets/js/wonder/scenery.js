@@ -1,7 +1,7 @@
 /* Scenery shared by the drawn windows (the festivals and the Seven Wonders): a soft glow drawn once per colour,
    repeatable random numbers so the same town is drawn every time, hills, houses, palms and trees, a flame and a
    lantern, and the particles a tap throws. */
-import { TAU, rnd, layer, noise } from './util.js?v=a20ebde2';
+import { TAU, rnd, layer, noise } from './util.js?v=a3c4a34d';
 
 /* ---------------- a soft glow, drawn once per colour and size ---------------- */
 const glows = new Map();

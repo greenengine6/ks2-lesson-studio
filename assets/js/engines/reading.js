@@ -1,8 +1,8 @@
 /* Engine 3: Reading Ladder. One text written at three levels (same facts, same key words), tap-to-define
    glossary words, and VIPERS questions shown one at a time with answers to reveal. */
-import { esc, str, arr, strs, icon } from '../core.js?v=a20ebde2';
-import { B } from './shared.js?v=a20ebde2';
-import { buildPrompt } from './prompt.js?v=a20ebde2';
+import { esc, str, arr, strs, icon } from '../core.js?v=a3c4a34d';
+import { B } from './shared.js?v=a3c4a34d';
+import { buildPrompt } from './prompt.js?v=a3c4a34d';
 
 const SKILLS = {
   V: { name: 'Vocabulary', k: '#6C63FF' }, I: { name: 'Infer', k: '#E2558A' }, P: { name: 'Predict', k: '#E07B2E' },

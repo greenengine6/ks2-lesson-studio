@@ -1,11 +1,11 @@
 /* Engine 5: Sound Journey. Pupils close their eyes and travel: the screen reads the journey aloud over live
    ambient sound (rain, forest, river, night…) with calm moving waves, then they guess where they are,
    open the fact file, compare it with home and learn to say hello. */
-import { esc, str, arr, strs, icon, toast, sleep } from '../core.js?v=a20ebde2';
-import { B } from './shared.js?v=a20ebde2';
-import { buildPrompt } from './prompt.js?v=a20ebde2';
-import { Waves } from '../fx/waves.js?v=a20ebde2';
-import { Ambient, Speech, SOUND_KINDS } from '../fx/sound.js?v=a20ebde2';
+import { esc, str, arr, strs, icon, toast, sleep } from '../core.js?v=a3c4a34d';
+import { B } from './shared.js?v=a3c4a34d';
+import { buildPrompt } from './prompt.js?v=a3c4a34d';
+import { Waves } from '../fx/waves.js?v=a3c4a34d';
+import { Ambient, Speech, SOUND_KINDS } from '../fx/sound.js?v=a3c4a34d';
 
 const SOUND_LABEL = { rain: 'Rain', ocean: 'Ocean waves', wind: 'Wind', river: 'River', forest: 'Forest', birds: 'Birdsong', night: 'Night sounds', city: 'City', market: 'Busy market', none: 'Quiet' };
 

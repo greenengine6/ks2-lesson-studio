@@ -3,9 +3,9 @@
    animals. Both open close up on the pupil, then the camera pulls back until the giants appear. Tap anything to
    hear what it is. The speed race lines up a diving falcon, a car, a cheetah, an ostrich, Usain Bolt, a fast Year 5
    runner and a snail, and lets them all go for the same few seconds. */
-import { TAU, rnd, clamp, smooth, layer, view, FONT } from './util.js?v=a20ebde2';
-import { drawCreature, creatureOf, WIDTH } from './fauna.js?v=a20ebde2';
-import { Fx } from './music.js?v=a20ebde2';
+import { TAU, rnd, clamp, smooth, layer, view, FONT } from './util.js?v=a3c4a34d';
+import { drawCreature, creatureOf, WIDTH } from './fauna.js?v=a3c4a34d';
+import { Fx } from './music.js?v=a3c4a34d';
 
 /* ---------------- silhouettes, drawn in metres (x across, y up from the ground) ---------------- */
 const poly = (g, pts) => { g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, -y) : g.moveTo(x, -y))); g.closePath(); g.fill(); };

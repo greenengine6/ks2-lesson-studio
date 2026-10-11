@@ -1,12 +1,12 @@
 /* The engine framework: every engine is a small definition (fields, prompt, normaliser, class screens, notes).
    This file renders the engine page, talks to Claude, keeps saved activities, and runs Present mode. */
-import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=a20ebde2';
-import { Ribbons } from '../fx/ribbons.js?v=a20ebde2';
-import { sfx } from '../fx/audio.js?v=a20ebde2';
-import { Ambient, Speech } from '../fx/sound.js?v=a20ebde2';
-import { track } from '../track.js?v=a20ebde2';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=a20ebde2';
-import { presentKit } from '../presentkit.js?v=a20ebde2';
+import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=a3c4a34d';
+import { Ribbons } from '../fx/ribbons.js?v=a3c4a34d';
+import { sfx } from '../fx/audio.js?v=a3c4a34d';
+import { Ambient, Speech } from '../fx/sound.js?v=a3c4a34d';
+import { track } from '../track.js?v=a3c4a34d';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=a3c4a34d';
+import { presentKit } from '../presentkit.js?v=a3c4a34d';
 
 /* ---------------- how pupils respond (online or in class) ---------------- */
 export const RESPOND = {
@@ -243,7 +243,7 @@ async function generate(eng, input) {
     putSaved(eng.id, item);
     showItem(item);
     renderSavedList();
-    say('<b>Ready!</b> ' + esc(eng.sym.done || 'Press Present to share it with your class.'), 'happy');
+    say('<b>Ready!</b> ' + (eng.sym.done || 'Press Present to share it with your class.'), 'happy');  // the engine's own line, with its <b> marks (like sym.hello)
     sfx('success');
     toast(eng.name + ': ready to teach.');
     $('#eng-result').scrollIntoView({ behavior: 'smooth', block: 'start' });

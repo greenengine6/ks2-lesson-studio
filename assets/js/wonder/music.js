@@ -6,7 +6,7 @@
    drum pattern and a scale the melody wanders through, so it never plays the same tune twice.
    Effects: fireworks, firecrackers, a water splash, a lantern lifting off, a puff of colour, a jet plane, galloping
    hooves, a cheering crowd, and a deep swell for when the camera pulls back. */
-import { Sound } from '../fx/audio.js?v=a20ebde2';
+import { Sound } from '../fx/audio.js?v=a3c4a34d';
 
 const live = () => { const c = Sound.ctx(); return c && c.state === 'running' ? c : null; };
 let musicBus = null, fxBus = null, noiseBuf = null;
