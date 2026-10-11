@@ -6,8 +6,9 @@
    with a buzz, a soft chime and a little bounce, and the screen is kept awake (where the browser allows it) so the
    line to the teacher's screen does not drop. If it does drop, a bar says so and the page reconnects by itself,
    at once when the screen comes back on; "Reconnect" tries straight away. */
-import * as R from './relay.js?v=1e9e4bc0';
-import { Ink, COLOURS, packStrokes } from '../draw.js?v=1e9e4bc0';
+import * as R from './relay.js?v=a20ebde2';
+import { Ink, COLOURS, packStrokes } from '../draw.js?v=a20ebde2';
+import { initFractions } from '../fractions.js?v=a20ebde2';
 
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -392,3 +393,4 @@ async function start() {
 }
 window.addEventListener('hashchange', () => { const i = R.parseJoin(location.hash); if (i && (!P.info || i.sid !== P.info.sid)) { stopAll(); P.info = i; P.v = 0; P.st = null; P.sig = ''; P.lastMo = ''; P.sent = new Map(); nameScreen(); } });
 start();
+initFractions();

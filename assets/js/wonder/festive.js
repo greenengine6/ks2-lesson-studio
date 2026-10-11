@@ -5,95 +5,12 @@
    Hanukkah, wheat fields for Vaisakhi, marigolds and papel picado for the Day of the Dead, samba confetti in Rio,
    water fights for Songkran, mooncake-night lanterns for Mid-Autumn and a bonfire with fireworks for the 5th of
    November. Tapping the scene joins in: a firework, a lantern let go, a puff of colour, a splash, a candle lit. */
-import { TAU, rnd, clamp, layer, view, drawEmoji, noise } from './util.js?v=1e9e4bc0';
-import { Fx } from './music.js?v=1e9e4bc0';
-
-/* ---------------- a soft glow, drawn once per colour and size ---------------- */
-const glows = new Map();
-function glow(rgb, r) {
-  r = Math.max(4, Math.round(r / 2) * 2);
-  const k = rgb + '|' + r;
-  let c = glows.get(k);
-  if (c) return c;
-  c = layer(r * 2, r * 2);
-  const g = c.getContext('2d'), gr = g.createRadialGradient(r, r, 0, r, r, r);
-  gr.addColorStop(0, 'rgba(' + rgb + ',1)'); gr.addColorStop(0.25, 'rgba(' + rgb + ',.55)'); gr.addColorStop(1, 'rgba(' + rgb + ',0)');
-  g.fillStyle = gr; g.fillRect(0, 0, r * 2, r * 2);
-  glows.set(k, c);
-  if (glows.size > 120) glows.delete(glows.keys().next().value);
-  return c;
-}
-/* One sprite per colour, stretched to any size: glows grow and shrink without making new pictures every frame. */
-const dotGlow = (ctx, x, y, r, rgb, a) => { ctx.globalAlpha = a == null ? 1 : a; ctx.drawImage(glow(rgb, 48), x - r, y - r, r * 2, r * 2); ctx.globalAlpha = 1; };
-/* a repeatable random number, so the same town is drawn every time */
-function seeded(seed) { let s = seed >>> 0 || 1; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
-const hash = (str) => { let h = 2166136261; for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619) >>> 0; return h; };
+import { TAU, rnd, clamp, layer, view } from './util.js?v=a20ebde2';
+import { drawCreature } from './fauna.js?v=a20ebde2';
+import { Fx } from './music.js?v=a20ebde2';
+import { glow, dotGlow, seeded, hash, hills, ground, houses, palm, tree, mountain, flame, lantern, burstParticles, FW_COLS, drawParticles, stepParticles } from './scenery.js?v=a20ebde2';
 
 /* ---------------- the settings (drawn once into the background) ---------------- */
-function hills(g, w, y0, amp, col, seed) {
-  g.fillStyle = col; g.beginPath(); g.moveTo(0, y0 + 400);
-  for (let x = 0; x <= w + 8; x += 8) g.lineTo(x, y0 - amp * (0.55 * noise(x / w * 2.2 + seed, seed) + 0.45 * noise(x / w * 6 + seed * 2, seed)));
-  g.lineTo(w, y0 + 400); g.closePath(); g.fill();
-}
-function ground(g, w, h, y0, col) { g.fillStyle = col; g.fillRect(0, y0, w, h - y0); }
-function windowsIn(g, x, y, ww, hh, lit, R, rows, cols) {
-  if (!lit) return;
-  const cw = ww / (cols * 2 + 1), ch = hh / (rows * 2 + 1);
-  for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
-    if (R() < 0.35) continue;
-    g.fillStyle = lit; g.globalAlpha = 0.65 + R() * 0.35;
-    g.fillRect(x + cw * (1 + j * 2), y + ch * (1 + i * 2), cw, ch * 1.2);
-  }
-  g.globalAlpha = 1;
-}
-function houses(g, x0, x1, y0, s, col, lit, style, R) {
-  let x = x0;
-  while (x < x1) {
-    const ww = s * (0.9 + R() * 0.9), hh = s * (0.7 + R() * 0.6);
-    g.fillStyle = Array.isArray(col) ? col[Math.floor(R() * col.length)] : col;
-    if (style === 'stilt') {                                        // a Malay kampung house on stilts
-      const lift = s * 0.32;
-      for (let k = 0; k < 4; k++) g.fillRect(x + ww * (0.08 + k * 0.28), y0 - lift, s * 0.05, lift);
-      g.fillRect(x, y0 - lift - hh * 0.65, ww, hh * 0.65);
-      g.beginPath(); g.moveTo(x - ww * 0.12, y0 - lift - hh * 0.65); g.lineTo(x + ww / 2, y0 - lift - hh * 1.35); g.lineTo(x + ww * 1.12, y0 - lift - hh * 0.65); g.closePath(); g.fill();
-      windowsIn(g, x, y0 - lift - hh * 0.65, ww, hh * 0.65, lit, R, 1, 2);
-    } else if (style === 'shop') {                                  // shophouses with curved Chinese eaves
-      g.fillRect(x, y0 - hh, ww, hh);
-      g.beginPath(); g.moveTo(x - ww * 0.15, y0 - hh - s * 0.02); g.quadraticCurveTo(x + ww / 2, y0 - hh + s * 0.1, x + ww * 1.15, y0 - hh - s * 0.02);
-      g.lineTo(x + ww * 0.95, y0 - hh - s * 0.22); g.quadraticCurveTo(x + ww / 2, y0 - hh - s * 0.12, x + ww * 0.05, y0 - hh - s * 0.22); g.closePath(); g.fill();
-      windowsIn(g, x, y0 - hh, ww, hh, lit, R, 2, 2);
-    } else if (style === 'tower') {                                 // a city skyline
-      const th = s * (1.2 + R() * 2.6);
-      g.fillRect(x, y0 - th, ww * 0.8, th);
-      windowsIn(g, x, y0 - th, ww * 0.8, th, lit, R, Math.max(2, Math.round(th / s * 3)), 3);
-    } else {                                                        // a house with a pitched roof
-      g.fillRect(x, y0 - hh, ww, hh);
-      g.beginPath(); g.moveTo(x - ww * 0.06, y0 - hh); g.lineTo(x + ww / 2, y0 - hh - s * 0.42); g.lineTo(x + ww * 1.06, y0 - hh); g.closePath(); g.fill();
-      if (R() < 0.5) g.fillRect(x + ww * 0.7, y0 - hh - s * 0.42, s * 0.08, s * 0.25);   // a chimney
-      windowsIn(g, x, y0 - hh, ww, hh, lit, R, 2, 2);
-    }
-    x += ww + s * (0.05 + R() * 0.25);
-  }
-}
-function palm(g, x, y0, hgt, col, lean) {
-  g.strokeStyle = col; g.lineWidth = Math.max(3, hgt * 0.04); g.lineCap = 'round';
-  const tx = x + lean * hgt * 0.3, ty = y0 - hgt;
-  g.beginPath(); g.moveTo(x, y0); g.quadraticCurveTo(x + lean * hgt * 0.05, y0 - hgt * 0.6, tx, ty); g.stroke();
-  g.fillStyle = col;
-  for (let k = 0; k < 7; k++) {
-    const a = -Math.PI / 2 + (k - 3) * 0.5, L = hgt * 0.42;
-    g.beginPath(); g.moveTo(tx, ty);
-    g.quadraticCurveTo(tx + Math.cos(a) * L * 0.6, ty + Math.sin(a) * L * 0.6 - hgt * 0.08, tx + Math.cos(a) * L, ty + Math.sin(a) * L + hgt * 0.18);
-    g.quadraticCurveTo(tx + Math.cos(a) * L * 0.5, ty + Math.sin(a) * L * 0.5, tx, ty); g.fill();
-  }
-}
-function tree(g, x, y0, hgt, col) { g.fillStyle = col; g.fillRect(x - hgt * 0.04, y0 - hgt * 0.45, hgt * 0.08, hgt * 0.45); g.beginPath(); g.ellipse(x, y0 - hgt * 0.62, hgt * 0.28, hgt * 0.34, 0, 0, TAU); g.fill(); }
-function mountain(g, cx, y0, ww, hh, col, jag) {
-  g.fillStyle = col; g.beginPath(); g.moveTo(cx - ww / 2, y0);
-  if (jag) { const pts = [[-0.32, 0.45], [-0.2, 0.7], [-0.12, 0.62], [-0.05, 0.95], [0.02, 0.8], [0.08, 1], [0.14, 0.78], [0.22, 0.7], [0.34, 0.4]]; pts.forEach(([u, v]) => g.lineTo(cx + u * ww, y0 - v * hh)); }
-  else { g.quadraticCurveTo(cx - ww * 0.25, y0 - hh * 1.25, cx, y0 - hh); g.quadraticCurveTo(cx + ww * 0.3, y0 - hh * 0.75, cx + ww * 0.32, y0 - hh * 0.2); }
-  g.lineTo(cx + ww / 2, y0); g.closePath(); g.fill();
-}
 function gopuram(g, cx, y0, hh, col) {                              // a South Indian temple tower
   g.fillStyle = col;
   for (let k = 0; k < 7; k++) { const ww = hh * (0.62 - k * 0.07), y = y0 - (k + 1) * hh * 0.12; g.fillRect(cx - ww / 2, y, ww, hh * 0.125); }
@@ -294,7 +211,7 @@ const LIVE = {
       for (let i = n; i >= 0; i--) {
         const x = head - i * seg * 0.9, y = S.y0 - S.s * 0.55 - Math.sin(x / S.w * TAU * 1.5 + T * 2) * S.s * 0.45;
         if (x < -seg * 2 || x > S.w + seg * 2) continue;
-        if (i === 0) { drawEmoji(ctx, '🐲', x + seg * 0.4, y - seg * 0.3, seg * 2.4, { flip: true }); continue; }
+        if (i === 0) { drawCreature(ctx, 'dragon', x + seg * 0.5, y - seg * 0.2, seg * 1.7, { t: T }); continue; }
         ctx.fillStyle = i % 2 ? '#E8392B' : '#F5B82E'; ctx.beginPath(); ctx.arc(x, y, seg * 0.62, 0, TAU); ctx.fill();
         ctx.fillStyle = '#FFE08A'; ctx.beginPath(); ctx.arc(x, y - seg * 0.42, seg * 0.16, 0, TAU); ctx.fill();
         if (i % 3 === 0) { ctx.strokeStyle = '#6B1A12'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y + seg * 0.6); ctx.lineTo(x, S.y0 + S.s * 0.2); ctx.stroke(); }
@@ -310,7 +227,7 @@ const LIVE = {
       a.forEach((q) => { const y = base - S.s * 0.3 - q.v * H * 0.85, half = (1 - q.v) * W * 0.45, x = cx + (q.u - 0.5) * 2 * half; dotGlow(ctx, x, y, 8, q.c, 0.4 + 0.6 * Math.max(0, Math.sin(t * 2.2 + q.p))); });
       dotGlow(ctx, cx, base - S.s * 0.3 - H * 0.98, 26, '255,230,140', 0.9);
       ctx.globalCompositeOperation = 'source-over';
-      drawEmoji(ctx, '⭐', cx, base - S.s * 0.3 - H * 0.98, S.s * 0.5);
+      ctx.fillStyle = '#FFD84A'; ctx.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = S.s * (k % 2 ? 0.1 : 0.25); ctx.lineTo(cx + Math.cos(a) * r, base - S.s * 0.3 - H * 0.98 + Math.sin(a) * r); } ctx.closePath(); ctx.fill();
     } },
   snow: { init(S) { return Array.from({ length: view.small ? 70 : 140 }, () => ({ x: rnd(0, S.w), y: rnd(0, S.h), r: rnd(1, 3), v: rnd(18, 50), p: rnd(0, TAU) })); },
     step(a, S, dt, t) { a.forEach((q) => { q.y += q.v * dt; q.x += Math.sin(t + q.p) * 14 * dt; if (q.y > S.h) { q.y = -4; q.x = rnd(0, S.w); } }); },
@@ -430,27 +347,6 @@ function newConfetti(S, y) { return { x: rnd(0, S.w), y, v: rnd(60, 130), s: rnd
 function newCloud(S, any) { return { x: rnd(0, S.w), y: any ? rnd(S.h * 0.3, S.y0) : S.y0 + rnd(0, S.s), r: rnd(0.1, 0.2) * Math.max(S.w, S.h), v: rnd(8, 20), vx: rnd(-10, 10), a: rnd(0.6, 0.9), c: ['255,40,110', '255,170,0', '0,200,150', '120,70,255', '0,170,255', '255,100,20'][Math.floor(rnd(0, 6))] }; }
 function newEmber(S, any) { const cx = S.w * 0.36, base = S.y0 + S.s * 0.25; return { x: cx + rnd(-S.s, S.s) * 0.6, y: any ? base - rnd(0, S.h * 0.5) : base - S.s * 0.6, v: rnd(40, 110), vx: rnd(-14, 14), l: rnd(0.4, 1) }; }
 
-function flame(ctx, x, y, s, t, p) {
-  const f = 0.85 + 0.15 * Math.sin(t * 13 + p) + 0.08 * Math.sin(t * 29 + p * 2);
-  ctx.globalCompositeOperation = 'lighter'; dotGlow(ctx, x, y - s * 0.5, s * 2.6, '255,170,60', 0.55); ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = '#FFB13B'; ctx.beginPath(); ctx.moveTo(x - s * 0.32, y); ctx.quadraticCurveTo(x - s * 0.3, y - s * 0.6 * f, x, y - s * 1.15 * f); ctx.quadraticCurveTo(x + s * 0.3, y - s * 0.6 * f, x + s * 0.32, y); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#FFF2C4'; ctx.beginPath(); ctx.ellipse(x, y - s * 0.28, s * 0.13, s * 0.3 * f, 0, 0, TAU); ctx.fill();
-}
-function lantern(ctx, x, y, s, rgb, t, p, hang) {
-  ctx.globalCompositeOperation = 'lighter'; dotGlow(ctx, x, y, s * 2.2, rgb, 0.45 + 0.1 * Math.sin(t * 3 + p)); ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = 'rgb(' + rgb + ')'; ctx.beginPath(); ctx.ellipse(x, y, s * 0.55, s * 0.68, 0, 0, TAU); ctx.fill();
-  ctx.fillStyle = 'rgba(255,240,200,.35)'; ctx.beginPath(); ctx.ellipse(x - s * 0.12, y - s * 0.05, s * 0.18, s * 0.45, 0, 0, TAU); ctx.fill();
-  ctx.fillStyle = '#F5C542'; ctx.fillRect(x - s * 0.3, y - s * 0.72, s * 0.6, s * 0.12); ctx.fillRect(x - s * 0.3, y + s * 0.6, s * 0.6, s * 0.12);
-  if (hang) { ctx.strokeStyle = '#F5C542'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y + s * 0.72); ctx.lineTo(x, y + s * 1.1); ctx.stroke(); }
-}
-
-/* ---------------- what a tap does ---------------- */
-function burstParticles(x, y, n, cols, speed, o) {
-  o = o || {};
-  return Array.from({ length: n }, () => { const a = rnd(0, TAU), v = rnd(0.3, 1) * speed; return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - (o.up || 0), c: cols[Math.floor(rnd(0, cols.length))], l: 1, d: rnd(0.6, 1.2) * (o.life || 1.6), r: rnd(1.5, 3.2) * (o.size || 1), kind: o.kind || 'spark', rot: rnd(0, TAU), vr: rnd(-6, 6) }; });
-}
-const FW_COLS = [['255,90,90', '255,210,90'], ['120,200,255', '255,255,255'], ['255,120,220', '255,230,140'], ['140,255,160', '255,255,200'], ['255,170,60', '255,90,60']];
-
 /* ---------------- the scene ---------------- */
 export function makeFestival() {
   const S = {
@@ -497,14 +393,7 @@ export function makeFestival() {
       if (this.f.fw) { this.fwT -= dt; if (this.fwT <= 0) { this.fwT = rnd(0.6, 1.6) / this.f.fw; this.rocket(rnd(0.15, 0.85) * this.w, rnd(0.12, 0.42) * this.h, false); } }
       this.rockets.forEach((r) => { r.t += dt; const k = Math.min(1, r.t / r.d); r.x = r.x0 + (r.x1 - r.x0) * k; r.y = r.y0 + (r.y1 - r.y0) * (1 - Math.pow(1 - k, 2)); if (k >= 1 && !r.done) { r.done = true; this.fx.push(...burstParticles(r.x1, r.y1, view.small ? 60 : 110, FW_COLS[Math.floor(rnd(0, FW_COLS.length))], Math.min(this.w, this.h) * 0.32, { life: 1.9 })); } });
       this.rockets = this.rockets.filter((r) => !r.done);
-      this.fx.forEach((p) => {
-        p.l -= dt / p.d;
-        if (p.kind === 'puff') { p.r += dt * 60; p.vx *= 0.94; p.vy *= 0.94; }
-        else if (p.kind === 'lantern') { p.vy = -22; p.vx = Math.sin(t + p.rot) * 8; }
-        else { p.vy += (p.kind === 'drop' ? 520 : p.kind === 'petal' || p.kind === 'confetti' ? 60 : 90) * dt; p.vx *= 0.985; }
-        p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
-      });
-      this.fx = this.fx.filter((p) => p.l > 0);
+      this.fx = stepParticles(this.fx, dt, t);
       if (this.fx.length > 1400) this.fx.splice(0, this.fx.length - 1400);
     },
     rocket(x, y, user) {
@@ -531,14 +420,7 @@ export function makeFestival() {
       ctx.save(); ctx.globalCompositeOperation = 'lighter';
       this.rockets.forEach((r) => dotGlow(ctx, r.x, r.y, 10, '255,230,170', 0.9));
       ctx.restore();
-      this.fx.forEach((p) => {
-        const a = Math.max(0, Math.min(1, p.l));
-        if (p.kind === 'spark') { ctx.globalCompositeOperation = 'lighter'; dotGlow(ctx, p.x, p.y, p.r * 3.2, p.c, a); ctx.globalCompositeOperation = 'source-over'; }
-        else if (p.kind === 'puff') { ctx.globalAlpha = a * 0.55; ctx.drawImage(glow(p.c, 48), p.x - p.r, p.y - p.r, p.r * 2, p.r * 2); ctx.globalAlpha = 1; }
-        else if (p.kind === 'drop') { ctx.fillStyle = 'rgba(210,240,255,' + a + ')'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill(); }
-        else if (p.kind === 'lantern') lantern(ctx, p.x, p.y, p.r, p.c, t, p.rot, false);
-        else { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.globalAlpha = a; ctx.fillStyle = p.c.indexOf(',') > 0 ? 'rgb(' + p.c + ')' : p.c; if (p.kind === 'petal') { ctx.beginPath(); ctx.ellipse(0, 0, p.r * 2, p.r * 1.1, 0, 0, TAU); ctx.fill(); } else ctx.fillRect(-p.r * 1.6, -p.r * 0.8, p.r * 3.2, p.r * 1.6); ctx.restore(); }
-      });
+      drawParticles(ctx, this.fx, t);
       // a soft shade behind the words, so they read on bright scenes too
       if (!this.shade || this.shadeKey !== w + 'x' + h) this.paintShade(w, h);
       ctx.drawImage(this.shade, 0, 0, w, h);

@@ -3,8 +3,9 @@
    animals. Both open close up on the pupil, then the camera pulls back until the giants appear. Tap anything to
    hear what it is. The speed race lines up a diving falcon, a car, a cheetah, an ostrich, Usain Bolt, a fast Year 5
    runner and a snail, and lets them all go for the same few seconds. */
-import { TAU, rnd, clamp, smooth, layer, view, drawEmoji, FONT } from './util.js?v=1e9e4bc0';
-import { Fx } from './music.js?v=1e9e4bc0';
+import { TAU, rnd, clamp, smooth, layer, view, FONT } from './util.js?v=a20ebde2';
+import { drawCreature, creatureOf, WIDTH } from './fauna.js?v=a20ebde2';
+import { Fx } from './music.js?v=a20ebde2';
 
 /* ---------------- silhouettes, drawn in metres (x across, y up from the ground) ---------------- */
 const poly = (g, pts) => { g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, -y) : g.moveTo(x, -y))); g.closePath(); g.fill(); };
@@ -134,7 +135,8 @@ export function makeScale(items) {
       return { k, c, x: (m) => this.w / 2 + (m - c) * k };
     },
     zoomTo(z, user) { this.goal = clamp(z, 0, 1); this.pan = 0; if (user && this.soundOn && Math.abs(this.goal - this.z) > 0.3) Fx.play('swell'); },
-    step(dt) {
+    step(dt, t) {
+      this.time = t;
       const d = this.goal - this.z;
       if (Math.abs(d) > 0.0005) this.z += Math.sign(d) * Math.min(Math.abs(d), dt * 0.32 + Math.abs(d) * dt * 1.2);
       if (this.ripple) { this.ripple.t += dt; if (this.ripple.t > 1) this.ripple = null; }
@@ -194,9 +196,9 @@ export function makeScale(items) {
           if (on) { ctx.shadowColor = 'rgba(255,230,160,.9)'; ctx.shadowBlur = 24; }
           SHAPES[it.shape].draw(ctx, it.c || '#E8C99A');
         } else {
-          const px = Math.max(4, it.how === 'long' ? it.m * C.k : it.m * C.k * 1.1);
+          const ck = creatureOf(it), px = Math.max(4, it.how === 'long' ? it.m * C.k / (WIDTH[ck] || 1) : it.m * C.k);
           if (on) { ctx.shadowColor = 'rgba(255,230,160,.9)'; ctx.shadowBlur = 24; }
-          drawEmoji(ctx, it.e, 0, -px * (it.how === 'long' ? 0.32 : 0.48), px, { flip: !!it.flip });
+          drawCreature(ctx, ck, 0, -px * 0.5, px, { rest: true, t: this.time || 0 });
         }
         ctx.restore();
         if (it.ref) { ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.setLineDash([3, 4]); ctx.strokeRect(cx - half, y0 - it.hM * C.k, half * 2, it.hM * C.k); ctx.setLineDash([]); }
@@ -278,7 +280,8 @@ export function makeRace(racers) {
       racers.forEach((r, i) => {
         const y = L.top + L.gap * (i + 0.55), x = this.posX(r, L), bob = this.run && r.kmh > 1 ? Math.abs(Math.sin(t * (8 + r.kmh / 20) + i)) * 5 : 0;
         if (this.run && r.kmh > 60) { ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(x - px * 0.6 - k * 14, y - 8 + k * 8); ctx.lineTo(x - px * 0.6 - k * 14 - 40, y - 8 + k * 8); ctx.stroke(); } }
-        drawEmoji(ctx, r.e, x, y - bob, px, { flip: r.e !== '🧒' });          // most emoji face left: turn them to run right
+        const ck = creatureOf(r);
+        drawCreature(ctx, ck, x, y - bob, px * (ck === 'car' ? 0.75 : ck === 'snail' ? 0.8 : 1), { ph: t * (8 + r.kmh / 20) + i, t, rest: !this.run, run: this.run && r.kmh > 1 });
         ctx.font = '800 ' + fs + 'px ' + FONT; ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(20,16,10,.85)';
         if (!view.small) ctx.fillText(r.name, 10, L.top + L.gap * i + fs + 4);
         if (this.done) {

@@ -3,8 +3,9 @@
    shortest route over the globe (a great circle, which looks curved on a flat map), from Kuala Lumpur or from the
    last city visited, with the distance and about how long the flight takes. The map gives room to the postcard
    when one is open. */
-import { CITIES } from './data.js?v=1e9e4bc0';
-import { TAU, clamp, smooth, layer, sunAt, sunHeight, view, FONT, flag, drawEmoji } from './util.js?v=1e9e4bc0';
+import { CITIES } from './data.js?v=a20ebde2';
+import { TAU, clamp, smooth, layer, sunAt, sunHeight, view, FONT, flag } from './util.js?v=a20ebde2';
+import { drawCreature } from './fauna.js?v=a20ebde2';
 
 const TOP = 78, BOTTOM = -58, SPAN = TOP - BOTTOM, ASPECT = 360 / SPAN;   // the far north and most of Antarctica are left off
 const RAD = Math.PI / 180;
@@ -150,7 +151,8 @@ export const explorer = {
       const i = Math.min(n, upto), a = P[Math.max(0, i - 1)], b = P[Math.min(n, i + 1)];
       let ang = Math.atan2(b.y - a.y, b.x - a.x); if (Math.abs(b.x - a.x) > r.w / 2) ang = Math.PI - ang;
       const lift = Math.sin(k * Math.PI);                                 // the plane grows as it climbs and shrinks as it lands
-      drawEmoji(ctx, '✈️', P[i].x, P[i].y - lift * 6, clamp(r.w / 38, 18, 34) * (0.75 + 0.35 * lift), { rot: ang + Math.PI / 4 });
+      const west = Math.cos(ang) < 0;
+      drawCreature(ctx, 'plane', P[i].x, P[i].y - lift * 6, clamp(r.w / 38, 18, 34) * (0.75 + 0.35 * lift) * 0.9, west ? { rot: ang - Math.PI, flip: true } : { rot: ang });
     }
   },
   draw(ctx, w, h, t) {

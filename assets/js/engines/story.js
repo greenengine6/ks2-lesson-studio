@@ -1,9 +1,9 @@
 /* Engine 2: Story Spark. A mystery scene revealed line by line (with moving weather), inference prompts,
    a word bank, a model paragraph with its features highlighted, and the writing task. */
-import { esc, str, arr, strs, icon } from '../core.js?v=1e9e4bc0';
-import { B } from './shared.js?v=1e9e4bc0';
-import { buildPrompt } from './prompt.js?v=1e9e4bc0';
-import { Mood, MOODS } from '../fx/particles.js?v=1e9e4bc0';
+import { esc, str, arr, strs, icon } from '../core.js?v=a20ebde2';
+import { B } from './shared.js?v=a20ebde2';
+import { buildPrompt } from './prompt.js?v=a20ebde2';
+import { Mood, MOODS } from '../fx/particles.js?v=a20ebde2';
 
 const EXAMPLE = {
   title: 'The Lighthouse at the Edge of the Storm',

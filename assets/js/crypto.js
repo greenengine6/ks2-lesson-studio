@@ -115,4 +115,4 @@ export async function checkPasskey(saved) {
 }
 
 /* ---------- key-value storage (IndexedDB, shared with the activity log) ---------- */
-export { kvGet as idbGet, kvSet as idbSet, kvDel as idbDel } from './idb.js?v=1e9e4bc0';
+export { kvGet as idbGet, kvSet as idbSet, kvDel as idbDel } from './idb.js?v=a20ebde2';

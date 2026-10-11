@@ -9,6 +9,7 @@
    if the voice goes quiet or its words stop moving, she carries on from the word she had reached. If the device
    cannot speak at all, or reading aloud is off, the words are still timed one by one, so Symphony's stage can show
    them. */
+import { fracWords } from '../fractions.js?v=a20ebde2';
 
 const OK = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 const synth = OK ? window.speechSynthesis : null;
@@ -311,7 +312,7 @@ function failed(p, err) {
    onTrouble() (the device would not speak, so the words were only shown) } */
 export function say(text, o) {
   o = o || {};
-  const parts = partsOf(text);
+  const parts = partsOf(fracWords(text, o.lang));
   return new Promise((resolve) => {
     if (!parts.length) { resolve(true); return; }
     const job = { lang: o.lang || 'en-GB', rate: o.rate || 1, silent: !!o.silent, onStart: o.onStart, onWord: o.onWord, onTrouble: o.onTrouble, left: parts.length, resolve, over: false, begun: false, mute: false };

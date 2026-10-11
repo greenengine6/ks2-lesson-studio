@@ -270,3 +270,8 @@ body.playing .top,body.playing .dock,body.playing .sym-fab,body.playing .symc,bo
   .sz-l{min-width:0}
   .sz .fine{display:none}
 }
+
+/* ---------- drawn creatures where an emoji used to be (fauna.js) ---------- */
+.cre{display:inline-flex;align-items:center;justify-content:center}
+.cre-pic{display:block}
+.sg-chip span.cre{width:32px;height:28px;grid-row:span 2}

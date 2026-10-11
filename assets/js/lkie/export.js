@@ -2,11 +2,12 @@
    them) with the diagrams, pictures, backgrounds and text sizes as on screen, each video as its picture with a link,
    and the teacher notes and picture credits in the speaker notes; and the worksheet as an editable Word document
    (opens in Word and Google Docs). */
-import { esc } from '../core.js?v=1e9e4bc0';
-import { KIND, TONE, diagramSVG, answersOf, learnText, respondText } from './render.js?v=1e9e4bc0';
-import { TIERS } from './model.js?v=1e9e4bc0';
-import { lookFor, lookInfo, lookForPptx } from './looks.js?v=1e9e4bc0';
-import { pictureData, urlData, creditText, safePic, safeVideo, ytThumb, ytWatch, ytShort } from '../pics.js?v=1e9e4bc0';
+import { esc } from '../core.js?v=a20ebde2';
+import { fracSlide, fracHTML } from '../fractions.js?v=a20ebde2';
+import { KIND, TONE, diagramSVG, answersOf, learnText, respondText } from './render.js?v=a20ebde2';
+import { TIERS } from './model.js?v=a20ebde2';
+import { lookFor, lookInfo, lookForPptx } from './looks.js?v=a20ebde2';
+import { pictureData, urlData, creditText, safePic, safeVideo, ytThumb, ytWatch, ytShort } from '../pics.js?v=a20ebde2';
 
 /* ---------------- diagrams as pictures ---------------- */
 export function svgSize(svg) { const m = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg); return m ? [Number(m[1]), Number(m[2])] : [640, 200]; }
@@ -204,14 +205,14 @@ function notes(p, sl, first) {
 }
 /* A painted or picture background is stored once, in a slide master, and every slide with that look uses it. */
 function slideFor(pptx, bg, masters) {
-  if (!bg.data) { const s = pptx.addSlide(); s.background = { color: bg.color || 'FFFFFF' }; return s; }
+  if (!bg.data) { const s = fracSlide(pptx.addSlide()); s.background = { color: bg.color || 'FFFFFF' }; return s; }
   let name = masters.get(bg.data);
   if (!name) {
     name = 'LOOK ' + (masters.size + 1);
     pptx.defineSlideMaster({ title: name, background: { color: bg.dark ? '1B2440' : 'FFFFFF' }, objects: [{ image: { x: 0, y: 0, w: W, h: 7.5, data: bg.data } }] });
     masters.set(bg.data, name);
   }
-  return pptx.addSlide({ masterName: name });
+  return fracSlide(pptx.addSlide({ masterName: name }));
 }
 /* o: { theme (the default look), mode } */
 export async function buildPptx(p, o) {
@@ -298,7 +299,7 @@ export function sheetDoc(p, tiers, answers) {
     tiers.forEach((k) => { h += '<h2 style="font-size:13pt;margin:10pt 0 4pt">' + esc(label(k)) + '</h2><ol>' + (w[k] || []).map((q) => '<li style="margin:0 0 4pt">' + esc(answerLine(q)) + '</li>').join('') + '</ol>'; });
   }
   const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + esc(w.title || p.title) + '</title>' +
-    '<style>@page{size:A4;margin:2cm}body{font-family:Arial,Helvetica,sans-serif;font-size:12pt;color:#1B2440}</style></head><body>' + h + '</body></html>';
+    '<style>@page{size:A4;margin:2cm}body{font-family:Arial,Helvetica,sans-serif;font-size:12pt;color:#1B2440}</style></head><body>' + fracHTML(h) + '</body></html>';
   return new Blob(['﻿', html], { type: 'application/msword' });
 }
 /* The same worksheet as text, for pasting into Google Docs, Word or Teams. */

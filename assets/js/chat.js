@@ -9,21 +9,21 @@
    listens in the background for her name and answers in a small bubble, even while you present; she carries out
    commands herself (commands.js: open and close pages and windows, next slide, reveal, a timer, pick someone from
    our class), and knows what is on the screen (context.js) so "explain this slide" works. */
-import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, toast, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=1e9e4bc0';
-import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=1e9e4bc0';
-import { settings, paintSwitches } from './settings.js?v=1e9e4bc0';
-import { isAdmin, ADMIN_NAME } from './people.js?v=1e9e4bc0';
-import { briefing, downloadReport } from './admin.js?v=1e9e4bc0';
-import { track } from './track.js?v=1e9e4bc0';
-import { Voice } from './fx/voice.js?v=1e9e4bc0';
-import { Beam } from './fx/beam.js?v=1e9e4bc0';
-import { sfx } from './fx/audio.js?v=1e9e4bc0';
-import { chatState, chatStart, chatEnd, clockAt } from './guard.js?v=1e9e4bc0';
-import { Ear } from './ear.js?v=1e9e4bc0';
-import { parseCommand, runCommand, COMMANDS_HELP } from './commands.js?v=1e9e4bc0';
-import { screenContext, presenting } from './context.js?v=1e9e4bc0';
-import { pupils, pupilsHTML, setPupils, namesIn, showPick, clearPupils } from './pupils.js?v=1e9e4bc0';
-import { Live, pupilsIn } from './live/session.js?v=1e9e4bc0';
+import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, toast, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=a20ebde2';
+import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=a20ebde2';
+import { settings, paintSwitches } from './settings.js?v=a20ebde2';
+import { isAdmin, ADMIN_NAME } from './people.js?v=a20ebde2';
+import { briefing, downloadReport } from './admin.js?v=a20ebde2';
+import { track } from './track.js?v=a20ebde2';
+import { Voice } from './fx/voice.js?v=a20ebde2';
+import { Beam } from './fx/beam.js?v=a20ebde2';
+import { sfx } from './fx/audio.js?v=a20ebde2';
+import { chatState, chatStart, chatEnd, clockAt } from './guard.js?v=a20ebde2';
+import { Ear } from './ear.js?v=a20ebde2';
+import { parseCommand, runCommand, COMMANDS_HELP } from './commands.js?v=a20ebde2';
+import { screenContext, presenting } from './context.js?v=a20ebde2';
+import { pupils, pupilsHTML, setPupils, namesIn, showPick, clearPupils } from './pupils.js?v=a20ebde2';
+import { Live, pupilsIn } from './live/session.js?v=a20ebde2';
 
 const LANG_KEY = 'ks2-engine.symlang.v1';
 const T = {

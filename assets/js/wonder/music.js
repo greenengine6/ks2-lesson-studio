@@ -6,7 +6,7 @@
    drum pattern and a scale the melody wanders through, so it never plays the same tune twice.
    Effects: fireworks, firecrackers, a water splash, a lantern lifting off, a puff of colour, a jet plane, galloping
    hooves, a cheering crowd, and a deep swell for when the camera pulls back. */
-import { Sound } from '../fx/audio.js?v=1e9e4bc0';
+import { Sound } from '../fx/audio.js?v=a20ebde2';
 
 const live = () => { const c = Sound.ctx(); return c && c.state === 'running' ? c : null; };
 let musicBus = null, fxBus = null, noiseBuf = null;
@@ -75,6 +75,11 @@ const INST = {
   whistle(c, t, f, v, out) {                                                                                      // the samba whistle
     const o = osc(c, 'sine', f, t, 0.18); const tr = c.createOscillator(), tg = c.createGain(); tr.frequency.value = 38; tg.gain.value = f * 0.04; tr.connect(tg); tg.connect(o.frequency); tr.start(t); tr.stop(t + 0.2);
     o.connect(env(c, t, v, 0.01, 0.15, out));
+  },
+  pipe(c, t, f, v, out) {                  // a pan flute or ocarina: soft, breathy, a slow swell
+    const o = osc(c, 'sine', f, t, 0.55); const vib = c.createOscillator(), vg = c.createGain(); vib.frequency.value = 4.8; vg.gain.value = f * 0.008; vib.connect(vg); vg.connect(o.frequency); vib.start(t); vib.stop(t + 0.6);
+    o.connect(env(c, t, v, 0.07, 0.45, out)); osc(c, 'triangle', f * 2.003, t, 0.4).connect(env(c, t, v * 0.16, 0.09, 0.3, out));
+    hiss(c, t, 0.3, 'bandpass', f * 2.1, 5, v * 0.45, out, 0.05);                                                 // the breath
   }
 };
 
@@ -107,6 +112,17 @@ const STYLES = {
     drums: [['kick', 55, 0.07, X('x...........')], ['slap', 1600, 0.025, X('....x...x...')]] },
   thai: { bpm: 96, steps: 16, root: 64, scale: [0, 2, 4, 7, 9], inst: 'mallet', vol: 0.05, mel: X('x.x.xxx.x.x.xx.x'), oct: [0, 12],
     drums: [['wood', 2600, 0.025, X('x.x.x.x.x.x.x.x.')], ['kick', 70, 0.06, X('x.....x.x.......')]] },
+  // the Seven Wonders: an oud and a darbuka for Egypt, Jordan and Babylon's river; a lyre for Greece and Rome; a soft
+  // guitar for Rio; pan pipes for the Andes; a clay flute and drums for the Maya
+  oud: { bpm: 78, steps: 16, root: 62, scale: [0, 1, 4, 5, 7, 8, 10], inst: 'pluck', vol: 0.06, mel: X('x.x.xx.x.x.x.xx.'), oct: [0, 12], drone: true,
+    drums: [['kick', 75, 0.07, X('x..x....x..x..x.')], ['slap', 2600, 0.035, X('..x...x...x...x.')]] },
+  lyre: { bpm: 66, steps: 16, root: 64, scale: [0, 2, 3, 5, 7, 9, 10], inst: 'pluck', vol: 0.06, mel: X('x..x..x.x..x..x.'), oct: [0, 12], chord: true, drums: [] },
+  bossa: { bpm: 82, steps: 16, root: 60, scale: [0, 2, 4, 5, 7, 9, 11], inst: 'pluck', vol: 0.05, mel: X('x..x..x...x.x...'), oct: [0, 12], chord: true,
+    drums: [['kick', 55, 0.045, X('x..x..x.x..x..x.')], ['shake', 7500, 0.016, X('x.x.x.x.x.x.x.x.')], ['wood', 900, 0.018, X('x..x..x...x..x..')]] },
+  andes: { bpm: 92, steps: 16, root: 69, scale: [0, 3, 5, 7, 10], inst: 'pipe', vol: 0.055, mel: X('x.x.x...x.x.x...'), oct: [0, 12],
+    drums: [['kick', 65, 0.06, X('x...x...x...x...')], ['shake', 6500, 0.018, X('..x...x...x...x.')]] },
+  maya: { bpm: 100, steps: 16, root: 67, scale: [0, 2, 3, 7, 8], inst: 'pipe', vol: 0.05, mel: X('x..x.x..x..x.x..'), oct: [0, 12],
+    drums: [['kick', 60, 0.09, X('x.......x.x.....')], ['wood', 1400, 0.028, X('..x.x...x.x.x...')], ['shake', 5000, 0.022, X('x.x.x.x.x.x.x.x.')]] },
   none: null
 };
 
@@ -210,6 +226,17 @@ const FXS = {
     osc(c, 'sine', 55, t, 3, 82).connect(env(c, t, 0.08, 1.2, 1.8, out));
   },
   pop(c, t, out) { osc(c, 'sine', 420, t, 0.12, 1100).connect(env(c, t, 0.08, 0.003, 0.1, out)); },
-  tick(c, t, out) { INST.wood(c, t, 1600, 0.04, out); }
+  tick(c, t, out) { INST.wood(c, t, 1600, 0.04, out); },
+  // the Seven Wonders
+  thunder(c, t, out) {                                                                              // Zeus
+    osc(c, 'sine', 70, t + 0.04, 1.8, 30).connect(env(c, t + 0.04, 0.28, 0.02, 1.6, out));
+    hiss(c, t, 2.4, 'lowpass', 600, 0.5, 0.22, out, 0.03, 80);
+    for (let k = 0; k < 3; k++) hiss(c, t + 0.5 + k * 0.55, 0.6, 'lowpass', 360, 0.6, 0.09, out, 0.06, 110);
+  },
+  drum(c, t, out) { for (let k = 0; k < 3; k++) INST.kick(c, t + k * 0.3, 52, 0.2, out); INST.gong(c, t + 1.0, hz(43), 0.12, out); },     // the beacon on the Great Wall
+  gust(c, t, out) { hiss(c, t, 2.2, 'bandpass', 480, 0.8, 0.07, out, 0.7, 1500); },                                                    // a gust of mountain wind
+  chime(c, t, out) { [79, 84, 88, 91].forEach((m, k) => INST.bell(c, t + k * 0.09, hz(m), 0.03, out)); },                                // the light changes
+  rattle(c, t, out) { for (let k = 0; k < 12; k++) INST.shake(c, t + k * 0.06, 5000 + Math.random() * 1500, 0.03, out); INST.kick(c, t + 0.8, 60, 0.12, out); },   // the serpent's shadow
+  flare(c, t, out) { hiss(c, t, 1.2, 'lowpass', 1200, 0.6, 0.12, out, 0.05, 300); for (let k = 0; k < 8; k++) hiss(c, t + 0.1 + Math.random() * 0.6, 0.03, 'highpass', 3500, 0.6, 0.03, out); }   // a fire roaring up
 };
 export const STYLE_NAMES = Object.keys(STYLES);

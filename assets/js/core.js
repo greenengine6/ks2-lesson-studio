@@ -1,5 +1,6 @@
 /* KS2 Lesson Engine: shared helpers, Claude connection, copying and small UI pieces. */
-import { sfx } from './fx/audio.js?v=1e9e4bc0';
+import { sfx } from './fx/audio.js?v=a20ebde2';
+import { fracNorm, fracHTML, fracText } from './fractions.js?v=a20ebde2';
 
 export const $ = (s, r) => (r || document).querySelector(s);
 export const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -243,12 +244,14 @@ export async function askJSON(prompt, o) {
    Rounding numbers is "rounding off" here. Every prompt asks for it, and everything the engine writes is tidied the
    same way: a key word "Round" becomes "Rounding off", and "Round 3,486 to the nearest 100" becomes
    "Round off 3,486 to the nearest 100". "Round up", "round down" and other rounds (a round shape) are left alone. */
-export const HOUSE_WORDS = 'Rounding numbers is called “rounding off” at this school. Write “Round off 3,486 to the nearest 100”, “Rounding off to the nearest 10” and “3,486 rounded off to the nearest 100 is 3,500”, and use “rounding off” in key words and titles. Never call it just “round” or “rounding”.';
+export const HOUSE_WORDS = 'Rounding numbers is called “rounding off” at this school. Write “Round off 3,486 to the nearest 100”, “Rounding off to the nearest 10” and “3,486 rounded off to the nearest 100 is 3,500”, and use “rounding off” in key words and titles. Never call it just “round” or “rounding”. Write every fraction as digits with a slash, like 3/4 or 2 1/2 (the screen shows them stacked, with the numerator over the denominator); never ¾ or “three-quarters” in a sum.';
 const ROUND_WORD = /^(?:to\s+)?round(?:ing)?$/i;
 const ROUNDING_NUMBERS = /^([Rr])ounding(\s+(?:whole\s+|decimal\s+)?numbers?)$/;
 const ROUND_NEAR = /\b([Rr])ound(ed|ing)?\b(?!\s+(?:off|up|down)\b)(?=(?:[^.?!\n]|\.(?=\d)){0,48}?\bto\s+(?:(?:the\s+)?nearest\b|(?:\d+|one|two|three|a)\s+(?:decimal|significant)\b))/g;
 export function houseText(s) {
-  if (typeof s !== 'string' || !/round/i.test(s)) return s;
+  if (typeof s !== 'string') return s;
+  s = fracNorm(s);
+  if (!/round/i.test(s)) return s;
   const t = s.trim();
   if (ROUND_WORD.test(t)) return (/^[A-Z]/.test(t) ? 'R' : 'r') + 'ounding off';
   const n = ROUNDING_NUMBERS.exec(t);
@@ -323,6 +326,7 @@ export function showFallback(text) {
   $('#fb-close').focus();
 }
 export function copyOut(html, text, okMsg) {
+  html = fracHTML(html); text = fracText(text);
   const plain = () => {
     if (copyEvent(html, text)) { toast(okMsg); return; }
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast(okMsg), () => showFallback(text));

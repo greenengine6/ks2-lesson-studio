@@ -2,9 +2,12 @@
    a coral reef and the polar lands). Animals walk, fly, swim, swing and hop; tap one for its card with a real photo.
    The rainforest shows its four layers (tap a layer's name), in English or Bahasa Melayu. The polar lands are split
    in two, because polar bears (the Arctic) and penguins (Antarctica) never meet. */
-import { BIOMES } from './data.js?v=1e9e4bc0';
-import { TAU, rnd, clamp, noise, layer, view, FONT, drawEmoji } from './util.js?v=1e9e4bc0';
+import { BIOMES } from './data.js?v=a20ebde2';
+import { TAU, rnd, clamp, noise, layer, view, FONT } from './util.js?v=a20ebde2';
+import { drawCreature, creatureOf } from './fauna.js?v=a20ebde2';
 
+/* long, low creatures are drawn a little smaller, so they take about the room their emoji did */
+const FIT = { whale: 0.5, shark: 0.62, seal: 0.6, lizard: 0.7, scorpion: 0.8, reeffish: 0.85, butterfly: 0.75, hornbill: 0.8, falcon: 0.8 };
 const SIZE = { '🐘': 1.9, '🦒': 2.05, '🐋': 2.2, '🐪': 1.75, '🦁': 1.35, '🦓': 1.35, '🦬': 1.25, '🐅': 1.45, '🦧': 1.25, '🐦': 0.85, '🦋': 0.6, '🐸': 0.7, '🦊': 0.95,
   '🐇': 0.8, '🦉': 0.9, '🦌': 1.35, '🦂': 0.6, '🦎': 0.75, '🐠': 0.75, '🐢': 1.15, '🐙': 1.0, '🦈': 1.6, '🐡': 0.85, '🐧': 0.95, '🐻‍❄️': 1.6, '🦭': 1.25, '🐗': 1.1 };
 const COUNT = { herd: 5, flutter: 3, waddle: 5, hop: 2, fly: 2 };
@@ -308,7 +311,7 @@ export function makeBiome(key) {
       list.forEach((a) => {
         if (a.d.move === 'swim' && G.sea) {   // a whale in the sea between the ice: only the top shows, and a spout now and then
           ctx.save(); ctx.beginPath(); ctx.rect(0, G.sea[0], w, G.sea[1] - G.sea[0] + 2); ctx.clip();
-          drawEmoji(ctx, a.d.e, a.x, a.y + a.px * 0.14, a.px, { flip: a.dir > 0 });
+          drawCreature(ctx, creatureOf(a.d), a.x, a.y + a.px * 0.1, a.px * 0.5, { flip: a.dir < 0, ph: a.ph, t, rest: false });
           ctx.restore();
           const sp = (t + a.i * 3) % 7;
           if (sp < 1.2) { ctx.save(); ctx.fillStyle = 'rgba(235,245,255,' + (0.8 * (1 - sp / 1.2)).toFixed(2) + ')'; for (let k = 0; k < 8; k++) { ctx.beginPath(); ctx.arc(a.x + rnd(-6, 6), a.y - a.px * 0.2 - sp * 40 * (k / 8), 3 + k * 0.6, 0, TAU); ctx.fill(); } ctx.restore(); }
@@ -320,7 +323,8 @@ export function makeBiome(key) {
         const on = this.sel === a, hov = this.hover === a;
         if (on) { ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(a.x, a.y, a.px * 0.62 + Math.sin(t * 5) * 2, 0, TAU); ctx.stroke(); }
         const sy = a.d.move === 'flutter' ? 0.6 + 0.4 * Math.abs(Math.sin(a.ph * 2)) : a.d.move === 'still' ? 1 + Math.sin(t * 1.6 + a.i) * 0.025 : 1;
-        drawEmoji(ctx, a.d.e, a.x, a.y, a.px, { flip: a.dir > 0, rot: a.rot, tint: a.d.tint, sy });
+        const ck = creatureOf(a.d);
+        drawCreature(ctx, ck, a.x, a.y, a.px * (FIT[ck] || 1), { flip: a.dir < 0, rot: a.rot, tint: a.d.tint, sy, ph: a.ph, t, rest: a.rest > 0 || a.d.move === 'still', glide: a.d.move === 'glide' && a.rot !== 0 });
         if (on || hov) {
           const name = ms && a.d.bm ? a.d.bm : a.d.name;
           ctx.font = '800 ' + (view.small ? 12 : 14) + 'px ' + FONT; ctx.textAlign = 'center';

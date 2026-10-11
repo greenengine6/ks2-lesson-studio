@@ -3,8 +3,9 @@
    sea bubbles, falling leaves, bats at dusk, sunbeams or speed lines. The pictures come from Wikipedia; until one
    arrives, the item's colours and emoji glow in its place, so the screen is never empty.
    Also switcher(): one scene slot that can hold different scenes (a window's tabs). */
-import { leadPicture, picURL } from '../pics.js?v=1e9e4bc0';
-import { TAU, rnd, clamp, smooth, layer, view, drawEmoji } from './util.js?v=1e9e4bc0';
+import { leadPicture, picURL } from '../pics.js?v=a20ebde2';
+import { TAU, rnd, clamp, smooth, layer, view, drawEmoji } from './util.js?v=a20ebde2';
+import { drawCreature, creatureOf } from './fauna.js?v=a20ebde2';
 
 const photos = new Map();                  // wiki title → { p, img, ok }
 /* Load one item's photo (once). Resolves with { p, img } or null. */
@@ -53,7 +54,7 @@ const FX = {
     draw(g, q) { const a = Math.sin(q.life * Math.PI); g.fillStyle = 'rgba(255,170,70,' + (0.8 * a) + ')'; g.beginPath(); g.arc(q.x, q.y, q.r, 0, TAU); g.fill(); } },
   bats: { n: 14, make: (w, h) => ({ x: rnd(0, w), y: rnd(0.12, 0.55) * h, v: rnd(70, 140), s: rnd(14, 26), p: rnd(0, TAU), dir: Math.random() < 0.5 ? -1 : 1 }),
     step(q, dt, w, h, t) { q.x += q.v * q.dir * dt; q.y += Math.sin(t * 3 + q.p) * 22 * dt; if (q.x < -40) q.x = w + 40; if (q.x > w + 40) q.x = -40; },
-    draw(g, q, t) { drawEmoji(g, '🦇', q.x, q.y, q.s, { flip: q.dir > 0, sy: 0.75 + 0.25 * Math.abs(Math.sin(t * 9 + q.p)), alpha: 0.9 }); } },
+    draw(g, q, t) { drawCreature(g, 'bat', q.x, q.y, q.s, { flip: q.dir < 0, ph: q.p, t, alpha: 0.9 }); } },
   speed: { n: 26, add: true, make: (w, h) => ({ x: rnd(0, w), y: rnd(0.1, 0.9) * h, l: rnd(80, 220), v: rnd(900, 1500), a: rnd(0.08, 0.2) }),
     step(q, dt, w, h) { q.x -= q.v * dt; if (q.x + q.l < 0) { q.x = w + rnd(0, 200); q.y = rnd(0.1, 0.9) * h; } },
     draw(g, q) { const gr = g.createLinearGradient(q.x, 0, q.x + q.l, 0); gr.addColorStop(0, 'rgba(255,255,255,' + q.a + ')'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.strokeStyle = gr; g.lineWidth = 1.5; g.beginPath(); g.moveTo(q.x, q.y); g.lineTo(q.x + q.l, q.y); g.stroke(); } },
@@ -119,9 +120,9 @@ export function makeStage() {
         const it = s.item, g = ctx.createRadialGradient(w * 0.62, h * 0.42, 0, w * 0.62, h * 0.42, Math.max(w, h) * 0.75);
         g.addColorStop(0, it.b || '#334'); g.addColorStop(1, it.a || '#112');
         ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-        const px = Math.min(w, h) * 0.34 * (1 + 0.03 * Math.sin(t * 1.4));
+        const px = Math.min(w, h) * 0.34 * (1 + 0.03 * Math.sin(t * 1.4)), ck = creatureOf({ name: it.name || '', e: it.e });
         ctx.save(); ctx.shadowColor = 'rgba(255,255,255,.35)'; ctx.shadowBlur = 50;
-        drawEmoji(ctx, it.e || '✨', w * 0.62, h * 0.44, px);
+        if (!drawCreature(ctx, ck, w * 0.62, h * 0.44, px * 0.9, { rest: true, t, ph: t * 0.5 })) drawEmoji(ctx, it.e || '✨', w * 0.62, h * 0.44, px);
         ctx.restore();
       }
       ctx.restore();

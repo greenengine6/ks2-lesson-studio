@@ -1,5 +1,5 @@
 /* Small interactive pieces shared by several class screens. */
-import { esc, icon } from '../core.js?v=1e9e4bc0';
+import { esc, icon } from '../core.js?v=a20ebde2';
 
 const KCOL = ['#6C63FF', '#E2558A', '#2C9C96', '#E07B2E', '#3584D6', '#9A55CF'];
 

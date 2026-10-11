@@ -4,14 +4,14 @@
    teachers" panel with its sources. This file is the frame: picker, top bar, caption, sound, full screen and voice
    commands. The windows themselves load the first time Wonder Window opens (assets/js/wonder/), so the home page
    stays light. */
-import { $, $$, esc, icon, bus, reduceMotion, toast } from './core.js?v=1e9e4bc0';
-import { sfx } from './fx/audio.js?v=1e9e4bc0';
-import { Ambient, Speech } from './fx/sound.js?v=1e9e4bc0';
-import { track } from './track.js?v=1e9e4bc0';
-import { MINI } from './fx/symphony.js?v=1e9e4bc0';
-import { settings } from './settings.js?v=1e9e4bc0';
-import { registerScenes } from './commands.js?v=1e9e4bc0';
-import { view } from './wonder/util.js?v=1e9e4bc0';
+import { $, $$, esc, icon, bus, reduceMotion, toast } from './core.js?v=a20ebde2';
+import { sfx } from './fx/audio.js?v=a20ebde2';
+import { Ambient, Speech } from './fx/sound.js?v=a20ebde2';
+import { track } from './track.js?v=a20ebde2';
+import { MINI } from './fx/symphony.js?v=a20ebde2';
+import { settings } from './settings.js?v=a20ebde2';
+import { registerScenes } from './commands.js?v=a20ebde2';
+import { view } from './wonder/util.js?v=a20ebde2';
 
 /* ---------------- the windows, in their groups ---------------- */
 const GROUPS = [['world', 'Our world'], ['weather', 'Weather and seasons'], ['living', 'The living world'], ['sky', 'Sky and space'], ['dark', 'Nature at dusk and night']];
@@ -57,7 +57,7 @@ let win = null, winId = '', want = '', def = null, startedAt = 0, items = [], id
 let mod = null, modP = null, stars = null;
 const playing = () => document.body.classList.contains('playing');
 function loadMod() {
-  if (!modP) modP = import('./wonder/windows.js?v=1e9e4bc0').then((m) => { mod = m; return m; }).catch((e) => { modP = null; throw e; });
+  if (!modP) modP = import('./wonder/windows.js?v=a20ebde2').then((m) => { mod = m; return m; }).catch((e) => { modP = null; throw e; });
   return modP;
 }
 const padStop = () => { if (mod) mod.Pad.stop(); };
@@ -65,7 +65,7 @@ const padStop = () => { if (mod) mod.Pad.stop(); };
 function pickerHTML() {
   return '<div class="pk-in"><header class="pk-h"><h1>Wonder Window</h1><p>Choose a window for the whole class. You can also say “Hey Symphony, show the rainforest”.</p></header>' +
     GROUPS.map(([g, name]) => '<section class="pk-g"><h2>' + esc(name) + '</h2><div class="pk-grid">' +
-      WINDOWS.filter((w) => w.group === g).map((w) => '<a class="pk-c" href="#/play/' + w.id + '" data-win="' + w.id + '" style="--a:' + w.a + ';--b:' + w.b + '"><span class="pk-e" aria-hidden="true">' + w.e + '</span><b>' + esc(w.name) + '</b><small>' + esc(w.label) + '</small></a>').join('') +
+      WINDOWS.filter((w) => w.group === g).map((w) => '<a class="pk-c" href="#/play/' + w.id + '" data-win="' + w.id + '" style="--a:' + w.a + ';--b:' + w.b + '"><span class="pk-e cre" aria-hidden="true" data-name="' + esc(w.name) + '">' + w.e + '</span><b>' + esc(w.name) + '</b><small>' + esc(w.label) + '</small></a>').join('') +
       '</div></section>').join('') + '</div>';
 }
 function build() {
@@ -83,6 +83,7 @@ function build() {
     '<div class="play-cap" aria-live="polite" hidden><span class="play-sym">' + MINI() + '</span><div class="play-txt"><small></small><p></p></div><div class="play-nav"><button type="button" class="pbtn" data-cap-say title="Symphony reads it">' + icon('volume') + '</button><button type="button" class="pbtn" data-cap-next title="Next">' + icon('right') + '</button></div></div>' +
     '<div class="play-over" hidden></div><div class="play-load" hidden role="status"><span class="play-spin" aria-hidden="true"></span><b>Opening…</b></div>';
   canvas = $('.play-cv', root); ctx = canvas.getContext('2d');
+  loadMod().then((m) => { if (root) m.swapCreatures(root); }).catch(() => {});       // the picker's animals, drawn
   paneHost = $('.play-pane', root); over = $('.play-over', root); pick = $('.play-pick', root); cap = $('.play-cap', root);
   root.addEventListener('click', (e) => {
     const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab, true); return; }

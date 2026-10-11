@@ -490,8 +490,9 @@ export const CAPTIONS = {
     wonders: ['Which festival does your family celebrate? What is your favourite part?', 'Why do you think so many festivals have special food?', 'If you could invent a new festival, what would it celebrate?']
   },
   wonders: {
-    facts: ['The Seven Wonders of the Ancient World were listed by travellers in ancient Greece more than 2,000 years ago.', 'Only one ancient wonder is still standing: the Great Pyramid of Giza.',
-      'In 2007, millions of people around the world voted for the New Seven Wonders.', 'Tap “How tall?” to see the wonders next to Big Ben’s tower, a bus and you!'],
+    facts: ['The Seven Wonders of the Ancient World were listed by travellers in ancient Greece more than 2,000 years ago.', 'Only one ancient wonder is still standing: the Great Pyramid of Giza. The others are drawn here as they may have looked when they were new.',
+      'Tap the picture: the pyramid gets its shining white casing back, Zeus throws a lightning bolt, a beacon is lit on the Great Wall, and the Taj Mahal changes colour with the time of day.',
+      'In 2007, millions of people around the world voted for the New Seven Wonders.', 'The tiny people in each picture are drawn to the right size, so you can see how big the wonders really are.', 'Tap “How tall?” to see the wonders next to Big Ben’s tower, a bus and you!'],
     wonders: ['If you could visit one wonder, which would it be?', 'How do you think people built the pyramids without machines?', 'What would you choose as a wonder of Malaysia?']
   },
   records: {

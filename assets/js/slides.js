@@ -1,13 +1,14 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
-import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=1e9e4bc0';
-import { track } from './track.js?v=1e9e4bc0';
-import EXAMPLE_RAW from './slides-example.js?v=1e9e4bc0';
-import { Ribbons } from './fx/ribbons.js?v=1e9e4bc0';
-import { sfx } from './fx/audio.js?v=1e9e4bc0';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=1e9e4bc0';
-import { presentKit } from './presentkit.js?v=1e9e4bc0';
-import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=1e9e4bc0';
+import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=a20ebde2';
+import { track } from './track.js?v=a20ebde2';
+import { fractify, fracSlide } from './fractions.js?v=a20ebde2';
+import EXAMPLE_RAW from './slides-example.js?v=a20ebde2';
+import { Ribbons } from './fx/ribbons.js?v=a20ebde2';
+import { sfx } from './fx/audio.js?v=a20ebde2';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=a20ebde2';
+import { presentKit } from './presentkit.js?v=a20ebde2';
+import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=a20ebde2';
 
 const I = {
   flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
@@ -174,6 +175,7 @@ export function slideHTML(d, s, i, rv, pres) {
 export function fitSlide(el) {
   const body = el && el.querySelector('.sl-body');
   if (!body) return;
+  fractify(el);
   let f = 1;
   el.style.setProperty('--fs', '1');
   while (body.scrollHeight > body.clientHeight + 1 && f > 0.62) { f = Math.round((f - 0.06) * 100) / 100; el.style.setProperty('--fs', String(f)); }
@@ -555,12 +557,12 @@ async function buildPptx(d, m) {
   const pptx = new window.PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE'; pptx.author = 'KS2 Lesson Engine'; pptx.title = d.title; pptx.subject = d.year + ' ' + d.subject;
   d.slides.forEach((sl, i) => {
-    const s = pptx.addSlide(); s.background = { color: 'FFFFFF' };
+    const s = fracSlide(pptx.addSlide()); s.background = { color: 'FFFFFF' };
     const t = pChrome(s, d, sl, m, { noTitle: sl.type === 'title' });
     pptBody(pptx, s, d, sl, t);
     s.addNotes(notesFor(d, sl, i === 0));
     if (QTYPES.has(sl.type) || sl.type === 'hinge') {
-      const a = pptx.addSlide(); a.background = { color: 'FFFFFF' };
+      const a = fracSlide(pptx.addSlide()); a.background = { color: 'FFFFFF' };
       const ta = pChrome(a, d, sl, m, { noRespond: true, title: 'Answers: ' + (sl.title || KINDS[sl.type].label) });
       if (sl.type === 'hinge') pHinge(a, sl, ta, true); else pQuestions(a, sl, ta, true);
       a.addNotes('Answer slide. ' + notesFor(d, sl, false));

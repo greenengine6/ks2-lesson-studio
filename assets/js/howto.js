@@ -1,10 +1,10 @@
 /* How it works: every rule on the site in one place, in plain words. It opens from the header's "How it works",
    the home page's How it works section, the "?" next to Online / In class, and the Join screen. The numbers come
    from the same settings the rules themselves use (guard.js), so they are always right. */
-import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=1e9e4bc0';
-import { LIMITS } from './guard.js?v=1e9e4bc0';
-import { ENGINES } from './engines/registry.js?v=1e9e4bc0';
-import { RESPOND } from './engines/shared.js?v=1e9e4bc0';
+import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=a20ebde2';
+import { LIMITS } from './guard.js?v=a20ebde2';
+import { ENGINES } from './engines/registry.js?v=a20ebde2';
+import { RESPOND } from './engines/shared.js?v=a20ebde2';
 
 const SCRIPT = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/;
 const schoolOn = () => SCRIPT.test(String(CONFIG.inbox || ''));
@@ -26,6 +26,7 @@ function body(id) {
   const L = LIMITS, on = schoolOn();
   if (id === 'start') return '<p class="howm-lede">Three steps from a topic to a lesson your class answers.</p>' + li([
     b('Sign in') + ' with your name and the PIN Rabinder gave you. On a new device, open your personal link once.',
+    b('Fractions') + ' are always shown with the numerator over the denominator, the way the class writes them, on slides, worksheets, the board, pupils’ devices and in Symphony’s replies. PowerPoint and Word files show them as ³⁄₄.',
     b('Pick') + ' one of the ten engines, Slide Studio or lkie.like. Fill in two or three boxes and press the Make button. It takes about a minute.',
     b('Press Present.') + ' On Teams, Zoom or Meet, share that window (tick “share sound” for Sound Journey and Brain Break).',
     b('Pupils can join') + ' on their own tablets, phones or laptops with the Join button (see Live lessons).',
@@ -106,6 +107,7 @@ function body(id) {
     'Open it from the link at the bottom of the home page, or ask Symphony (“open the festivals”).',
     'Most windows have a quiz that can be a class vote, on pupils’ devices in a live lesson.',
     'Tap or click things to find out more; the sound button turns the sound on and off.',
+    'Every animal, bird, fish and racer is drawn by the site itself, not an emoji, so the scenes look the same on every device.',
     'It never uses the engine, so it has no limits.'
   ]);
   if (id === 'privacy') return '<p class="howm-lede">What stays in this browser, and what leaves it.</p>' + li([

@@ -3,22 +3,25 @@
    that Symphony reads (facts, then "wonder questions"), a quiz the class can answer together or vote on from their
    own devices, and a "For teachers" panel listing where the facts and photos come from.
    play.js is the frame around them: the picker, the top bar, the caption, sound and full screen. */
-import { $, $$, esc, icon } from '../core.js?v=1e9e4bc0';
-import { sfx } from '../fx/audio.js?v=1e9e4bc0';
-import { Voice } from '../fx/voice.js?v=1e9e4bc0';
-import { leadPicture, creditFor, picURL, creditText } from '../pics.js?v=1e9e4bc0';
-import { openMoment } from '../moments.js?v=1e9e4bc0';
-import * as D from './data.js?v=1e9e4bc0';
-import { NATURE, Pad } from './nature.js?v=1e9e4bc0';
-import { explorer, distanceKm, flightHours } from './map.js?v=1e9e4bc0';
-import { makeStage, switcher } from './stage.js?v=1e9e4bc0';
-import { makeFestival, FEST_SCENES } from './festive.js?v=1e9e4bc0';
-import { makeScale, makeRace } from './scale.js?v=1e9e4bc0';
-import { Music, Fx } from './music.js?v=1e9e4bc0';
-import { makeBiome } from './biomes.js?v=1e9e4bc0';
-import { weather, feelsLike } from './weather.js?v=1e9e4bc0';
-import { seasons, PLACES, MONTHS, dateOf, dayOfYear, seasonOf, daylight } from './seasons.js?v=1e9e4bc0';
-import { flag, hm } from './util.js?v=1e9e4bc0';
+import { $, $$, esc, icon } from '../core.js?v=a20ebde2';
+import { sfx } from '../fx/audio.js?v=a20ebde2';
+import { Voice } from '../fx/voice.js?v=a20ebde2';
+import { leadPicture, creditFor, picURL, creditText } from '../pics.js?v=a20ebde2';
+import { openMoment } from '../moments.js?v=a20ebde2';
+import * as D from './data.js?v=a20ebde2';
+import { NATURE, Pad } from './nature.js?v=a20ebde2';
+import { explorer, distanceKm, flightHours } from './map.js?v=a20ebde2';
+import { makeStage, switcher } from './stage.js?v=a20ebde2';
+import { makeFestival, FEST_SCENES } from './festive.js?v=a20ebde2';
+import { makeWonders, WONDER_SCENES } from './wonders.js?v=a20ebde2';
+import { swapCreatures } from './fauna.js?v=a20ebde2';
+export { swapCreatures };
+import { makeScale, makeRace } from './scale.js?v=a20ebde2';
+import { Music, Fx } from './music.js?v=a20ebde2';
+import { makeBiome } from './biomes.js?v=a20ebde2';
+import { weather, feelsLike } from './weather.js?v=a20ebde2';
+import { seasons, PLACES, MONTHS, dateOf, dayOfYear, seasonOf, daylight } from './seasons.js?v=a20ebde2';
+import { flag, hm } from './util.js?v=a20ebde2';
 
 export { Pad };
 const T = (x, ms) => (x == null ? '' : typeof x === 'string' ? x : ms && x.bm ? x.bm : x.text);
@@ -57,13 +60,14 @@ function openCard(shell, c) {
   const rows = (c.rows || []).filter((r) => r && r[1]).map(([k, v]) => '<div><dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd></div>').join('');
   const el = shell.overlay('<article class="wo-card wd" data-ctx>' +
     '<button type="button" class="pbtn wo-x" data-wo-x aria-label="' + (ms ? 'Tutup' : 'Close') + '">' + icon('close') + '</button>' +
-    '<figure class="wd-ph"' + (c.wiki ? ' data-wiki="' + esc(c.wiki) + '"' : '') + '><span class="wd-e" aria-hidden="true">' + esc(c.e || '✨') + '</span><figcaption class="ph-cr" hidden></figcaption></figure>' +
+    '<figure class="wd-ph"' + (c.wiki ? ' data-wiki="' + esc(c.wiki) + '"' : '') + '><span class="wd-e cre" aria-hidden="true" data-name="' + esc(c.title || '') + '">' + esc(c.e || '✨') + '</span><figcaption class="ph-cr" hidden></figcaption></figure>' +
     '<div class="wd-b"><small class="wd-k">' + esc(c.sub || '') + '</small><h2>' + esc(c.title) + '</h2>' + (rows ? '<dl class="wd-rows">' + rows + '</dl>' : '') +
     (c.text ? '<p class="wd-t">' + esc(c.text) + '</p>' : '') +
     '<div class="wd-btns"><button type="button" class="btn small" data-wd-say>' + icon('volume') + (ms ? 'Baca' : 'Read aloud') + '</button>' + (c.extra || '') +
     (c.nav ? '<span class="wd-nav"><button type="button" class="pbtn" data-wd-nav="-1" aria-label="' + (ms ? 'Sebelumnya' : 'Previous') + '">' + icon('left') + '</button><button type="button" class="pbtn" data-wd-nav="1" aria-label="' + (ms ? 'Seterusnya' : 'Next') + '">' + icon('right') + '</button></span>' : '') +
     '</div></div></article>', c.title);
   if (c.wiki) photoInto($('.wd-ph', el), c.wiki, 960, true);
+  swapCreatures(el);
   el.addEventListener('click', (e) => {
     const n = e.target.closest('[data-wd-nav]'), h = e.target.closest('[data-hear]');
     if (e.target.closest('[data-wd-say]')) shell.say(c.title + '. ' + (c.text || ''), ms ? 'ms' : 'en-GB');
@@ -182,7 +186,8 @@ function stageUI(shell, o) {
     },
     list(list) {
       if (!el) return;
-      $('.sg-strip', el).innerHTML = list.map((x, k) => '<button type="button" class="sg-chip' + (x.hot ? ' hot' : '') + '" data-sg-i="' + k + '" aria-current="false"><span aria-hidden="true">' + x.e + '</span><b>' + esc(x.name) + '</b>' + (x.hot ? '<em>' + esc(x.hot) + '</em>' : '') + '</button>').join('');
+      $('.sg-strip', el).innerHTML = list.map((x, k) => '<button type="button" class="sg-chip' + (x.hot ? ' hot' : '') + '" data-sg-i="' + k + '" aria-current="false"><span class="cre" aria-hidden="true" data-name="' + esc(x.name) + '">' + x.e + '</span><b>' + esc(x.name) + '</b>' + (x.hot ? '<em>' + esc(x.hot) + '</em>' : '') + '</button>').join('');
+      swapCreatures($('.sg-strip', el));
       i = -1;
     },
     set(k, x) {
@@ -226,11 +231,6 @@ function scaleUI(shell, sc, hint) {
 const metres = (n) => (n < 1 ? Math.round(n * 100) + ' cm' : String(n).replace(/\.0$/, '') + ' m');
 /* How each place looks and sounds on the photo stage: the weather on top, the soundscape, the colours while the photo loads. */
 const LOOK = {
-  giza: ['dust rays', 'wind', '#3B2A14', '#C99A55'], babylon: ['leaves rays', 'birds', '#14301C', '#6E9F4A'], artemis: ['dust rays', 'wind', '#2E2A3A', '#B9A27A'],
-  zeus: ['rays dust', 'wind', '#2A2238', '#C9A85A'], mausoleum: ['dust', 'wind', '#2E2A22', '#B8A27A'], colossus: ['mist', 'ocean', '#10243A', '#D9A64B'],
-  pharos: ['embers mist', 'ocean', '#0E2236', '#E39A4A'], wall: ['mist', 'wind', '#1C2A22', '#8EA37A'], petra: ['dust rays', 'wind', '#3A1F18', '#D2865A'],
-  christ: ['mist', 'wind', '#16304A', '#9CB8D6'], machu: ['mist', 'birds', '#1B2E22', '#7E9F6A'], chichen: ['rays leaves', 'forest', '#26301A', '#B8A06A'],
-  colosseum: ['dust', 'city', '#2E241C', '#C49A6A'], taj: ['rays', 'birds', '#2A2A3E', '#F0E6D6'],
   kinabalu: ['mist', 'wind', '#1C2A3A', '#7E93B0'], tamannegara: ['mist leaves', 'forest', '#0F2416', '#3E7A44'], rafflesia: ['leaves', 'forest', '#2A1414', '#B8433A'],
   orangutan: ['leaves', 'forest', '#2A1A0E', '#C46A2E'], proboscis: ['mist', 'river', '#1A2A1E', '#A8784A'], tiger: ['leaves', 'night', '#1E1A0E', '#D98A2B'],
   mulu: ['bats', 'night', '#14161E', '#5A5E6E'], fireflies: ['sparkle', 'night', '#060E0A', '#2E5A3A'], turtle: ['bubbles', 'ocean', '#08263A', '#2E7DA6'],
@@ -240,7 +240,7 @@ const LOOK = {
   croc: ['mist', 'river', '#1A2216', '#6E7A4A'], ostrich: ['dust', 'wind', '#3A2E1A', '#C9A26A'], hummingbird: ['sparkle leaves', 'birds', '#0E2A1A', '#3EA67A'],
   shrew: ['leaves', 'night', '#1E1A16', '#7A6A5A'], shark: ['bubbles', 'ocean', '#081A2A', '#3A5E7A'], beetle: ['leaves', 'forest', '#161E10', '#6E8A2E']
 };
-const lookOf = (id, e, wiki) => { const L = LOOK[id] || ['', '', '#141A2E', '#4A5A8A']; return { key: id, wiki, e, fx: L[0] ? L[0].split(' ') : [], sound: L[1], a: L[2], b: L[3] }; };
+const lookOf = (id, e, wiki, name) => { const L = LOOK[id] || ['', '', '#141A2E', '#4A5A8A']; return { key: id, wiki, e, name: name || '', fx: L[0] ? L[0].split(' ') : [], sound: L[1], a: L[2], b: L[3] }; };
 /* A window built on the photo stage. list: the items; o: { label, kick(x), text(x), name(x), wiki, e, more(i), say(i) } */
 function stageWin(shell, list, o) {
   const stage = makeStage();
@@ -248,7 +248,7 @@ function stageWin(shell, list, o) {
   const go = (k, user) => {
     const n = list.length; i = ((k % n) + n) % n;
     const x = list[i];
-    stage.show(lookOf(x.id, x.icon, x.wiki));
+    stage.show(lookOf(x.id, x.icon, x.wiki, x.name));
     ui.set(i, { kicker: o.kick(x), name: o.name(x), text: o.text(x) });
     shell.setSub(x.id);
     shell.resound();
@@ -429,7 +429,7 @@ function festivalsWin(shell) {
   return W;
 }
 
-/* ---------- The Seven Wonders: the ancient seven and the new seven on the photo stage, and "How tall?" ---------- */
+/* ---------- The Seven Wonders: the ancient seven and the new seven, drawn live, and "How tall?" ---------- */
 function wondersWin(shell) {
   const sets = { ancient: D.WONDERS.filter((x) => x.set === 'ancient'), new: D.WONDERS.filter((x) => x.set === 'new') };
   const C = { giza: '#E3C08A', pharos: '#E8D2A8', zeus: '#D6B37A', mausoleum: '#CDBB95', colossus: '#C9A15A', petra: '#D98E6A', christ: '#E6E2D8', chichen: '#BFAF84', colosseum: '#D2B48C', taj: '#F4EFE6', wall: '#A9B394' };
@@ -437,52 +437,74 @@ function wondersWin(shell) {
     .concat([{ id: 'bigben', name: 'Big Ben’s tower', label: '96 m tall', m: 96, how: 'tall', shape: 'bigben', c: '#9FB6D6', ref: true },
       { id: 'bus', name: 'A double-decker bus', label: '4.4 m tall', m: 4.4, how: 'tall', shape: 'bus', ref: true },
       { id: 'pupil', name: 'A Year 4 pupil', label: '1.3 m tall', m: 1.3, how: 'tall', e: '🧒', ref: true }]));
-  const stages = {};
-  let tab = 'ancient', zui = null;
-  const sw = switcher({ stage: makeStage(), tall }, 'stage');
-  function more(set, k, go) {
-    const l = sets[set], x = l[k];
-    openCard(shell, { title: x.name, sub: set === 'ancient' ? 'Seven Wonders of the Ancient World' : 'New Seven Wonders of the World', e: x.icon, wiki: x.wiki, text: x.text,
+  const scene = makeWonders();
+  let tab = 'ancient', i = 0, ui = null, zui = null, owned = false;
+  const sw = switcher({ scene, tall }, 'scene');
+  const list = () => sets[tab] || sets.ancient;
+  function more(k) {
+    const l = list(), x = l[k];
+    openCard(shell, { title: x.name, sub: tab === 'ancient' ? 'Seven Wonders of the Ancient World' : 'New Seven Wonders of the World', e: x.icon, wiki: x.wiki, text: x.text,
       rows: [['Where', x.where], ['Built', x.built], ['Height', x.h ? 'About ' + x.h + ' metres' : ''], ['Still standing?', x.standing ? 'Yes' : 'No']],
-      nav: (d) => { const j = (k + d + l.length) % l.length; go(j, true); more(set, j, go); } });
+      nav: (d) => { const j = (k + d + l.length) % l.length; go(j, true); more(j); } });
   }
-  const mk = (set) => stageWin(shell, sets[set], {
-    label: set === 'ancient' ? 'The ancient seven' : 'The new seven',
-    kick: (x) => (set === 'ancient' ? 'Ancient wonder' : 'New wonder') + ' · ' + x.where + ' · ' + x.built + (x.standing ? '' : ' · gone now'),
-    name: (x) => x.name, text: (x) => x.text,
-    more: (k, go) => more(set, k, go)
-  });
+  const kick = (x) => (tab === 'ancient' ? 'Ancient wonder' : 'New wonder') + ' · ' + x.where + ' · ' + x.built + (x.standing ? '' : ' · gone now');
+  const go = (k, user) => {
+    const l = list(), n = l.length; i = ((k % n) + n) % n;
+    const x = l[i];
+    scene.set(x.id);
+    if (ui) ui.set(i, { kicker: kick(x), name: x.name, text: x.text });
+    shell.setSub(x.id);
+    shell.resound();
+    if (owned) { owned = false; shell.recaption(); }
+    if (user) sfx('whoosh');
+  };
+  scene.onPhase = (ph, user) => { shell.resound(); if (!user && owned) { owned = false; shell.recaption(); } };
+  function mountList() {
+    ui = stageUI(shell, { label: tab === 'ancient' ? 'The ancient seven' : 'The new seven', go, more, say: (k) => { const x = list()[k]; shell.say(x.name + '. ' + x.text, 'en-GB'); } });
+    ui.mount(list().map((x) => ({ e: x.icon, name: x.name })));
+    ui.el.classList.add('sg-fest');
+  }
   const W = {
-    scene: sw, pad: true, quiz: 'wonders', sources: 'wonders',
+    scene: sw, pad: false, quiz: 'wonders', sources: 'wonders',
     tabs: [{ id: 'ancient', name: 'Ancient seven' }, { id: 'new', name: 'New seven' }, { id: 'tall', name: 'How tall?' }], tab,
-    get sound() { return tab === 'tall' ? 'wind' : stages[tab] ? stages[tab].sound : 'wind'; },
+    get sound() { return tab === 'tall' ? 'wind' : scene.sound; },
+    audio(on) { if (on && tab !== 'tall' && scene.f) Music.start(scene.f.music); else Music.stop(); },
     caption: () => items(D.CAPTIONS.wonders.facts, D.CAPTIONS.wonders.wonders),
     setTab(id) {
-      Object.keys(stages).forEach((k) => stages[k].unmount());
+      if (ui) { ui.remove(); ui = null; }
       if (zui) { zui.remove(); zui = null; }
       shell.pane.innerHTML = '';
       tab = W.tab = id;
+      if (owned) { owned = false; shell.recaption(); }
       if (id === 'tall') {
+        Music.stop();
         sw.use('tall'); tall.sel = ''; tall.z = 0; tall.goal = 0;
         zui = scaleUI(shell, tall, 'Tap a wonder to find out how tall it is. Heights are about, and rounded; the Great Pyramid was about 147 metres when it was built.');
         shell.setSub('tall');
         if (shell.pane.clientWidth < 700) shell.show({ kind: 'How tall?', text: 'Drag the picture to slide along the line, from the smallest to the tallest. Tap one to hear what it is.', lang: 'en-GB' }, false);
         return;
       }
-      if (!stages[id]) stages[id] = mk(id);
-      sw.set('stage', stages[id].stage); sw.use('stage');
-      stages[id].mount();
+      sw.use('scene');
+      mountList();
+      go(0);
+      if (shell.soundOn()) Music.start(scene.f.music);
     },
-    unmount() { Object.keys(stages).forEach((k) => stages[k].unmount()); if (zui) zui.remove(); },
-    arrow(d) { if (stages[tab] && tab !== 'tall') stages[tab].arrow(d); },
+    unmount() { Music.stop(); if (ui) ui.remove(); if (zui) zui.remove(); ui = null; zui = null; },
+    arrow(d) { if (tab !== 'tall') go(i + d, true); },
     sub(s) {
       if (W.tabs.some((x) => x.id === s)) { shell.tab(s); return; }
       const set = sets.ancient.some((x) => x.id === s) ? 'ancient' : sets.new.some((x) => x.id === s) ? 'new' : '';
-      if (set) { if (tab !== set) shell.tab(set); stages[set].sub(s); }
+      if (!set) return;
+      if (tab !== set) shell.tab(set);
+      const k = list().findIndex((x) => x.id === s); if (k >= 0) go(k);
     },
     tick() { if (zui) zui.tick(); },
-    onScene(r) { if (r && r.size) { const x = D.WONDERS.find((y) => y.id === r.size); shell.show(x ? { kind: x.name, text: x.name + ' is about ' + x.h + ' metres tall. ' + x.text, lang: 'en-GB' } : { kind: 'For scale', text: r.size === 'bigben' ? 'Big Ben’s tower in London is 96 metres tall.' : r.size === 'bus' ? 'A London double-decker bus is about 4.4 metres tall.' : 'A Year 4 pupil is about 1.3 metres tall.', lang: 'en-GB' }, true); } },
-    context() { return tab === 'tall' ? 'The Seven Wonders window shows how tall the wonders are, side by side with Big Ben’s tower, a bus and a pupil.' : (stages[tab] ? 'The Seven Wonders window shows ' + stages[tab].list[stages[tab].i].name + '.' : ''); }
+    onScene(r) {
+      if (!r) return;
+      if (r.size) { const x = D.WONDERS.find((y) => y.id === r.size); shell.show(x ? { kind: x.name, text: x.name + ' is about ' + x.h + ' metres tall. ' + x.text, lang: 'en-GB' } : { kind: 'For scale', text: r.size === 'bigben' ? 'Big Ben’s tower in London is 96 metres tall.' : r.size === 'bus' ? 'A London double-decker bus is about 4.4 metres tall.' : 'A Year 4 pupil is about 1.3 metres tall.', lang: 'en-GB' }, true); return; }
+      if (r.say) { owned = true; shell.show({ kind: r.say.kind, text: r.say.text, lang: 'en-GB' }, true); }
+    },
+    context() { return tab === 'tall' ? 'The Seven Wonders window shows how tall the wonders are, side by side with Big Ben’s tower, a bus and a pupil.' : (scene.f ? 'The Seven Wonders window shows ' + list()[i].name + ', drawn live' + (scene.f.phases ? ' at ' + scene.phase : '') + '. Tapping the picture: ' + (scene.f.tap === 'phase' ? 'changes the time of day' : 'brings it to life') + '.' : ''); }
   };
   return W;
 }

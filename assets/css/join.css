@@ -100,3 +100,10 @@ button{font:inherit;color:inherit}
 @keyframes jnNew{0%{transform:scale(.94);box-shadow:var(--ex),0 0 0 0 rgb(108 99 255 / .5)}60%{transform:scale(1.01);box-shadow:var(--ex),0 0 0 14px rgb(108 99 255 / 0)}}
 .jn-foot{gap:10px;align-items:center;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){ .jn-mo.new,.jn-net{animation:none} }
+
+/* ---------- fractions: the numerator over the denominator, wherever 3/4 appears (fractions.js) ---------- */
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;margin:0 .14em;font-size:.76em;font-weight:inherit;font-variant-numeric:lining-nums tabular-nums;white-space:nowrap;position:relative;top:-.04em}
+.fr-n,.fr-d{display:block;padding:0 .22em}
+.fr-n{border-bottom:.1em solid currentColor;padding-bottom:.08em}
+.fr-d{padding-top:.08em}
+.fr-s{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
