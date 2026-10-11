@@ -411,7 +411,7 @@ details.more[open] summary{margin-bottom:10px}
   .cs-stage{height:420px}
 }
 @media (max-width:900px){
-  .nav,.top-r .seg{display:none}
+  .nav,.top-r .seg,.top-r .seg-q{display:none}
   .menu-btn{display:inline-flex}
   .top-r{margin-left:auto}
   .dock-panel{gap:9px;height:62px;padding:0 12px 8px;overflow-x:auto;scrollbar-width:none;border-radius:24px}
@@ -499,3 +499,59 @@ img,svg,canvas{-webkit-user-drag:none}
 .sh-more:empty{display:none}
 .ss .actions #a-keep[aria-pressed="true"]{box-shadow:var(--in-sm);color:var(--accent)}
 @media (max-width:640px){ .shelf{padding-top:48px} .shelf-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px} .sh-body{padding:10px 12px 12px} .sh-title{font-size:max(9px,calc(14.5px * var(--m,1)))} .sh-pin{width:34px;height:34px;top:8px;right:8px} }
+
+/* ---------- How it works: every rule in one place (howto.js) ---------- */
+.howm{z-index:120}
+.howm-card{position:relative;width:min(1080px,100%);height:min(840px,calc(100vh - 32px));height:min(840px,calc(100dvh - 32px));display:flex;flex-direction:column;border-radius:32px;background:var(--surface);color:var(--fg);box-shadow:var(--ex-hover);overflow:hidden;animation:howIn .32s var(--ease)}
+@keyframes howIn{from{opacity:0;transform:translateY(12px) scale(.985)}}
+.howm-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:26px 30px 12px}
+.howm-top .kicker{margin:0}
+.howm-top h2{margin:4px 0 0;font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(clamp(1.7rem,3vw,2.4rem) * var(--m,1)));letter-spacing:-.02em;line-height:1.05}
+.howm-in{flex:1;min-height:0;display:grid;grid-template-columns:250px minmax(0,1fr);gap:10px;padding:0 18px 18px}
+.howm-nav{display:flex;flex-direction:column;gap:6px;padding:6px;overflow:auto}
+.howm-nav button{display:flex;align-items:center;gap:10px;text-align:left;border:0;border-radius:16px;padding:11px 14px;background:transparent;cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:max(9px,calc(14px * var(--m,1)));color:var(--muted)}
+.howm-nav button .i{width:18px;height:18px;flex:none}
+.howm-nav button:hover{color:var(--fg)}
+.howm-nav button[aria-current="true"]{color:var(--accent);box-shadow:var(--in-sm)}
+.howm-main{overflow:auto;padding:4px 18px 45vh 14px;border-radius:22px;outline:none}
+.howm-sec{padding:16px 0 24px}
+.howm-sec + .howm-sec{border-top:1px solid rgb(120 130 150 / .16)}
+.howm-sec h3{display:flex;align-items:center;gap:12px;margin:0 0 8px;font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(22px * var(--m,1)));letter-spacing:-.01em}
+.howm-sec h3 i{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;box-shadow:var(--in-sm);color:var(--accent);flex:none}
+.howm-sec h3 .i{width:19px;height:19px}
+.howm-lede{margin:0 0 10px;color:var(--muted);font-size:max(9px,calc(16px * var(--m,1)));line-height:1.55}
+.howm-sub{margin:18px 0 6px;font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(15.5px * var(--m,1)))}
+.howm-list{margin:0;padding:0 0 0 20px;display:grid;gap:8px;font-size:max(9px,calc(15px * var(--m,1)));line-height:1.55}
+.howm-list li::marker{color:var(--accent)}
+.howm-rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin:10px 0 6px}
+.howm-rules > div{padding:16px 18px;border-radius:22px;box-shadow:var(--ex-sm);display:grid;gap:8px;align-content:start}
+.howm-rules h4{display:flex;align-items:center;gap:8px;margin:0;font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(15.5px * var(--m,1)))}
+.howm-rules h4 .i{width:17px;height:17px;color:var(--accent)}
+.howm-rules p{margin:0;color:var(--muted);font-size:max(9px,calc(13.5px * var(--m,1)));line-height:1.5}
+.howm-note{display:flex;gap:10px;align-items:flex-start;margin:14px 0 0;padding:12px 14px;border-radius:16px;box-shadow:var(--in-sm);color:var(--muted);font-size:max(9px,calc(14px * var(--m,1)))}
+.howm-note .i{width:18px;height:18px;flex:none;color:var(--accent);margin-top:2px}
+.howm-tbl{display:grid;border-radius:18px;overflow:hidden;box-shadow:var(--ex-sm);margin:6px 0 4px}
+.howm-tbl > div{display:grid;grid-template-columns:minmax(96px,.6fr) 1fr 1fr;gap:12px;padding:10px 16px;font-size:max(9px,calc(14px * var(--m,1)));align-items:center}
+.howm-tbl > div:nth-child(even){background:rgb(255 255 255 / .3)}
+[data-theme="night"] .howm-tbl > div:nth-child(even){background:rgb(255 255 255 / .04)}
+.howm-tbl .hd{font-family:var(--f-display);font-weight:800;color:var(--accent);font-size:max(9px,calc(12px * var(--m,1)));letter-spacing:.1em;text-transform:uppercase}
+.howm-tbl [role="rowheader"]{font-weight:700}
+html.howm-open{overflow:hidden}
+.how-more{display:flex;justify-content:center;margin:26px 0 0}
+.seg-q{width:26px;height:26px;flex:none;border:0;border-radius:50%;display:inline-grid;place-items:center;cursor:pointer;background:var(--surface);color:var(--muted);box-shadow:var(--ex-sm);font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(13px * var(--m,1)))}
+.seg-q:hover{color:var(--accent)}
+.mnav .seg-q{margin:6px 0 2px 6px}
+@media (max-width:760px){
+  .howm{padding:0}
+  .howm-card{height:100%;border-radius:0;width:100%}
+  .howm-top{padding:16px 16px 6px}
+  .howm-in{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);padding:0 6px 6px;gap:4px}
+  .howm-nav{flex-direction:row;overflow-x:auto;padding:4px 10px 10px;scrollbar-width:none}
+  .howm-nav::-webkit-scrollbar{display:none}
+  .howm-nav button{flex:none;padding:9px 12px;white-space:nowrap}
+  .howm-main{padding:0 12px 45vh}
+  .howm-tbl > div{grid-template-columns:1fr 1fr;gap:6px 12px}
+  .howm-tbl [role="rowheader"]{grid-column:1/-1}
+  .howm-tbl .hd span:first-child{display:none}
+}
+@media (prefers-reduced-motion:reduce){ .howm-card{animation:none} }

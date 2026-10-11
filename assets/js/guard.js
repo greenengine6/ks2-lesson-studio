@@ -7,13 +7,16 @@
    3. Caps. Everything one person makes on this device, together: at most 15 an hour and 40 a day.
    4. Small edits (the lkie.like slide editor, a worksheet rewrite): one every 8 seconds, at most 40 an hour.
    5. Symphony's chat: one question every 3 seconds, at most 20 in 10 minutes and 150 a day.
-   6. One thing at a time. While the engine is making something, in this tab or another one, other Make buttons wait.
+   6. One thing at a time for each teacher (activity.js). While the engine is making something for her, or her live
+      lesson is running, the other Make buttons wait: in this tab, her other tabs and, once the school relay is on,
+      her other devices. Presenting, the Wonder Window and Symphony stay free.
    Reaching a cap is noted in the activity log, so Rabinder's dashboard shows who keeps hitting the limits.
    The numbers can be changed in index.html ("limits"). These rules live on each device; the hard ceiling is the
    monthly spend limit on the key itself. */
-import { store, bus, CONFIG } from './core.js?v=7a165bee';
-import { who } from './people.js?v=7a165bee';
-import { track } from './track.js?v=7a165bee';
+import { store, bus, CONFIG } from './core.js?v=1e9e4bc0';
+import { who } from './people.js?v=1e9e4bc0';
+import { track } from './track.js?v=1e9e4bc0';
+import { hold, release, blocker, makingElsewhere } from './activity.js?v=1e9e4bc0';
 
 const DEF = { rest: 5, hour: 15, day: 40, editGap: 8, editHour: 40, chatGap: 3, chatTen: 20, chatDay: 150 };
 const C = Object.assign({}, DEF, (CONFIG && typeof CONFIG.limits === 'object' && CONFIG.limits) || {});
@@ -21,9 +24,9 @@ export const LIMITS = {
   restMin: C.rest, rest: C.rest * 60000, hour: C.hour, day: C.day,
   editGap: C.editGap * 1000, editHour: C.editHour, chatGap: C.chatGap * 1000, chatTen: C.chatTen, chatDay: C.chatDay
 };
-const KEY = 'ks2-engine.guard.v1', JOB = 'ks2-engine.job.v1', MIN = 60000, HOUR = 3600000, DAY = 864e5;
-const TAB = Math.random().toString(36).slice(2);
+const KEY = 'ks2-engine.guard.v1', MIN = 60000, HOUR = 3600000, DAY = 864e5;
 store.set('ks2-engine.cool.v1', '');     // the first, Slide-Studio-only version of the rest
+store.set('ks2-engine.job.v1', '');      // the first, this-device-only version of "one thing at a time"
 
 /* ---------------- what each person has done on this device ---------------- */
 const slot = () => who.id || who.role || 'device';
@@ -47,18 +50,19 @@ function freeAt(ts, span, cap, now) {
   return w.length >= cap ? w[w.length - cap] + span : 0;
 }
 
-/* ---------------- one thing at a time (this tab and other tabs) ---------------- */
-let job = null, beatTimer = 0;
-function otherJob(now) { const j = store.getJSON(JOB, null); return !!(j && j.tab !== TAB && now - (Number(j.beat) || 0) < 15000); }
-function beat() { if (job) store.setJSON(JOB, { name: job.name, tab: TAB, beat: Date.now() }); }
-export const making = () => !!job || otherJob(Date.now());
+/* ---------------- one thing at a time ---------------- */
+let job = null;
+export const making = () => !!job || makingElsewhere();
 
 /* ---------------- Make buttons ---------------- */
-/* { ok } or { ok: false, why: 'busy' | 'rest' | 'hour' | 'day', left: ms, span: ms }, plus todayLeft. */
+/* { ok } or { ok: false, why: 'busy' | 'live' | 'rest' | 'hour' | 'day', where, left: ms, span: ms }, plus todayLeft.
+   busy: something is being made (where: 'here', 'tab' or 'device'); live: her live lesson is running. */
 export function makeState(name) {
   const now = Date.now(), p = mine(readAll(), now);
   const todayLeft = Math.max(0, LIMITS.day - p.made.filter((t) => t >= midnight(now)).length);
-  if (making()) return { ok: false, why: 'busy', left: 0, todayLeft };
+  if (job) return { ok: false, why: 'busy', where: 'here', left: 0, todayLeft };
+  const b = blocker('make');
+  if (b) return { ok: false, why: b.what === 'live' ? 'live' : 'busy', where: b.where, left: 0, todayLeft };
   const waits = [];
   if (p.rest[name]) waits.push({ why: 'rest', left: p.rest[name] + LIMITS.rest - now, span: LIMITS.rest });
   const h = freeAt(p.made, HOUR, LIMITS.hour, now);
@@ -75,16 +79,14 @@ export function makeStart(name) {
   store.setJSON(KEY, all);
   const inHour = p.made.filter((t) => now - t < HOUR).length, today = p.made.filter((t) => t >= midnight(now)).length;
   if (today >= LIMITS.day) noteLimit(name, 'day'); else if (inHour >= LIMITS.hour) noteLimit(name, 'hour');
-  job = { name, at: now };
-  beat(); clearInterval(beatTimer); beatTimer = setInterval(beat, 5000);
+  job = { name, at: now, note: hold('make', name) };
   paintAll();
   return { name, at: now };
 }
 /* outcome: 'ok' (it made something), 'error' (the engine could not finish) or 'stopped' (the person pressed Stop). */
 export function makeEnd(ticket, outcome) {
   if (!ticket) return;
-  clearInterval(beatTimer); beatTimer = 0;
-  if (job && job.at === ticket.at) { job = null; store.set(JOB, ''); }
+  if (job && job.at === ticket.at) { release(job.note); job = null; }
   const giveBack = outcome === 'error' || (outcome === 'stopped' && Date.now() - ticket.at < 15000);
   if (giveBack) {
     const all = readAll(), p = mine(all, Date.now());
@@ -179,7 +181,11 @@ export const clockAt = (ms) => new Date(Date.now() + ms).toLocaleTimeString(unde
 const CLOCK = '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
 /* Plain words for why a Make button is waiting. */
 export function waitText(s) {
-  if (s.why === 'busy') return 'One thing at a time: this wakes up when the other one is ready.';
+  const there = s.where === 'tab' ? 'in another tab' : 'on another screen';
+  if (s.why === 'live') return s.where === 'here' ? 'One thing at a time: your live lesson is still running. End it (the Live button at the top) to make something new.'
+    : 'One thing at a time: your live lesson is running ' + there + '. End it there, or with the Live button at the top.';
+  if (s.why === 'busy') return s.where === 'tab' || s.where === 'device' ? 'One thing at a time: something is being made for you ' + there + '. This wakes up when it is ready.'
+    : 'One thing at a time: this wakes up when the other one is ready.';
   if (s.why === 'rest') return 'Each Make button rests for ' + LIMITS.restMin + ' minutes after it makes something. Ready again at ' + clockAt(s.left) + '.';
   if (s.why === 'hour') return 'That is ' + LIMITS.hour + ' things made in the last hour, the most for one hour. Ready again at ' + clockAt(s.left) + '.';
   if (s.why === 'day') return 'That is ' + LIMITS.day + ' things made today, the most for one day. Ready again tomorrow.';
@@ -198,14 +204,14 @@ export function watch(btn, o) {
 function paint(b, o) {
   if (!b.isConnected) { watched.delete(b); return false; }
   if (o.busy && o.busy()) return false;
-  const s = makeState(o.name), wait = !s.ok, resting = wait && s.why !== 'busy';
+  const s = makeState(o.name), wait = !s.ok, resting = wait && s.why !== 'busy' && s.why !== 'live';
   b.disabled = wait;
   if (o.plain) { b.title = wait ? waitText(s) : ''; if (o.after) o.after(s); return wait; }
   b.classList.toggle('resting', resting);
-  b.classList.toggle('waiting', s.why === 'busy');
+  b.classList.toggle('waiting', s.why === 'busy' || s.why === 'live');
   const svg = b.querySelector('svg'), span = b.querySelector('span');
   if (svg && o.icon) { const g = resting ? 'clock' : 'main'; if (svg.dataset.g !== g) { svg.innerHTML = resting ? CLOCK : o.icon; svg.dataset.g = g; } }
-  if (span) span.textContent = s.why === 'busy' ? 'Making something else…' : s.why === 'day' ? 'Ready again tomorrow' : wait ? 'Ready again in ' + clock(s.left) : o.label;
+  if (span) span.textContent = s.why === 'busy' ? 'Making something else…' : s.why === 'live' ? 'Live lesson running' : s.why === 'day' ? 'Ready again tomorrow' : wait ? 'Ready again in ' + clock(s.left) : o.label;
   b.style.setProperty('--rest', resting && s.span ? Math.min(1, Math.max(0, 1 - s.left / s.span)).toFixed(4) : '0');
   if (o.fine) o.fine.textContent = wait ? waitText(s) : (o.idle || '') + (s.todayLeft <= 5 ? ' ' + s.todayLeft + ' left today.' : '');
   if (o.after) o.after(s);
@@ -221,6 +227,7 @@ function tick() {
   clearTimeout(timer);
   if (paintAll() || making()) timer = setTimeout(tick, 1000);
 }
-window.addEventListener('storage', (e) => { if (e.key === KEY || e.key === JOB) tick(); });
+window.addEventListener('storage', (e) => { if (e.key === KEY) tick(); });
 bus.on('who', () => setTimeout(tick, 0));
+bus.on('activity', () => setTimeout(tick, 0));
 export const repaint = tick;

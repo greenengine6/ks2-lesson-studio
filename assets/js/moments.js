@@ -5,11 +5,11 @@
      typed answers and mini whiteboards wait face down until the teacher reveals them all at once.
    - Without a live lesson, the teacher taps to count hands, reactions or fingers, and the 3-2-1 countdown runs the
      chat waterfall and the "hold it up" moment. */
-import { $, $$, esc, icon, prefs, normAnswer } from './core.js?v=7a165bee';
-import { sfx } from './fx/audio.js?v=7a165bee';
-import { Live, onLive, setMoment, updateMoment, endMoment, answersFor, pupilsIn, nameOf } from './live/session.js?v=7a165bee';
-import { openJoin } from './live/panel.js?v=7a165bee';
-import { strokesSVG, unpackStrokes } from './draw.js?v=7a165bee';
+import { $, $$, esc, icon, prefs, normAnswer } from './core.js?v=1e9e4bc0';
+import { sfx } from './fx/audio.js?v=1e9e4bc0';
+import { Live, onLive, setMoment, updateMoment, endMoment, answersFor, pupilsIn, nameOf } from './live/session.js?v=1e9e4bc0';
+import { openJoin } from './live/panel.js?v=1e9e4bc0';
+import { strokesSVG, unpackStrokes } from './draw.js?v=1e9e4bc0';
 
 export const REACTS = [['👍', 'Got it'], ['👌', 'Nearly'], ['👎', 'Not yet'], ['❤️', 'Love it'], ['😮', 'Wow'], ['👏', 'Clap']];
 export const MOMENTS = {
@@ -39,14 +39,24 @@ export function matches(expected, given) {
   return A.length >= 2 && A.length <= 24 && G.includes(A);
 }
 
+/* What a moment sends to pupils' devices: the same for a pill tapped on the board (openMoment) and for the slide's
+   question going out by itself (presentkit.js), so tapping the pill opens the question pupils already have. */
+const qsOf = (o) => (Array.isArray(o.qs) ? o.qs.filter((x) => x && x.q).slice(0, 5) : []);
+const optsOf = (kind, o) => (Array.isArray(o.opts) && o.opts.length >= 2 ? o.opts.slice(0, 6) : (kind === 'vote' ? ['A', 'B', 'C', 'D'] : null));
+export function liveSpec(kind, o) {
+  const def = MOMENTS[kind];
+  if (!def) return null;
+  const qs = qsOf(o);
+  return { kind, q: o.q || o.title || def.name, opts: kind === 'vote' ? optsOf(kind, o) : null, qs: qs.length ? qs.map((x) => x.q) : null, live: def.live };
+}
+
 /* ---------------- opening and closing ---------------- */
 /* o: { kind, label, title, q, opts, answer, qs: [{ q, a }], host } */
 export function openMoment(o) {
   closeMoment();
   const def = MOMENTS[o.kind] || MOMENTS.react, kind = MOMENTS[o.kind] ? o.kind : 'react';
   const host = o.host || presentRoot() || document.body;
-  const qs = Array.isArray(o.qs) ? o.qs.filter((x) => x && x.q).slice(0, 5) : [];
-  const opts = Array.isArray(o.opts) && o.opts.length >= 2 ? o.opts.slice(0, 6) : (kind === 'vote' ? ['A', 'B', 'C', 'D'] : null);
+  const qs = qsOf(o), opts = optsOf(kind, o);
   M = { kind, def, o, host, qs, opts, id: '', manual: kind === 'vote' ? opts.map(() => 0) : [0, 0, 0, 0, 0, 0], log: [], left: def.secs, total: def.secs, paused: false, t: 0, revealed: false, big: '', count: 0, cd: 0 };
   const ov = document.createElement('div');
   ov.className = 'mo' + (host === document.body ? ' fixed' : '');
@@ -83,7 +93,7 @@ export function closeMoment() {
 export const momentOpen = () => !!M;
 function goLive() {
   if (!M || M.id || !Live.on || !M.def.live) return;
-  M.id = setMoment({ kind: M.kind, q: M.o.q || M.o.title || M.def.name, opts: M.kind === 'vote' ? M.opts : null, qs: M.qs.length ? M.qs.map((x) => x.q) : null, secs: M.left });
+  M.id = setMoment(Object.assign(liveSpec(M.kind, M.o), { secs: M.left }));
 }
 function onLiveChange(what) {
   if (!M) return;
@@ -274,7 +284,7 @@ function onKey(e) {
 }
 
 /* ---------------- the pills ---------------- */
-function infoOf(pill) {
+export function infoOf(pill) {
   let info = {};
   try { info = JSON.parse(pill.dataset.info || '{}') || {}; } catch (e) { info = {}; }
   if (!info.title) { const pad = pill.closest('.b-pad'), t = pad && $('.b-title', pad); if (t) info.title = t.textContent.trim(); }

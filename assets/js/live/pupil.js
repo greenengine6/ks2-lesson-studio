@@ -1,9 +1,13 @@
 /* The pupils' page (join/): join a live lesson from the QR code, the link in the chat, or the 6-digit code, then
    answer on your own device when the teacher asks: reactions, votes, typed answers, a mini whiteboard, talk and
    think time, and how the lesson felt. No sign-in and no account: a first name or nickname only, kept in this
-   tab. Everything is locked so only the teacher's screen can read it (see relay.js). */
-import * as R from './relay.js?v=7a165bee';
-import { Ink, COLOURS, packStrokes } from '../draw.js?v=7a165bee';
+   tab. Everything is locked so only the teacher's screen can read it (see relay.js).
+   While the lesson runs, the page follows the board ("On the board now: …"), a new question arrives by itself
+   with a buzz, a soft chime and a little bounce, and the screen is kept awake (where the browser allows it) so the
+   line to the teacher's screen does not drop. If it does drop, a bar says so and the page reconnects by itself,
+   at once when the screen comes back on; "Reconnect" tries straight away. */
+import * as R from './relay.js?v=1e9e4bc0';
+import { Ink, COLOURS, packStrokes } from '../draw.js?v=1e9e4bc0';
 
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -20,27 +24,89 @@ const icon = (n) => '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + (
 const REACTS = [['👍', 'Got it'], ['👌', 'Nearly'], ['👎', 'Not yet'], ['❤️', 'Love it'], ['😮', 'Wow'], ['👏', 'Clap']];
 const FACES = [['😟', 'Lost'], ['😕', 'Tricky'], ['🙂', 'OK'], ['😀', 'Good'], ['🤩', 'Loved it']];
 const app = $('#app');
-const P = { info: null, screen: '', st: null, v: 0, pid: '', name: '', pair: null, myPub: '', key: null, allKey: null, relay: null, stop: null, status: 'off', joinT: 0, joinTries: 0, sent: new Map(), moAt: 0, ink: null, inkFor: '', tick: 0, script: '' };
+const P = { info: null, screen: '', st: null, v: 0, pid: '', name: '', pair: null, myPub: '', key: null, allKey: null, relay: null, stop: null, status: 'off', joinT: 0, joinTries: 0, sent: new Map(), moAt: 0, ink: null, inkFor: '', tick: 0, cfg: null, offAt: 0, netT: 0, queued: false, lastMo: '', sig: '' };
 const store = {
   get(k) { try { return JSON.parse(sessionStorage.getItem(k) || 'null'); } catch (e) { return null; } },
   set(k, v) { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode: this visit only */ } }
 };
 const meKey = () => 'ks2-live.me.' + P.info.sid;
 
-/* ---------------- the school relay's address lives in the main page's settings ---------------- */
-async function schoolURL() {
-  if (P.script) return P.script;
+/* ---------------- the relays' addresses live in the main page's settings ---------------- */
+async function siteConfig() {
+  if (P.cfg) return P.cfg;
+  let c = {};
   try {
-    const t = await (await fetch('../', { cache: 'no-store', credentials: 'omit' })).text();
+    const t = await (await fetch('../', { cache: 'no-cache', credentials: 'omit' })).text();
     const m = /<script type="application\/json" id="config">([\s\S]*?)<\/script>/.exec(t);
-    const c = m ? JSON.parse(m[1]) : {};
-    P.script = R.SCRIPT.test(String(c.inbox || '')) ? c.inbox : '';
-  } catch (e) { P.script = ''; }
-  return P.script;
+    c = m ? JSON.parse(m[1]) : {};
+  } catch (e) { c = {}; }
+  P.cfg = { script: R.SCRIPT.test(String(c.inbox || '')) ? String(c.inbox) : '', base: R.relayBase(c.liveRelay) };
+  return P.cfg;
 }
 async function relayFor(tr) {
-  if (tr === 's') { const u = await schoolURL(); if (u) return R.schoolRelay(u); }
-  return R.publicRelay();
+  const c = await siteConfig();
+  if (tr === 's' && c.script) return R.schoolRelay(c.script);
+  return R.publicRelay(c.base);
+}
+
+/* ---------------- staying connected ---------------- */
+/* Keep the screen awake during the lesson, so the line to the teacher's screen does not drop. */
+let wl = null;
+async function awake() {
+  if (!('wakeLock' in navigator) || document.visibilityState !== 'visible' || wl) return;
+  if (!['joining', 'in', 'locked'].includes(P.screen)) return;
+  try { wl = await navigator.wakeLock.request('screen'); wl.addEventListener('release', () => { wl = null; }); } catch (e) { /* not allowed here: fine */ }
+}
+function asleep() { if (wl) { wl.release().catch(() => {}); wl = null; } }
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  awake();
+  if (P.screen === 'joining' && P.relay) { P.joinTries = Math.min(P.joinTries, 6); sayHello(); }
+  if (P.baseTitle) document.title = P.baseTitle;          // anything that arrived meanwhile is drawn on the next frame
+});
+/* The bar under the header when the line is down for more than a few seconds. */
+function onNet(s) {
+  P.status = s;
+  const d = $('.jn-dot');
+  if (d) { d.className = 'jn-dot ' + (s === 'on' ? 'on' : 'off'); d.title = s === 'on' ? 'Connected' : 'Reconnecting'; }
+  clearTimeout(P.netT);
+  if (s === 'on') P.offAt = 0; else if (!P.offAt) P.offAt = Date.now();
+  paintNet();
+  if (s !== 'on') P.netT = setTimeout(paintNet, 6500);
+}
+function paintNet() {
+  const b = $('.jn-net');
+  if (!b) return;
+  const s = P.status, long = P.offAt && Date.now() - P.offAt > 6000;
+  const t = !P.stop ? '' : s === 'subs' ? 'Too many devices on this Wi-Fi for the free relay. Tell your teacher.'
+    : s === 'busy' ? 'Lots of people at once. Waiting a moment, then trying again…'
+      : s !== 'on' && long ? 'Reconnecting… check that the Wi-Fi or internet is on.' : '';
+  b.hidden = !t;
+  $('span', b).textContent = t;
+}
+/* A new question: a buzz, a soft chime and a bounce, and the tab's title says so if the page is behind another. */
+let ac = null;
+function soundReady() {
+  try { if (!ac) { const A = window.AudioContext || window.webkitAudioContext; if (A) ac = new A(); } if (ac && ac.state === 'suspended') ac.resume(); } catch (e) { ac = null; }
+}
+function chime() {
+  if (!ac || P.mute) return;
+  try {
+    const t = ac.currentTime;
+    [[784, 0], [1047, 0.13]].forEach(([f, d]) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t + d); g.gain.exponentialRampToValueAtTime(0.09, t + d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.42);
+      o.connect(g); g.connect(ac.destination); o.start(t + d); o.stop(t + d + 0.45);
+    });
+  } catch (e) { /* no sound: fine */ }
+}
+function cue() {
+  try { if (navigator.vibrate) navigator.vibrate([90, 60, 90]); } catch (e) { /* fine */ }
+  chime();
+  const c = $('.jn-mo');
+  if (c) { c.classList.remove('new'); void c.offsetWidth; c.classList.add('new'); }
+  if (document.visibilityState === 'hidden') { P.baseTitle = P.baseTitle || document.title; document.title = '● New question · ' + P.baseTitle; }
 }
 
 /* ---------------- screens ---------------- */
@@ -49,7 +115,9 @@ function frame(inner, o) {
   const title = (P.st && P.st.title) || o.title || 'Live lesson';
   app.innerHTML = '<header class="jn-top"><div class="jn-brand"><span class="jn-logo" aria-hidden="true">♥</span><span><b>' + esc(title) + '</b><small>KS2 Lesson Engine · live lesson</small></span></div>' +
     (P.name && o.me !== false ? '<span class="jn-me"><i class="jn-dot ' + (P.status === 'on' ? 'on' : 'off') + '" title="' + (P.status === 'on' ? 'Connected' : 'Reconnecting') + '"></i><span>' + esc(P.name) + '</span></span>' : '') + '</header>' +
-    '<main class="jn-main">' + inner + '</main>' + (P.name && o.leave !== false ? '<footer class="jn-foot"><button type="button" class="jn-link" data-j="leave">Leave the lesson</button></footer>' : '');
+    '<div class="jn-net" role="status" hidden><span></span><button type="button" class="jn-link" data-j="reconnect">Reconnect</button></div>' +
+    '<main class="jn-main">' + inner + '</main>' + (P.name && o.leave !== false ? '<footer class="jn-foot"><button type="button" class="jn-link" data-j="sound" aria-pressed="' + (!P.mute) + '">' + (P.mute ? 'Sound: off' : 'Sound: on') + '</button><span aria-hidden="true">·</span><button type="button" class="jn-link" data-j="leave">Leave the lesson</button></footer>' : '');
+  paintNet();
 }
 function codeScreen(msg, err) {
   P.screen = 'code';
@@ -72,10 +140,10 @@ function codeScreen(msg, err) {
 }
 function say(t, err) { const m = $('#jn-msg'); if (m) { m.textContent = t; m.classList.toggle('err', !!err); } }
 async function findByCode(code) {
-  const ch = await R.codeChannel(code), key = await R.codeKey(code);
+  const ch = await R.codeChannel(code), key = await R.codeKey(code), c = await siteConfig();
   const relays = [];
-  if (await schoolURL()) relays.push(R.schoolRelay(P.script));
-  relays.push(R.publicRelay());
+  if (c.script) relays.push(R.schoolRelay(c.script));
+  relays.push(R.publicRelay(c.base));
   let best = null;
   for (const relay of relays) {
     let msgs = [];
@@ -99,6 +167,7 @@ function nameScreen(msg) {
     e.preventDefault();
     const n = R.cleanName(i.value);
     if (!n) { say(i.value.trim() ? 'Please use your real first name or a kind nickname.' : 'Type your first name first.', true); return; }
+    soundReady();
     join(n);
   });
 }
@@ -127,15 +196,18 @@ async function join(name) {
     P.relay = await relayFor(P.info.tr);
   } catch (e) { screen('bad', 'This link does not work', 'Ask your teacher to show the code again.'); return; }
   if (P.stop) P.stop();
-  P.stop = P.relay.listen(R.channel(P.info.sid, 't'), onState, (s) => { if (s !== P.status) { P.status = s; const d = $('.jn-dot'); if (d) { d.className = 'jn-dot ' + (s === 'on' ? 'on' : 'off'); d.title = s === 'on' ? 'Connected' : 'Reconnecting'; } } });
+  P.stop = P.relay.listen(R.channel(P.info.sid, 't'), onState, onNet);
   P.joinTries = 0;
+  awake();
   sayHello();
 }
 async function sayHello() {
   clearTimeout(P.joinT);
   if (P.screen !== 'joining' && P.screen !== 'locked') return;
   P.joinTries += 1;
-  try { await send({ t: 'join', n: P.name }); } catch (e) { /* tried again below */ }
+  try { await send({ t: 'join', n: P.name }); } catch (e) {
+    if (e && e.code === 'full') { stopAll(); screen('bad', 'The lesson’s relay is full for today', 'Too many messages went through the free relay on this network today. Tell your teacher.'); return; }
+  }
   if (P.joinTries < 8) P.joinT = setTimeout(sayHello, 5000 + P.joinTries * 1500);
   else if (P.screen === 'joining') screen('joining', 'Still joining…', 'Your teacher’s screen has not answered yet. Check the internet, or ask your teacher to open the join screen.', '<button type="button" class="jn-btn" data-j="retry">Try again</button>');
 }
@@ -143,7 +215,7 @@ async function send(obj) {
   obj.p = P.pid;
   await R.post(P.relay, R.channel(P.info.sid, 'p'), await R.sealUp(P.key, P.myPub, obj));
 }
-function stopAll() { clearTimeout(P.joinT); clearInterval(P.tick); if (P.stop) { P.stop(); P.stop = null; } }
+function stopAll() { clearTimeout(P.joinT); clearTimeout(P.netT); clearInterval(P.tick); if (P.stop) { P.stop(); P.stop = null; } asleep(); }
 
 /* ---------------- what the teacher's screen says ---------------- */
 const glue = R.joiner();
@@ -152,9 +224,17 @@ async function onState(text) {
   if (!env) return;
   const st = await R.openAll(P.allKey, env);
   if (!st || st.t !== 'st' || typeof st.v !== 'number') return;
-  if (st.end) { stopAll(); store.set(meKey(), null); P.st = Object.assign({}, P.st || {}, { title: st.title || (P.st && P.st.title) }); screen('ended', 'The lesson has ended', 'Well done today! You can close this page.'); return; }
+  if (st.end) { stopAll(); store.set(meKey(), null); P.st = Object.assign({}, P.st || {}, { title: st.title || (P.st && P.st.title), mo: null }); screen('ended', 'The lesson has ended', 'Well done today! You can close this page.'); return; }
   if (st.v <= P.v) return;
   P.v = st.v; P.st = st;
+  // Many messages can arrive at once (catching up after the screen was off): only the newest is drawn, on the
+  // next frame (and not at all while the page is hidden).
+  if (!P.queued) { P.queued = true; requestAnimationFrame(apply); }
+}
+function apply() {
+  P.queued = false;
+  const st = P.st;
+  if (!st || !P.stop || ['ended', 'removed', 'left', 'bad'].includes(P.screen)) return;
   if (Array.isArray(st.kick) && st.kick.includes(P.pid)) { stopAll(); store.set(meKey(), null); screen('removed', 'You have left this lesson', 'Your teacher has taken you out of this live lesson.'); return; }
   const inLesson = Array.isArray(st.seen) && st.seen.includes(P.pid);
   if (!inLesson) {
@@ -165,15 +245,18 @@ async function onState(text) {
   clearTimeout(P.joinT);
   if (st.mo && st.mo.left) P.moAt = Date.now() + st.mo.left * 1000; else P.moAt = 0;
   // Only redraw when the moment itself changes, so a pupil typing or drawing never loses their work when someone
-  // else joins.
-  const sig = st.mo ? [st.mo.id, st.mo.kind, JSON.stringify(st.mo.rv || null), st.title || ''].join('|') : 'wait|' + (st.title || '');
+  // else joins or the board moves on.
+  const sig = st.mo ? [st.mo.id, st.mo.kind, JSON.stringify(st.mo.rv || null), st.title || ''].join('|') : 'wait|' + (st.title || '') + '|' + (st.bt || '');
   if (P.screen === 'in' && sig === P.sig) {
     clearInterval(P.tick);
     if (P.moAt) { paintTime(); P.tick = setInterval(paintTime, 500); } else { const t = $('.jn-time'); if (t) t.hidden = true; }
     return;
   }
+  const fresh = st.mo && st.mo.id !== P.lastMo;
+  P.lastMo = st.mo ? st.mo.id : '';
   P.sig = sig;
   render();
+  if (fresh) cue();
 }
 
 /* ---------------- the current moment ---------------- */
@@ -184,7 +267,10 @@ function render() {
   clearInterval(P.tick);
   if (!mo) {
     P.inkFor = '';
-    frame('<section class="jn-card jn-center jn-wait"><div class="jn-bubble" aria-hidden="true">✓</div><h1>You’re in, ' + esc(P.name) + '!</h1><p>Look at the board. When your teacher asks a question, it appears here.</p></section>');
+    const bt = P.st && P.st.bt;
+    frame('<section class="jn-card jn-center jn-wait"><div class="jn-bubble" aria-hidden="true">✓</div><h1>You’re in, ' + esc(P.name) + '!</h1>' +
+      (bt ? '<p class="jn-now"><small>On the board now</small><b>' + esc(bt) + '</b></p>' : '') +
+      '<p>Look at the board. When your teacher asks a question, it appears here by itself.</p></section>');
     return;
   }
   const mine = P.sent.get(mo.id), rv = mo.rv;
@@ -254,7 +340,8 @@ async function answer(v, btn) {
     P.sent.set(mo.id, { v, n: had.n + 1 });
     if (mo.kind !== 'show') render(); else status(icon('check') + 'Sent. Your teacher can see it.', true);
   } catch (e) {
-    status(e && e.code === 'busy' ? 'Lots of answers at once. Wait a few seconds and tap again.' : 'It did not send. Check the internet and tap again.');
+    const c = e && e.code;
+    status(c === 'busy' ? 'Lots of answers at once. Wait a few seconds and tap again.' : c === 'full' ? 'The free relay is full for today on this network, so answers cannot get through. Tell your teacher.' : 'It did not send. Check the internet and tap again.');
   } finally { if (btn) btn.disabled = false; }
 }
 function status(t, html) { const s = $('.jn-st'); if (s) { if (html) s.innerHTML = t; else s.textContent = t; } }
@@ -277,7 +364,9 @@ app.addEventListener('click', (e) => {
   if (a === 'sendboard') {
     if (!P.ink || !P.ink.strokes.length) { status('Draw your answer first.'); return; }
     answer({ d: packStrokes(P.ink.strokes), a: 4 / 3 }, j);
-  } else if (a === 'retry') { P.joinTries = 0; screen('joining', 'Joining…', 'Look at the board. You will be in in a moment.'); sayHello(); }
+  } else if (a === 'retry') { P.joinTries = 0; screen('joining', 'Joining…', 'Look at the board. You will be in in a moment.'); if (P.stop && P.stop.retry) P.stop.retry(); sayHello(); }
+  else if (a === 'reconnect') { if (P.stop && P.stop.retry) P.stop.retry(); P.offAt = Date.now(); const b = $('.jn-net span'); if (b) b.textContent = 'Reconnecting…'; }
+  else if (a === 'sound') { P.mute = !P.mute; store.set('ks2-live.mute', P.mute ? 1 : null); j.textContent = P.mute ? 'Sound: off' : 'Sound: on'; j.setAttribute('aria-pressed', String(!P.mute)); if (!P.mute) { soundReady(); chime(); } }
   else if (a === 'leave') { send({ t: 'bye' }).catch(() => {}); stopAll(); store.set(meKey(), null); P.name = ''; screen('left', 'You have left the lesson', 'Scan the code again to come back.'); }
 });
 app.addEventListener('submit', (e) => {
@@ -289,7 +378,11 @@ app.addEventListener('submit', (e) => {
 });
 
 /* ---------------- start ---------------- */
+/* Any tap lets the chime play later (browsers only allow sound after the person has touched the page). */
+app.addEventListener('pointerdown', soundReady, { passive: true });
 async function start() {
+  P.mute = !!store.get('ks2-live.mute');
+  P.baseTitle = document.title;
   if (!window.crypto || !crypto.subtle) { screen('bad', 'This browser is too old', 'Open the link in an up-to-date browser, such as Chrome, Safari or Edge.'); return; }
   P.info = R.parseJoin(location.hash);
   if (!P.info) { codeScreen(location.hash.length > 1 ? 'That link is not complete. Type the code instead.' : ''); return; }
@@ -297,5 +390,5 @@ async function start() {
   if (saved && saved.pid && saved.name) { P.name = saved.name; join(saved.name); return; }
   nameScreen();
 }
-window.addEventListener('hashchange', () => { const i = R.parseJoin(location.hash); if (i && (!P.info || i.sid !== P.info.sid)) { stopAll(); P.info = i; P.v = 0; P.st = null; P.sent = new Map(); nameScreen(); } });
+window.addEventListener('hashchange', () => { const i = R.parseJoin(location.hash); if (i && (!P.info || i.sid !== P.info.sid)) { stopAll(); P.info = i; P.v = 0; P.st = null; P.sig = ''; P.lastMo = ''; P.sent = new Map(); nameScreen(); } });
 start();

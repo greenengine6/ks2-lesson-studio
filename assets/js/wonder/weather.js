@@ -1,9 +1,9 @@
 /* Extreme weather, drawn live: a hurricane seen from space (it spins the other way south of the equator), a
    thunderstorm with the "count to the thunder" game, the monsoon on Malaysia's east coast month by month, and a
    blizzard where the wind makes it feel colder (wind chill). */
-import { MONSOON, MONSOON_SEASONS } from './data.js?v=7a165bee';
-import { TAU, rnd, clamp, noise, layer, view, FONT } from './util.js?v=7a165bee';
-import { Sound } from '../fx/audio.js?v=7a165bee';
+import { MONSOON, MONSOON_SEASONS } from './data.js?v=1e9e4bc0';
+import { TAU, rnd, clamp, noise, layer, view, FONT } from './util.js?v=1e9e4bc0';
+import { Sound } from '../fx/audio.js?v=1e9e4bc0';
 
 const pill = (ctx, x, y, w, h) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, h / 2); else ctx.rect(x, y, w, h); };
 let puffSprite = null;

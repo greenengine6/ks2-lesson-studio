@@ -3,13 +3,13 @@
    feedback), a timer, our class's names (remember, pick someone fairly, read them, forget them), read the slide,
    the time, and filling in a topic so the teacher can press Make. Commands are matched in English and Malay; anything
    else is a question for her to answer. */
-import { $, $$, esc, icon, bus } from './core.js?v=7a165bee';
-import { ENGINES } from './engines/registry.js?v=7a165bee';
-import { pupils, namesIn, addPupils, clearPupils, showPick } from './pupils.js?v=7a165bee';
-import { presenting, page } from './context.js?v=7a165bee';
-import { sfx } from './fx/audio.js?v=7a165bee';
-import { Voice } from './fx/voice.js?v=7a165bee';
-import { settings } from './settings.js?v=7a165bee';
+import { $, $$, esc, icon, bus } from './core.js?v=1e9e4bc0';
+import { ENGINES } from './engines/registry.js?v=1e9e4bc0';
+import { pupils, namesIn, addPupils, clearPupils, showPick } from './pupils.js?v=1e9e4bc0';
+import { presenting, page } from './context.js?v=1e9e4bc0';
+import { sfx } from './fx/audio.js?v=1e9e4bc0';
+import { Voice } from './fx/voice.js?v=1e9e4bc0';
+import { settings } from './settings.js?v=1e9e4bc0';
 
 /* ---------------- where she can take you ---------------- */
 const ENGINE_WORDS = { maths: 'maths reasoning|maths|math reasoning|math|which one doesn\'t belong|open middle', story: 'story spark|story|stories|creative writing', reading: 'reading ladder|reading|reading comprehension',

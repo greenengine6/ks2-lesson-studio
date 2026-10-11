@@ -4,14 +4,14 @@
    teachers" panel with its sources. This file is the frame: picker, top bar, caption, sound, full screen and voice
    commands. The windows themselves load the first time Wonder Window opens (assets/js/wonder/), so the home page
    stays light. */
-import { $, $$, esc, icon, bus, reduceMotion, toast } from './core.js?v=7a165bee';
-import { sfx } from './fx/audio.js?v=7a165bee';
-import { Ambient, Speech } from './fx/sound.js?v=7a165bee';
-import { track } from './track.js?v=7a165bee';
-import { MINI } from './fx/symphony.js?v=7a165bee';
-import { settings } from './settings.js?v=7a165bee';
-import { registerScenes } from './commands.js?v=7a165bee';
-import { view } from './wonder/util.js?v=7a165bee';
+import { $, $$, esc, icon, bus, reduceMotion, toast } from './core.js?v=1e9e4bc0';
+import { sfx } from './fx/audio.js?v=1e9e4bc0';
+import { Ambient, Speech } from './fx/sound.js?v=1e9e4bc0';
+import { track } from './track.js?v=1e9e4bc0';
+import { MINI } from './fx/symphony.js?v=1e9e4bc0';
+import { settings } from './settings.js?v=1e9e4bc0';
+import { registerScenes } from './commands.js?v=1e9e4bc0';
+import { view } from './wonder/util.js?v=1e9e4bc0';
 
 /* ---------------- the windows, in their groups ---------------- */
 const GROUPS = [['world', 'Our world'], ['weather', 'Weather and seasons'], ['living', 'The living world'], ['sky', 'Sky and space'], ['dark', 'Nature at dusk and night']];
@@ -57,7 +57,7 @@ let win = null, winId = '', want = '', def = null, startedAt = 0, items = [], id
 let mod = null, modP = null, stars = null;
 const playing = () => document.body.classList.contains('playing');
 function loadMod() {
-  if (!modP) modP = import('./wonder/windows.js?v=7a165bee').then((m) => { mod = m; return m; }).catch((e) => { modP = null; throw e; });
+  if (!modP) modP = import('./wonder/windows.js?v=1e9e4bc0').then((m) => { mod = m; return m; }).catch((e) => { modP = null; throw e; });
   return modP;
 }
 const padStop = () => { if (mod) mod.Pad.stop(); };
@@ -99,7 +99,7 @@ function build() {
   });
   over.addEventListener('click', (e) => { if (e.target === over || e.target.classList.contains('wo') || e.target.closest('[data-wo-x]')) closeOver(); });
   const at = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-  canvas.addEventListener('pointermove', (e) => { wake(); if (win && win.scene.pointer) { const [x, y] = at(e); win.scene.pointer(x, y); } });
+  canvas.addEventListener('pointermove', (e) => { wake(); if (win && win.scene.pointer) { const [x, y] = at(e); win.scene.pointer(x, y, e.buttons); } });
   canvas.addEventListener('pointerdown', (e) => {
     wake(); if (!win) return;
     const [x, y] = at(e);
@@ -122,8 +122,11 @@ function build() {
       else if (over.hidden && win && win.arrow) { e.preventDefault(); win.arrow(d); }
     }
   });
-  window.addEventListener('resize', () => { if (root && !root.hidden) { const moved = measureTop(); size(moved); if (win && win.resized) win.resized(); } });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) stopLoop(); else if (root && !root.hidden) loop(); });
+  window.addEventListener('resize', () => { if (root && !root.hidden) { const moved = measureTop(); size(moved); measureCap(); if (win && win.resized) win.resized(); } });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { stopLoop(); if (win && win.audio) win.audio(false); }
+    else if (root && !root.hidden && playing()) { loop(); if (win) applySound(); }
+  });
 }
 function wake() { idleT = 0; root.classList.remove('idle'); }
 /* Where the top bar ends (it wraps onto two rows on phones): scenes keep their labels below it, panels start under it. */
@@ -170,7 +173,10 @@ function makeShell(pane) {
     say(text, l) { if (!text) return; Speech.stop(); Speech.speak(text, { lang: l || 'en-GB', rate: 0.92 }); },
     show(it, speak) { show(it); if (speak) sayCap(false); },
     setSub(s) { if (win) setHash(winId, s); },
-    tab(id) { setTab(id, true); }
+    tab(id) { setTab(id, true); },
+    resound() { applySound(); },                 // the window moved somewhere with a different sound
+    recaption() { setCaption(); },               // back to the window's own facts and questions
+    soundOn: () => soundOn
   };
 }
 function route() {
@@ -237,6 +243,7 @@ function setTab(id, user) {
 function closeWin() {
   if (win) {
     if (startedAt) track('play', { scene: winId, ms: Date.now() - startedAt });
+    try { if (win.audio) win.audio(false); } catch (e) { /* ignore */ }
     try { if (win.unmount) win.unmount(); } catch (e) { /* ignore */ }
   }
   win = null; winId = ''; startedAt = 0;
@@ -265,6 +272,13 @@ function show(it) {
   capLang = it.lang || 'en-GB';
   cap.classList.remove('in'); void cap.offsetWidth; cap.classList.add('in');
   rotT = 0;
+  measureCap();
+}
+/* How much room the caption takes at the bottom (it grows with longer facts): panels and strips sit above it. */
+function measureCap() {
+  if (!root || cap.hidden) return;
+  const h = Math.round(root.clientHeight - cap.offsetTop);                  // (offsetTop ignores the caption's slide-in)
+  if (h > 0) root.style.setProperty('--cap-h', h + 'px');
 }
 function nextItem(user) { if (!items.length) return; idx = (idx + 1) % items.length; show(items[idx]); if (user) sayCap(false); }
 function sayCap(force) {
@@ -278,6 +292,7 @@ function applySound() {
   const s = win.sound;
   if (soundOn && s) Ambient.play(s); else Ambient.stop();
   if (soundOn && win.pad && mod) mod.Pad.start(); else padStop();
+  if (win.audio) win.audio(soundOn && !document.hidden);      // a window's own music (the festivals)
 }
 
 /* ---------------- drawing ---------------- */

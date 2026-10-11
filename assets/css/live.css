@@ -37,6 +37,28 @@
 .kit-join.live{color:#fff;background:linear-gradient(135deg,#FF7A90,var(--heart));box-shadow:5px 5px 12px rgb(240 71 111 / .35),-5px -5px 10px rgb(255 255 255 / .6)}
 .kit-join.live::before{content:"";width:9px;height:9px;border-radius:50%;background:#fff;animation:lvpulse 1.6s ease-in-out infinite}
 @keyframes lvpulse{50%{opacity:.35;transform:scale(.8)}}
+/* has the latest slide reached pupils' devices? sent: a steady glow; sending: a quick pulse; retry: amber; full: dark */
+.kit-join.live[data-send="sent"]::before{box-shadow:0 0 0 3px rgb(255 255 255 / .3)}
+.kit-join.live[data-send="sending"]::before{animation-duration:.7s}
+.kit-join.live[data-send="retry"]::before{background:#FFD27A;box-shadow:0 0 0 3px rgb(255 210 122 / .35)}
+.kit-join.live[data-send="full"]{background:linear-gradient(135deg,#9A5B66,#6E2F3B)}
+.kit-join.live[data-send="full"]::before{background:#FFD27A;animation:none}
+
+/* ---------- a slide's question on pupils' devices: a ring and the number of answers on its pill ---------- */
+:is(.sl-respond,.b-say).on-devices{box-shadow:0 0 0 .22cqw rgb(255 255 255 / .7),0 0 1.6cqw rgb(255 255 255 / .55)}
+.b-say.on-devices{box-shadow:0 0 0 calc(.18 * var(--u)) rgb(255 255 255 / .7),0 0 calc(1.2 * var(--u)) rgb(255 255 255 / .5)}
+.sl-respond .mo-n{display:inline-grid;place-items:center;margin-left:.5cqw;min-width:2.3cqw;height:2.3cqw;padding:0 .6cqw;border-radius:99cqw;background:#fff;color:var(--kd,#1B2440);font-size:1.25cqw;font-weight:800;font-variant-numeric:tabular-nums}
+.b-say .mo-n{display:inline-grid;place-items:center;margin-left:calc(.4 * var(--u));min-width:calc(2.1 * var(--u));height:calc(2.1 * var(--u));padding:0 calc(.5 * var(--u));border-radius:999px;background:#fff;color:#1B2440;font-size:calc(1.1 * var(--u));font-weight:800;font-variant-numeric:tabular-nums}
+.mo-n.bump{animation:monbump .45s cubic-bezier(.2,.8,.2,1.4)}
+@keyframes monbump{40%{transform:scale(1.35)}}
+
+/* ---------- the header's Live button ---------- */
+.act-chip{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:999px;cursor:pointer;flex:none;font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(13px * var(--m,1)));color:#fff;background:linear-gradient(135deg,#FF7A90,var(--heart));box-shadow:5px 5px 12px rgb(240 71 111 / .3),-5px -5px 10px rgb(255 255 255 / .5)}
+.act-chip i{width:9px;height:9px;border-radius:50%;background:#fff;animation:lvpulse 1.6s ease-in-out infinite}
+.act-chip[data-k="other"]{color:var(--heart);background:var(--surface,#E8ECF2);box-shadow:var(--ex-sm)}
+.act-chip[data-k="other"] i{background:var(--heart)}
+[data-theme="night"] .act-chip{box-shadow:none}
+@media (max-width:760px){ .act-chip{height:36px;padding:0 11px} .act-chip[data-k="other"] span{display:none} }
 .kit-timer{position:absolute;top:24px;right:24px;z-index:72;font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(28px * var(--m,1)));font-variant-numeric:tabular-nums;padding:8px 20px;border-radius:999px;background:var(--surface);box-shadow:var(--ex-sm)}
 .kit-timer.low{color:#D9534A}
 .kit-timer.done{background:#E2574C;color:#fff}
@@ -77,6 +99,16 @@
 .lp-chip .i{width:13px;height:13px;opacity:.4}
 .lp-chip:hover .i{opacity:1;color:#B8403E}
 .lp-relay{margin:4px 0 0}
+.lp-auto{display:flex;align-items:center;gap:14px;margin-top:8px;padding:10px 14px;border-radius:18px;box-shadow:inset 3px 3px 6px rgb(163 177 198 / .55),inset -3px -3px 6px rgb(255 255 255 / .7);cursor:pointer}
+.lp-auto .lsw{font-size:max(9px,calc(10px * var(--m,1)))}
+.lp-auto span{display:grid;gap:2px;min-width:0}
+.lp-auto b{font-family:var(--f-display);font-size:max(9px,calc(15px * var(--m,1)))}
+.lp-auto small{font-size:max(9px,calc(13px * var(--m,1)));color:#5F6B7A}
+.lp-busy{display:grid;gap:10px;padding:16px 18px;border-radius:20px;background:#F6E3C3;color:#5B3A10}
+.lp-busy p{margin:0;font-size:max(9px,calc(16px * var(--m,1)))}
+.livep.blocked :is(.lp-join,.lp-side > .lp-acts,.lp-auto,.lp-n,.lp-who){display:none}
+.lp-mini .lp-card{grid-template-columns:minmax(0,1fr);width:min(620px,100%);padding:30px 30px 26px}
+.lp-mini .lp-side h2{font-size:max(9px,calc(clamp(1.6rem,3vw,2.2rem) * var(--m,1)))}
 @media (max-width:760px){ .lp-card{grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center;padding:64px 18px 22px} .lp-qr{width:min(70vw,320px)} .lp-acts,.lp-who{justify-content:center} .lp-x{top:12px;right:12px} }
 
 /* ---------- class moments ---------- */

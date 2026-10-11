@@ -11,7 +11,7 @@
    Where the browser can turn speech into text on the device itself (newer Chrome), it does; otherwise the browser's
    own speech service does. The ear pauses while Symphony speaks (so she never answers herself) and while the tab is
    hidden, and wake mode switches itself off after 45 minutes without hearing her name. */
-import { Voice } from './fx/voice.js?v=7a165bee';
+import { Voice } from './fx/voice.js?v=1e9e4bc0';
 
 const SRC = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
 const NAME = '(?:symphon(?:y|ie|ies|ee)|simfon(?:i|y)|symfon(?:i|y)|sinfoni(?:a)?|simphony|symphani|sym phony|sim phony)';

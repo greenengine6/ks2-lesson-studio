@@ -3,18 +3,22 @@
    that Symphony reads (facts, then "wonder questions"), a quiz the class can answer together or vote on from their
    own devices, and a "For teachers" panel listing where the facts and photos come from.
    play.js is the frame around them: the picker, the top bar, the caption, sound and full screen. */
-import { $, $$, esc, icon } from '../core.js?v=7a165bee';
-import { sfx } from '../fx/audio.js?v=7a165bee';
-import { Voice } from '../fx/voice.js?v=7a165bee';
-import { leadPicture, creditFor, picURL, creditText } from '../pics.js?v=7a165bee';
-import { openMoment } from '../moments.js?v=7a165bee';
-import * as D from './data.js?v=7a165bee';
-import { NATURE, Pad } from './nature.js?v=7a165bee';
-import { explorer } from './map.js?v=7a165bee';
-import { makeBiome } from './biomes.js?v=7a165bee';
-import { weather, feelsLike } from './weather.js?v=7a165bee';
-import { seasons, PLACES, MONTHS, dateOf, dayOfYear, seasonOf, daylight } from './seasons.js?v=7a165bee';
-import { TAU, rnd, layer, flag, hm } from './util.js?v=7a165bee';
+import { $, $$, esc, icon } from '../core.js?v=1e9e4bc0';
+import { sfx } from '../fx/audio.js?v=1e9e4bc0';
+import { Voice } from '../fx/voice.js?v=1e9e4bc0';
+import { leadPicture, creditFor, picURL, creditText } from '../pics.js?v=1e9e4bc0';
+import { openMoment } from '../moments.js?v=1e9e4bc0';
+import * as D from './data.js?v=1e9e4bc0';
+import { NATURE, Pad } from './nature.js?v=1e9e4bc0';
+import { explorer, distanceKm, flightHours } from './map.js?v=1e9e4bc0';
+import { makeStage, switcher } from './stage.js?v=1e9e4bc0';
+import { makeFestival, FEST_SCENES } from './festive.js?v=1e9e4bc0';
+import { makeScale, makeRace } from './scale.js?v=1e9e4bc0';
+import { Music, Fx } from './music.js?v=1e9e4bc0';
+import { makeBiome } from './biomes.js?v=1e9e4bc0';
+import { weather, feelsLike } from './weather.js?v=1e9e4bc0';
+import { seasons, PLACES, MONTHS, dateOf, dayOfYear, seasonOf, daylight } from './seasons.js?v=1e9e4bc0';
+import { flag, hm } from './util.js?v=1e9e4bc0';
 
 export { Pad };
 const T = (x, ms) => (x == null ? '' : typeof x === 'string' ? x : ms && x.bm ? x.bm : x.text);
@@ -47,14 +51,6 @@ function photoInto(el, wiki, size, credit) {
     return p;
   }).catch(() => null);
 }
-function lazyPhotos(root, scroller) {
-  const els = $$('[data-wiki]', root);
-  if (!('IntersectionObserver' in window)) { els.forEach((e) => photoInto(e, e.dataset.wiki, 500)); return () => {}; }
-  const io = new IntersectionObserver((ents) => ents.forEach((en) => { if (en.isIntersecting) { io.unobserve(en.target); photoInto(en.target, en.target.dataset.wiki, 500); } }), { root: scroller || null, rootMargin: '300px' });
-  els.forEach((e) => io.observe(e));
-  return () => io.disconnect();
-}
-
 /* ---------------- a big card: photo, facts, read aloud, previous and next ---------------- */
 function openCard(shell, c) {
   const ms = c.lang === 'ms';
@@ -140,42 +136,6 @@ function openSources(shell, key, name) {
   });
 }
 
-/* ---------------- a soft moving background for the card windows ---------------- */
-function backdrop(c1, c2) {
-  return {
-    id: 'backdrop',
-    init(w, h) { this.w = w; this.h = h; this.bg = null; this.b = Array.from({ length: 22 }, () => ({ x: Math.random(), y: Math.random(), r: rnd(60, 200), v: rnd(0.006, 0.02), p: rnd(0, TAU), c: Math.random() < 0.5 ? c1 : c2 })); },
-    resize(w, h) { this.w = w; this.h = h; this.bg = null; },
-    step(dt) { this.b.forEach((b) => { b.y -= b.v * dt; if (b.y < -0.25) b.y = 1.25; }); },
-    draw(ctx, w, h, t) {
-      if (!this.bg) { this.bg = layer(w, h); const g = this.bg.getContext('2d'), gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#070A18'); gr.addColorStop(1, '#141A33'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }
-      ctx.drawImage(this.bg, 0, 0, w, h);
-      ctx.save(); ctx.globalCompositeOperation = 'lighter';
-      this.b.forEach((b) => { const x = b.x * w + Math.sin(t * 0.2 + b.p) * 40, y = b.y * h, g = ctx.createRadialGradient(x, y, 0, x, y, b.r); g.addColorStop(0, b.c + '30'); g.addColorStop(1, b.c + '00'); ctx.fillStyle = g; ctx.fillRect(x - b.r, y - b.r, b.r * 2, b.r * 2); });
-      ctx.restore();
-    }
-  };
-}
-
-/* ---------------- a grid of cards over the backdrop ---------------- */
-function grid(shell, head, cards, open) {
-  shell.pane.innerHTML = '<div class="wg-wrap"><div class="wg-in">' + head + '<div class="wg">' + cards + '</div></div></div>';
-  const wrap = $('.wg-wrap', shell.pane), stop = lazyPhotos(wrap, wrap);
-  wrap.addEventListener('click', (e) => { const c = e.target.closest('[data-i]'); if (c) open(Number(c.dataset.i)); });
-  return stop;
-}
-const head = (h, p) => '<header class="wg-h"><h2>' + esc(h) + '</h2>' + (p ? '<p>' + esc(p) + '</p>' : '') + '</header>';
-const cardHTML = (i, wiki, e, kick, name, sub, tag) => '<button type="button" class="wc" data-i="' + i + '"><span class="wc-ph"' + (wiki ? ' data-wiki="' + esc(wiki) + '"' : '') + '><span class="wc-e" aria-hidden="true">' + e + '</span></span>' +
-  '<span class="wc-b">' + (kick ? '<small class="wc-k">' + esc(kick) + '</small>' : '') + '<b>' + esc(name) + '</b>' + (sub ? '<span class="wc-s">' + esc(sub) + '</span>' : '') + '</span>' + (tag ? '<span class="wc-tag' + (tag[1] ? ' ' + tag[1] : '') + '">' + esc(tag[0]) + '</span>' : '') + '</button>';
-/* Bars to compare heights, lengths or speeds; refs (a pupil, a bus) are drawn differently. */
-function barsHTML(rows) {
-  const max = Math.max(...rows.map((r) => r.v));
-  return '<div class="wbar">' + rows.map((r) => '<div class="wbar-r' + (r.ref ? ' ref' : '') + '"><span class="wbar-n">' + (r.e ? '<span class="wbar-e" aria-hidden="true">' + r.e + '</span>' : '') + '<span>' + esc(r.name) + '</span></span>' +
-    '<span class="wbar-t"><i style="--w:' + Math.max(0.5, r.v / max * 100).toFixed(2) + '%"></i></span><b class="wbar-v">' + esc(r.label) + '</b></div>').join('') + '</div>';
-}
-const growBars = (root) => requestAnimationFrame(() => requestAnimationFrame(() => { const b = $('.wbar', root); if (b) b.classList.add('go'); }));
-const metres = (n) => (n < 1 ? Math.round(n * 100) + ' cm' : String(n).replace(/\.0$/, '') + ' m');
-
 /* ================= the windows ================= */
 function natureWin(shell, id) {
   const sc = NATURE[id];
@@ -196,7 +156,125 @@ function biomeWin(shell, key) {
   };
 }
 
-/* ---------- World Explorer: the map and a postcard from each city ---------- */
+/* ---------- the photo stage's words and buttons (Seven Wonders, Wonders of Malaysia, record breakers) ---------- */
+/* A big name and a few lines over the photo, Find out more, Read aloud, previous and next, and a strip of every item
+   to jump to. On a wide screen the strip stands on the right; on a phone it is a row above the caption. */
+function stageUI(shell, o) {
+  let el = null, i = -1;
+  const ui = {
+    mount(list) {
+      el = document.createElement('div');
+      el.className = 'sg';
+      el.innerHTML = '<section class="sg-info" data-ctx aria-live="polite"><small class="sg-k"></small><h2 class="sg-n"></h2><p class="sg-t"></p>' +
+        '<div class="sg-btns">' + (o.more !== false ? '<button type="button" class="btn small primary" data-sg-more>' + icon('info') + '<span>' + esc(o.moreText || 'Find out more') + '</span></button>' : '') +
+        '<button type="button" class="btn small" data-sg-say>' + icon('volume') + '<span>' + esc(o.sayText || 'Read aloud') + '</span></button>' + (o.extra || '') +
+        '<span class="sg-nav"><button type="button" class="pbtn" data-sg-nav="-1" aria-label="Previous">' + icon('left') + '</button><button type="button" class="pbtn" data-sg-nav="1" aria-label="Next">' + icon('right') + '</button></span></div>' +
+        '<p class="sg-cr" hidden></p></section><nav class="sg-strip" aria-label="' + esc(o.label || 'Choose') + '"></nav>';
+      shell.pane.appendChild(el);
+      ui.list(list);
+      el.addEventListener('click', (e) => {
+        const c = e.target.closest('[data-sg-i]'); if (c) { o.go(Number(c.dataset.sgI), true); return; }
+        const n = e.target.closest('[data-sg-nav]'); if (n) { o.go(i + Number(n.dataset.sgNav), true); return; }
+        if (e.target.closest('[data-sg-more]') && o.more) { o.more(i); return; }
+        if (e.target.closest('[data-sg-say]') && o.say) { o.say(i); return; }
+        if (o.click) o.click(e);
+      });
+    },
+    list(list) {
+      if (!el) return;
+      $('.sg-strip', el).innerHTML = list.map((x, k) => '<button type="button" class="sg-chip' + (x.hot ? ' hot' : '') + '" data-sg-i="' + k + '" aria-current="false"><span aria-hidden="true">' + x.e + '</span><b>' + esc(x.name) + '</b>' + (x.hot ? '<em>' + esc(x.hot) + '</em>' : '') + '</button>').join('');
+      i = -1;
+    },
+    set(k, x) {
+      if (!el) return;
+      i = k;
+      $('.sg-k', el).textContent = x.kicker || '';
+      $('.sg-n', el).textContent = x.name || '';
+      $('.sg-t', el).textContent = x.text || '';
+      const cr = $('.sg-cr', el); cr.hidden = true; cr.innerHTML = '';
+      const info = $('.sg-info', el); info.classList.remove('in'); void info.offsetWidth; info.classList.add('in');
+      $$('.sg-chip', el).forEach((b, j) => b.setAttribute('aria-current', String(j === k)));
+      const chip = $$('.sg-chip', el)[k], strip = $('.sg-strip', el);
+      if (chip && strip) {
+        const wide = strip.scrollWidth > strip.clientWidth + 4;
+        strip.scrollTo(wide ? { left: chip.offsetLeft - (strip.clientWidth - chip.offsetWidth) / 2, behavior: 'smooth' } : { top: chip.offsetTop - (strip.clientHeight - chip.offsetHeight) / 2, behavior: 'smooth' });
+      }
+    },
+    credit(p) {
+      if (!el || !p) return;
+      creditFor(p).then(() => { const cr = el && $('.sg-cr', el); if (cr) { cr.innerHTML = 'Photo: ' + esc(creditText(p, true)) + (p.url ? ' · <a href="' + esc(p.url) + '" target="_blank" rel="noopener">source</a>' : ''); cr.hidden = false; } }).catch(() => {});
+    },
+    remove() { if (el) el.remove(); el = null; },
+    get el() { return el; }
+  };
+  return ui;
+}
+/* The camera controls for "How tall?" and "How big?". */
+function scaleUI(shell, sc, hint) {
+  const el = document.createElement('div');
+  el.className = 'sz';
+  el.innerHTML = '<div class="sz-row"><button type="button" class="btn small primary" data-sz-go>' + icon('expand') + '<span>Pull back</span></button>' +
+    '<label class="sz-l"><span>Close up</span><input type="range" min="0" max="100" step="1" value="0" data-sz-z aria-label="Zoom: close up to everything"><span>Everything</span></label></div><p class="fine">' + esc(hint) + '</p>';
+  shell.pane.appendChild(el);
+  const go = $('[data-sz-go]', el), z = $('[data-sz-z]', el);
+  const paint = () => { $('span', go).textContent = sc.goal > 0.5 ? 'Back to the small ones' : 'Pull back'; };
+  go.addEventListener('click', () => { sc.zoomTo(sc.goal > 0.5 ? 0 : 1, true); paint(); });
+  z.addEventListener('input', () => { sc.goal = Number(z.value) / 100; sc.z = sc.goal; paint(); });
+  setTimeout(() => { if (el.isConnected && sc.goal === 0) { sc.zoomTo(1, shell.soundOn()); paint(); } }, 1600);       // the reveal
+  return { tick() { if (document.activeElement !== z) z.value = String(Math.round(sc.z * 100)); }, remove() { el.remove(); } };
+}
+const metres = (n) => (n < 1 ? Math.round(n * 100) + ' cm' : String(n).replace(/\.0$/, '') + ' m');
+/* How each place looks and sounds on the photo stage: the weather on top, the soundscape, the colours while the photo loads. */
+const LOOK = {
+  giza: ['dust rays', 'wind', '#3B2A14', '#C99A55'], babylon: ['leaves rays', 'birds', '#14301C', '#6E9F4A'], artemis: ['dust rays', 'wind', '#2E2A3A', '#B9A27A'],
+  zeus: ['rays dust', 'wind', '#2A2238', '#C9A85A'], mausoleum: ['dust', 'wind', '#2E2A22', '#B8A27A'], colossus: ['mist', 'ocean', '#10243A', '#D9A64B'],
+  pharos: ['embers mist', 'ocean', '#0E2236', '#E39A4A'], wall: ['mist', 'wind', '#1C2A22', '#8EA37A'], petra: ['dust rays', 'wind', '#3A1F18', '#D2865A'],
+  christ: ['mist', 'wind', '#16304A', '#9CB8D6'], machu: ['mist', 'birds', '#1B2E22', '#7E9F6A'], chichen: ['rays leaves', 'forest', '#26301A', '#B8A06A'],
+  colosseum: ['dust', 'city', '#2E241C', '#C49A6A'], taj: ['rays', 'birds', '#2A2A3E', '#F0E6D6'],
+  kinabalu: ['mist', 'wind', '#1C2A3A', '#7E93B0'], tamannegara: ['mist leaves', 'forest', '#0F2416', '#3E7A44'], rafflesia: ['leaves', 'forest', '#2A1414', '#B8433A'],
+  orangutan: ['leaves', 'forest', '#2A1A0E', '#C46A2E'], proboscis: ['mist', 'river', '#1A2A1E', '#A8784A'], tiger: ['leaves', 'night', '#1E1A0E', '#D98A2B'],
+  mulu: ['bats', 'night', '#14161E', '#5A5E6E'], fireflies: ['sparkle', 'night', '#060E0A', '#2E5A3A'], turtle: ['bubbles', 'ocean', '#08263A', '#2E7DA6'],
+  hornbill: ['leaves rays', 'forest', '#14240E', '#E2A33A'], monsoon: ['rain', 'rain', '#141E2A', '#5E6E82'], kancil: ['leaves', 'forest', '#1E2414', '#9A7A4A'],
+  cheetah: ['speed dust', 'wind', '#3A2A10', '#D9A44A'], falcon: ['speed', 'wind', '#1E2A3E', '#8EA6C6'], whale: ['bubbles', 'ocean', '#06203A', '#2E6EA6'],
+  giraffe: ['dust rays', 'birds', '#3A2A12', '#D9A65A'], elephant: ['dust', 'wind', '#2E2A26', '#9A8E82'], python: ['leaves', 'forest', '#1A2412', '#6E8A3E'],
+  croc: ['mist', 'river', '#1A2216', '#6E7A4A'], ostrich: ['dust', 'wind', '#3A2E1A', '#C9A26A'], hummingbird: ['sparkle leaves', 'birds', '#0E2A1A', '#3EA67A'],
+  shrew: ['leaves', 'night', '#1E1A16', '#7A6A5A'], shark: ['bubbles', 'ocean', '#081A2A', '#3A5E7A'], beetle: ['leaves', 'forest', '#161E10', '#6E8A2E']
+};
+const lookOf = (id, e, wiki) => { const L = LOOK[id] || ['', '', '#141A2E', '#4A5A8A']; return { key: id, wiki, e, fx: L[0] ? L[0].split(' ') : [], sound: L[1], a: L[2], b: L[3] }; };
+/* A window built on the photo stage. list: the items; o: { label, kick(x), text(x), name(x), wiki, e, more(i), say(i) } */
+function stageWin(shell, list, o) {
+  const stage = makeStage();
+  let i = 0, ui = null;
+  const go = (k, user) => {
+    const n = list.length; i = ((k % n) + n) % n;
+    const x = list[i];
+    stage.show(lookOf(x.id, x.icon, x.wiki));
+    ui.set(i, { kicker: o.kick(x), name: o.name(x), text: o.text(x) });
+    shell.setSub(x.id);
+    shell.resound();
+    if (user) sfx('whoosh');
+  };
+  stage.onPhoto = (item, p) => { if (ui && list[i] && list[i].id === item.key) ui.credit(p); };
+  const W = {
+    stage, get i() { return i; }, list,
+    get sound() { return (LOOK[list[i] && list[i].id] || [])[1] || ''; },
+    mount() {
+      ui = stageUI(shell, { label: o.label, go, extra: o.extra, more: (k) => o.more(k, go), say: (k) => { const x = list[k]; shell.say(o.name(x) + '. ' + o.text(x), shell.lang() === 'ms' && o.bm ? 'ms' : 'en-GB'); }, click: o.click });
+      ui.mount(list.map((x) => ({ e: x.icon, name: o.name(x), hot: o.hot ? o.hot(x) : '' })));
+      go(i);
+    },
+    relabel() { if (!ui) return; ui.list(list.map((x) => ({ e: x.icon, name: o.name(x), hot: o.hot ? o.hot(x) : '' }))); const k = i; i = -1; go(k); },
+    unmount() { if (ui) ui.remove(); ui = null; },
+    go, arrow(d) { go(i + d, true); },
+    sub(s) { const k = list.findIndex((x) => x.id === s); if (k >= 0) go(k); return k >= 0; }
+  };
+  return W;
+}
+
+/* ---------- World Explorer: the map, a flight to each city, and a postcard from it ---------- */
+const HOME = 'kl';
+const CITY_SOUND = { kl: 'city', london: 'city', paris: 'city', rome: 'city', cairo: 'market', nairobi: 'birds', capetown: 'ocean', lagos: 'market', mumbai: 'market', beijing: 'city', tokyo: 'city', seoul: 'city',
+  bangkok: 'market', singapore: 'city', jakarta: 'market', sydney: 'ocean', auckland: 'ocean', newyork: 'city', mexico: 'market', rio: 'ocean', lima: 'ocean', reykjavik: 'wind', dubai: 'wind', istanbul: 'market' };
 function wallClock(tz, d) {
   const p = {};
   new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' }).formatToParts(d).forEach((x) => { p[x.type] = x.value; });
@@ -209,10 +287,16 @@ export function diffText(m) {
   const amount = mm === 30 ? (h ? h + '½' : '½') + ' hours' : mm ? h + (h === 1 ? ' hour ' : ' hours ') + mm + ' minutes' : h + (h === 1 ? ' hour' : ' hours');
   return amount + (m > 0 ? ' ahead of us' : ' behind us');
 }
-function postcardHTML(c) {
+/* { km: '5,330 km', time: 'about 7 hours' } for a flight between two cities */
+export function flightWords(from, to) {
+  const km = distanceKm(from, to), r = Math.max(1, Math.round(flightHours(km) * 2) / 2);
+  return { km: (Math.round(km / 10) * 10).toLocaleString('en-GB') + ' km', time: 'about ' + String(r).replace('.5', '½') + (r === 1 ? ' hour' : ' hours') };
+}
+function postcardHTML(c, from) {
   const f = flag(c.flag);
   return '<header class="pcd-top">' + (f ? '<span class="pcd-flag" aria-hidden="true">' + f + '</span>' : '<span class="pcd-flag" aria-hidden="true">📍</span>') +
     '<div class="pcd-name"><h2>' + esc(c.name) + '</h2><small>' + esc(c.country) + '</small></div><button type="button" class="pbtn" data-pc-x aria-label="Close the postcard">' + icon('close') + '</button></header>' +
+    (from ? (() => { const f2 = flightWords(from, c); return '<p class="pcd-fly"><span aria-hidden="true">✈️</span><span>From ' + esc(from.name) + ': <b>' + esc(f2.km) + '</b>, ' + esc(f2.time) + ' by plane</span></p>'; })() : '') +
     '<p class="pcd-time"><b class="pcd-clock"></b><span class="pcd-dn"></span><span class="pcd-diff"></span></p>' +
     '<div class="pcd-hello"><small>Say hello</small><b lang="' + esc(c.hello.lang) + '">' + esc(c.hello.text) + '</b><span>Say it like <i>' + esc(c.hello.say) + '</i>. It means “' + esc(c.hello.means) + '”.</span>' +
     '<button type="button" class="btn small" data-pc-hear>' + icon('volume') + 'Hear it</button></div>' +
@@ -224,12 +308,12 @@ function postcardHTML(c) {
 }
 function explorerWin(shell) {
   const sc = explorer, list = D.CITIES, order = list.slice().sort((a, b) => a.name.localeCompare(b.name));
-  let city = null, tickT = 0, pcd = null;
+  let city = null, tickT = 0, pcd = null, last = null, flying = 0;
   const byId = (id) => list.find((c) => c.id === id);
   const dock = () => (shell.pane.clientWidth >= 980 && city ? Math.min(440, Math.round(shell.pane.clientWidth * 0.34)) + 24 : 0);
   const mapB = () => shell.pane.style.setProperty('--map-b', Math.round(sc.goal.y + sc.goal.h + 10) + 'px');      // narrow screens: controls under the map
   function clock() {
-    if (!city || !pcd) return;
+    if (!city || !pcd || pcd.hidden || !$('.pcd-clock', pcd)) return;      // (not while the plane is still flying)
     const now = new Date();
     try {
       $('.pcd-clock', pcd).textContent = new Intl.DateTimeFormat('en-GB', { timeZone: city.tz, hour: 'numeric', minute: '2-digit', hour12: true }).format(now) + ', ' + new Intl.DateTimeFormat('en-GB', { timeZone: city.tz, weekday: 'long' }).format(now);
@@ -238,27 +322,42 @@ function explorerWin(shell) {
       $('.pcd-diff', pcd).textContent = diffText(aheadBy(city.tz, now));
     } catch (e) { $('.pcd-clock', pcd).textContent = ''; }
   }
+  /* Choosing a city: the plane flies there first (from home, or from the last city), then the postcard opens. */
   function pick(id, user) {
     const c = byId(id);
-    if (!c) return;
+    if (!c || (city && city.id === c.id)) return;
+    const from = last && last.id !== c.id ? last : c.id !== HOME ? byId(HOME) : null;
     city = c; sc.select(c.id);
-    pcd.innerHTML = postcardHTML(c); pcd.hidden = false; pcd.scrollTop = 0;
-    $$('[data-wiki]', pcd).forEach((f) => photoInto(f, f.dataset.wiki, 500, true));
-    clock();
     const sel = $('.ex-sel', shell.pane); if (sel) sel.value = c.id;
-    sc.setDock(dock());
-    shell.show({ kind: c.name + ', ' + c.country, text: c.fact, lang: 'en-GB' }, false);
-    shell.setSub(c.id);
-    if (user) sfx('pop', 2);
+    if (pcd) { pcd.hidden = true; pcd.innerHTML = ''; }
+    sc.setDock(0); shell.setSub(c.id);
+    const fly = ++flying, land = () => {
+      if (fly !== flying || city !== c) return;
+      last = c;
+      pcd.innerHTML = postcardHTML(c, from); pcd.hidden = false; pcd.scrollTop = 0;
+      $$('[data-wiki]', pcd).forEach((f) => photoInto(f, f.dataset.wiki, 500, true));
+      clock(); sc.setDock(dock());
+      shell.show({ kind: c.name + ', ' + c.country, text: c.fact, lang: 'en-GB' }, false);
+      shell.resound();
+      if (shell.soundOn()) Fx.play('land');
+    };
+    if (from && user !== 'instant') {
+      sc.fly(from, c, land);
+      if (shell.soundOn()) Fx.play('plane', 2.6);
+      const f2 = flightWords(from, c);
+      shell.show({ kind: 'Flying to ' + c.name, text: 'From ' + from.name + ' to ' + c.name + ' is ' + f2.km + ' over the curve of the Earth: ' + f2.time + ' by plane.', lang: 'en-GB' }, false);
+    } else { sc.fly(null, null); land(); }
+    if (user === true) sfx('pop', 2);
   }
-  function close() { city = null; sc.select(null); if (pcd) { pcd.hidden = true; pcd.innerHTML = ''; } sc.setDock(0); shell.setSub(''); const sel = $('.ex-sel', shell.pane); if (sel) sel.value = ''; }
+  function close() { city = null; flying++; sc.select(null); sc.fly(null, null); if (pcd) { pcd.hidden = true; pcd.innerHTML = ''; } sc.setDock(0); shell.setSub(''); const sel = $('.ex-sel', shell.pane); if (sel) sel.value = ''; shell.resound(); }
   return {
-    scene: sc, pad: true, sound: '', quiz: 'world', sources: 'world',
+    scene: sc, pad: true, quiz: 'world', sources: 'world',
+    get sound() { return city ? CITY_SOUND[city.id] || 'city' : ''; },
     caption: () => items(D.CAPTIONS.explorer.facts, D.CAPTIONS.explorer.wonders),
     mount() {
       shell.pane.innerHTML = '<div class="ex-ctl"><label class="ex-l"><span>Choose a city</span><select class="ex-sel" aria-label="Choose a city"><option value="">All 24 cities…</option>' +
         order.map((c) => '<option value="' + c.id + '">' + esc(c.name + ', ' + c.country) + '</option>').join('') + '</select></label>' +
-        '<button type="button" class="btn small" data-ex-rnd aria-label="Surprise me: a city at random">🎲<span class="ex-w"> Surprise me</span></button></div><aside class="pcd" hidden aria-label="City postcard" data-ctx></aside>';
+        '<button type="button" class="btn small" data-ex-rnd aria-label="Surprise me: fly to a city at random">🎲<span class="ex-w"> Surprise me</span></button></div><aside class="pcd" hidden aria-label="City postcard" data-ctx></aside>';
       pcd = $('.pcd', shell.pane);
       mapB();
       $('.ex-sel', shell.pane).addEventListener('change', (e) => { if (e.target.value) pick(e.target.value, true); else close(); });
@@ -271,7 +370,7 @@ function explorerWin(shell) {
         if (e.target.closest('[data-pc-say]') && city) shell.say(city.name + ', ' + city.country + '. Famous for ' + city.famous.name + '. ' + city.famous.text + ' Food to try: ' + city.food.name + '. ' + city.food.text + ' Did you know? ' + city.fact, 'en-GB');
       });
     },
-    unmount() { city = null; sc.select(null); sc.setDock(0); },
+    unmount() { city = null; flying++; sc.select(null); sc.setDock(0); sc.fly(null, null); },
     escape() { if (!city) return false; close(); return true; },
     resized() { sc.setDock(dock()); mapB(); },
     onScene(r) { if (r && r.city) pick(r.city, true); },
@@ -282,131 +381,190 @@ function explorerWin(shell) {
   };
 }
 
-/* ---------- Festivals ---------- */
+/* ---------- Festivals: each one live, with its own music ---------- */
 function festivalsWin(shell) {
-  const list = D.FESTIVALS, now = new Date().getMonth();
-  const open = (i) => {
-    const f = list[i];
+  const list = D.FESTIVALS, scene = makeFestival(), month = new Date().getMonth();
+  const now = list.findIndex((f) => D.FESTIVAL_MONTHS[f.id] === month);
+  let i = now >= 0 ? now : 0, ui = null;
+  const card = (k, go) => {
+    const f = list[k];
     openCard(shell, { title: f.name, sub: 'Festivals', e: f.icon, wiki: f.wiki, text: f.what, rows: [['Where', f.where], ['When', f.when], ['Food', f.food], ['Greeting', f.hello]],
       extra: '<button type="button" class="btn small" data-hear data-say="' + esc(f.hello) + '" data-lang="' + esc(f.hl || 'en-GB') + '">' + icon('chat') + 'Say the greeting</button>',
-      nav: (d) => open((i + d + list.length) % list.length) });
+      nav: (d) => { const j = (k + d + list.length) % list.length; go(j, true); card(j, go); } });
   };
-  let stop = null;
-  return {
-    scene: backdrop('#F59E0B', '#EC4899'), sound: 'market', quiz: 'festivals', sources: 'festivals',
-    caption: () => items(D.CAPTIONS.festivals.facts, D.CAPTIONS.festivals.wonders),
-    mount() { stop = grid(shell, head('Festivals around the world', 'Tap a festival to see how people celebrate it.'), list.map((f, i) => cardHTML(i, f.wiki, f.icon, f.when, f.name, f.where, D.FESTIVAL_MONTHS[f.id] === now ? ['This month', 'hot'] : null)).join(''), open); },
-    unmount() { if (stop) stop(); },
-    sub(s) { const i = list.findIndex((f) => f.id === s); if (i >= 0) open(i); }
-  };
-}
-
-/* ---------- The Seven Wonders ---------- */
-function wondersWin(shell) {
-  let stop = null, tab = 'ancient';
-  const listOf = (set) => D.WONDERS.filter((x) => x.set === set);
-  const open = (set, i) => {
-    const l = listOf(set), x = l[i];
-    openCard(shell, { title: x.name, sub: set === 'ancient' ? 'Seven Wonders of the Ancient World' : 'New Seven Wonders of the World', e: x.icon, wiki: x.wiki, text: x.text,
-      rows: [['Where', x.where], ['Built', x.built], ['Height', x.h ? 'About ' + x.h + ' metres' : ''], ['Still standing?', x.standing ? 'Yes' : 'No']], nav: (d) => open(set, (i + d + l.length) % l.length) });
+  let owned = false;                                   // the caption is showing a message from this festival's scene
+  const go = (k, user) => {
+    const n = list.length; i = ((k % n) + n) % n;
+    const f = list[i];
+    scene.set(f.id);
+    ui.set(i, { kicker: f.when + ' · ' + f.where, name: f.name, text: f.what });
+    shell.setSub(f.id);
+    shell.resound();
+    if (owned) { owned = false; shell.recaption(); }
+    if (user) sfx('whoosh');
   };
   const W = {
-    scene: backdrop('#D4A44C', '#6D5BD0'), sound: 'wind', quiz: 'wonders', sources: 'wonders',
-    tabs: [{ id: 'ancient', name: 'Ancient seven' }, { id: 'new', name: 'New seven' }, { id: 'tall', name: 'How tall?' }], tab,
-    caption: () => items(D.CAPTIONS.wonders.facts, D.CAPTIONS.wonders.wonders),
-    setTab(id) {
-      if (stop) stop(); stop = null;
-      tab = W.tab = id;
-      if (id === 'tall') {
-        const rows = D.WONDERS.filter((x) => x.h).map((x) => ({ name: x.name, e: x.icon, v: x.h, label: 'about ' + x.h + ' m' })).concat(D.SIZE_REFS.map((r) => ({ name: r.name, e: r.icon, v: r.h, label: metres(r.h), ref: true }))).sort((a, b) => b.v - a.v);
-        shell.pane.innerHTML = '<div class="wg-wrap"><div class="wg-in">' + head('How tall are the wonders?', 'Next to Big Ben’s tower, a double-decker bus and you. Heights are about, and rounded.') + barsHTML(rows) +
-          '<p class="fine wg-note">The Great Pyramid was about 147 metres tall when it was built; its top stones have gone. Nobody knows how tall the Hanging Gardens or the Temple of Artemis were, and Machu Picchu is a whole town on a mountain.</p></div></div>';
-        growBars(shell.pane);
-        return;
-      }
-      const l = listOf(id);
-      stop = grid(shell, head(id === 'ancient' ? 'Seven Wonders of the Ancient World' : 'New Seven Wonders of the World', id === 'ancient' ? 'Listed by travellers in ancient Greece. Only one is still standing.' : 'Chosen in 2007 by millions of votes from around the world.'),
-        l.map((x, i) => cardHTML(i, x.wiki, x.icon, x.where + ' · ' + x.built, x.name, '', x.standing ? ['Still standing', 'ok'] : ['Gone', 'gone'])).join(''), (i) => open(id, i));
+    scene, quiz: 'festivals', sources: 'festivals',
+    get sound() { return FEST_SCENES[list[i].id].sound; },
+    audio(on) { if (on && ui) Music.start(FEST_SCENES[list[i].id].music); else Music.stop(); },
+    caption: () => items(D.CAPTIONS.festivals.facts, D.CAPTIONS.festivals.wonders),
+    mount() {
+      ui = stageUI(shell, { label: 'Festivals', go, more: (k) => card(k, go), moreText: 'Find out more',
+        extra: '<button type="button" class="btn small" data-fs-hello>' + icon('chat') + '<span>Say the greeting</span></button>',
+        say: (k) => shell.say(list[k].name + '. ' + list[k].what, 'en-GB'),
+        click(e) { if (e.target.closest('[data-fs-hello]')) { const f = list[i]; shell.say(f.hello, f.hl || 'en-GB'); } } });
+      ui.mount(list.map((f) => ({ e: f.icon, name: f.name, hot: D.FESTIVAL_MONTHS[f.id] === month ? 'This month' : '' })));
+      ui.el.classList.add('sg-fest');
+      go(i);
     },
-    unmount() { if (stop) stop(); },
-    sub(s) { if (W.tabs.some((x) => x.id === s)) shell.tab(s); }
+    unmount() { Music.stop(); if (ui) ui.remove(); ui = null; },
+    arrow(d) { go(i + d, true); },
+    sub(s) { const k = list.findIndex((f) => f.id === s); if (k >= 0) go(k); },
+    onScene(r) {
+      if (r && r.menorah != null) owned = true;
+      if (r && r.menorah != null) shell.show({ kind: 'Hanukkah', text: r.menorah ? 'Night ' + r.menorah + ': ' + r.menorah + (r.menorah === 1 ? ' candle' : ' candles') + ' and the helper candle, the shamash, which lights the others.' : 'Only the shamash, the helper candle, is lit. Tap to light the first night’s candle.', lang: 'en-GB' }, false);
+    },
+    context() { const f = list[i]; return 'The Festivals window is showing ' + f.name + ' (' + f.where + ', ' + f.when + '), drawn live with its music.'; }
   };
   return W;
 }
 
-/* ---------- Animal record breakers, the speed race and "How big?" ---------- */
-function recordsWin(shell) {
-  let stop = null, tab = 'cards', raceT = 0;
-  const list = D.RECORDS;
-  const open = (i) => { const r = list[i]; openCard(shell, { title: r.name, sub: r.title, e: r.icon, wiki: r.wiki, text: r.text, rows: [['Record', r.title], ['How much?', r.value]], nav: (d) => open((i + d + list.length) % list.length) }); };
-  function race() {
-    const lanes = $$('.wrace-run', shell.pane);
-    if (!lanes.length) return;
-    clearTimeout(raceT);
-    $$('.wrace-v', shell.pane).forEach((v) => { v.hidden = true; });
-    lanes.forEach((r) => { r.style.transition = 'none'; r.style.transform = 'translateX(0)'; });
-    void shell.pane.offsetWidth;
-    const track = $('.wrace-lane .wrace-way', shell.pane), room = track ? track.clientWidth - 56 : 300;
-    lanes.forEach((r) => { r.style.transition = 'transform 4s linear'; r.style.transform = 'translateX(' + Math.round(Number(r.dataset.k) / 300 * room) + 'px)'; });
-    const go = $('[data-rc-go]', shell.pane); if (go) go.innerHTML = icon('refresh') + 'Race again';
-    sfx('whoosh');
-    raceT = setTimeout(() => {
-      $$('.wrace-v', shell.pane).forEach((v) => { v.hidden = false; });
-      sfx('success');
-      shell.show({ kind: 'Speed race', text: 'The peregrine falcon wins: it dives at over 300 km/h! The cheetah is the fastest runner, and the snail has hardly moved.', lang: 'en-GB' }, true);
-    }, 4100);
+/* ---------- The Seven Wonders: the ancient seven and the new seven on the photo stage, and "How tall?" ---------- */
+function wondersWin(shell) {
+  const sets = { ancient: D.WONDERS.filter((x) => x.set === 'ancient'), new: D.WONDERS.filter((x) => x.set === 'new') };
+  const C = { giza: '#E3C08A', pharos: '#E8D2A8', zeus: '#D6B37A', mausoleum: '#CDBB95', colossus: '#C9A15A', petra: '#D98E6A', christ: '#E6E2D8', chichen: '#BFAF84', colosseum: '#D2B48C', taj: '#F4EFE6', wall: '#A9B394' };
+  const tall = makeScale(D.WONDERS.filter((x) => x.h).map((x) => ({ id: x.id, name: x.name, label: 'about ' + x.h + ' m tall', m: x.h, how: 'tall', shape: x.id, c: C[x.id] || '#E3C08A' }))
+    .concat([{ id: 'bigben', name: 'Big Ben’s tower', label: '96 m tall', m: 96, how: 'tall', shape: 'bigben', c: '#9FB6D6', ref: true },
+      { id: 'bus', name: 'A double-decker bus', label: '4.4 m tall', m: 4.4, how: 'tall', shape: 'bus', ref: true },
+      { id: 'pupil', name: 'A Year 4 pupil', label: '1.3 m tall', m: 1.3, how: 'tall', e: '🧒', ref: true }]));
+  const stages = {};
+  let tab = 'ancient', zui = null;
+  const sw = switcher({ stage: makeStage(), tall }, 'stage');
+  function more(set, k, go) {
+    const l = sets[set], x = l[k];
+    openCard(shell, { title: x.name, sub: set === 'ancient' ? 'Seven Wonders of the Ancient World' : 'New Seven Wonders of the World', e: x.icon, wiki: x.wiki, text: x.text,
+      rows: [['Where', x.where], ['Built', x.built], ['Height', x.h ? 'About ' + x.h + ' metres' : ''], ['Still standing?', x.standing ? 'Yes' : 'No']],
+      nav: (d) => { const j = (k + d + l.length) % l.length; go(j, true); more(set, j, go); } });
   }
+  const mk = (set) => stageWin(shell, sets[set], {
+    label: set === 'ancient' ? 'The ancient seven' : 'The new seven',
+    kick: (x) => (set === 'ancient' ? 'Ancient wonder' : 'New wonder') + ' · ' + x.where + ' · ' + x.built + (x.standing ? '' : ' · gone now'),
+    name: (x) => x.name, text: (x) => x.text,
+    more: (k, go) => more(set, k, go)
+  });
   const W = {
-    scene: backdrop('#F97316', '#22C55E'), sound: '', quiz: 'records', sources: 'records',
+    scene: sw, pad: true, quiz: 'wonders', sources: 'wonders',
+    tabs: [{ id: 'ancient', name: 'Ancient seven' }, { id: 'new', name: 'New seven' }, { id: 'tall', name: 'How tall?' }], tab,
+    get sound() { return tab === 'tall' ? 'wind' : stages[tab] ? stages[tab].sound : 'wind'; },
+    caption: () => items(D.CAPTIONS.wonders.facts, D.CAPTIONS.wonders.wonders),
+    setTab(id) {
+      Object.keys(stages).forEach((k) => stages[k].unmount());
+      if (zui) { zui.remove(); zui = null; }
+      shell.pane.innerHTML = '';
+      tab = W.tab = id;
+      if (id === 'tall') {
+        sw.use('tall'); tall.sel = ''; tall.z = 0; tall.goal = 0;
+        zui = scaleUI(shell, tall, 'Tap a wonder to find out how tall it is. Heights are about, and rounded; the Great Pyramid was about 147 metres when it was built.');
+        shell.setSub('tall');
+        if (shell.pane.clientWidth < 700) shell.show({ kind: 'How tall?', text: 'Drag the picture to slide along the line, from the smallest to the tallest. Tap one to hear what it is.', lang: 'en-GB' }, false);
+        return;
+      }
+      if (!stages[id]) stages[id] = mk(id);
+      sw.set('stage', stages[id].stage); sw.use('stage');
+      stages[id].mount();
+    },
+    unmount() { Object.keys(stages).forEach((k) => stages[k].unmount()); if (zui) zui.remove(); },
+    arrow(d) { if (stages[tab] && tab !== 'tall') stages[tab].arrow(d); },
+    sub(s) {
+      if (W.tabs.some((x) => x.id === s)) { shell.tab(s); return; }
+      const set = sets.ancient.some((x) => x.id === s) ? 'ancient' : sets.new.some((x) => x.id === s) ? 'new' : '';
+      if (set) { if (tab !== set) shell.tab(set); stages[set].sub(s); }
+    },
+    tick() { if (zui) zui.tick(); },
+    onScene(r) { if (r && r.size) { const x = D.WONDERS.find((y) => y.id === r.size); shell.show(x ? { kind: x.name, text: x.name + ' is about ' + x.h + ' metres tall. ' + x.text, lang: 'en-GB' } : { kind: 'For scale', text: r.size === 'bigben' ? 'Big Ben’s tower in London is 96 metres tall.' : r.size === 'bus' ? 'A London double-decker bus is about 4.4 metres tall.' : 'A Year 4 pupil is about 1.3 metres tall.', lang: 'en-GB' }, true); } },
+    context() { return tab === 'tall' ? 'The Seven Wonders window shows how tall the wonders are, side by side with Big Ben’s tower, a bus and a pupil.' : (stages[tab] ? 'The Seven Wonders window shows ' + stages[tab].list[stages[tab].i].name + '.' : ''); }
+  };
+  return W;
+}
+
+/* ---------- Animal record breakers: on the photo stage, the speed race and "How big?" ---------- */
+function recordsWin(shell) {
+  const list = D.RECORDS;
+  const SIL = { whale: ['whale', '#5E7FA6'], croc: ['croc', '#5A6B3A'], python: ['python', '#8A7A4A'], ostrich: ['ostrich', '#2B2420'] };       // drawn from the side, to scale
+  const big = makeScale(list.filter((r) => /^m (long|tall)$/.test(r.unit)).map((r) => ({ id: r.id, name: r.name, label: metres(r.n) + ' ' + r.unit.slice(2), m: r.n, how: r.unit.slice(2), e: r.icon, shape: SIL[r.id] && SIL[r.id][0], c: SIL[r.id] && SIL[r.id][1], aspect: { hummingbird: 0.8 }[r.id], flip: true }))
+    .concat([{ id: 'bus', name: 'A double-decker bus', label: '11 m long', m: 11.2, how: 'long', shape: 'bus', ref: true, aspect: 0.4 },
+      { id: 'pupil', name: 'A Year 4 pupil', label: '1.3 m tall', m: 1.3, how: 'tall', e: '🧒', ref: true }]));
+  const race = makeRace(D.RACE);
+  let tab = 'cards', zui = null, rui = null;
+  const cards = stageWin(shell, list, {
+    label: 'Record breakers', kick: (x) => x.title + ' · ' + x.value, name: (x) => x.name, text: (x) => x.text,
+    more: function more(k, go) { const r = list[k]; openCard(shell, { title: r.name, sub: r.title, e: r.icon, wiki: r.wiki, text: r.text, rows: [['Record', r.title], ['How much?', r.value]], nav: (d) => { const j = (k + d + list.length) % list.length; go(j, true); more(j, go); } }); }
+  });
+  const sw = switcher({ stage: cards.stage, race, big }, 'stage');
+  race.onDone = () => {
+    shell.show({ kind: 'Speed race', text: 'The peregrine falcon wins: it dives at over 300 km/h! The cheetah is the fastest runner, and the snail has hardly moved.', lang: 'en-GB' }, true);
+    const b = rui && $('[data-rc-go]', rui); if (b) b.innerHTML = icon('refresh') + '<span>Race again</span>';
+  };
+  const W = {
+    scene: sw, quiz: 'records', sources: 'records',
     tabs: [{ id: 'cards', name: 'Record breakers' }, { id: 'race', name: 'Speed race' }, { id: 'big', name: 'How big?' }], tab,
+    get sound() { return tab === 'cards' ? cards.sound : 'wind'; },
     caption: () => items(D.CAPTIONS.records.facts, D.CAPTIONS.records.wonders),
     setTab(id) {
-      if (stop) stop(); stop = null; clearTimeout(raceT);
+      cards.unmount(); if (zui) { zui.remove(); zui = null; } if (rui) { rui.remove(); rui = null; }
+      shell.pane.innerHTML = '';
       tab = W.tab = id;
       if (id === 'race') {
-        shell.pane.innerHTML = '<div class="wg-wrap"><div class="wg-in">' + head('Speed race', 'Everyone sets off together and goes for the same few seconds. Who gets furthest?') +
-          '<div class="wrace">' + D.RACE.map((r) => '<div class="wrace-lane"><span class="wrace-name">' + esc(r.name) + '</span><span class="wrace-way"><span class="wrace-run" data-k="' + r.kmh + '"><span class="wrace-e" aria-hidden="true">' + r.e + '</span></span><i class="wrace-fin" aria-hidden="true"></i></span><b class="wrace-v" hidden>' + esc(r.say) + '</b></div>').join('') + '</div>' +
-          '<div class="wrace-btns"><button type="button" class="btn primary" data-rc-go>' + icon('play') + 'Start the race</button></div>' +
-          '<p class="fine wg-note">The falcon’s speed is for its dive; the others run or drive on the flat. Usain Bolt’s is his top speed in a 100-metre race.</p></div></div>';
+        sw.use('race'); race.reset();
+        rui = document.createElement('div'); rui.className = 'sz sz-race';
+        rui.innerHTML = '<div class="sz-row"><button type="button" class="btn primary" data-rc-go>' + icon('play') + '<span>Start the race</span></button></div><p class="fine">Everyone sets off together and goes for the same few seconds. The falcon’s speed is for its dive; Usain Bolt’s is his top speed in a 100-metre race.</p>';
+        shell.pane.appendChild(rui);
+        rui.addEventListener('click', (e) => { if (e.target.closest('[data-rc-go]')) { race.soundOn = shell.soundOn(); race.start(); sfx('whoosh'); } });
+        shell.setSub('race');
         return;
       }
       if (id === 'big') {
-        const rows = list.filter((r) => /^m (long|tall)$/.test(r.unit)).map((r) => ({ name: r.name, e: r.icon, v: r.n, label: metres(r.n) + ' ' + r.unit.slice(2) }))
-          .concat(D.BIG_REFS.map((r) => ({ name: r.name, e: r.e, v: r.m, label: metres(r.m) + ' ' + r.how, ref: true }))).sort((a, b) => b.v - a.v);
-        shell.pane.innerHTML = '<div class="wg-wrap"><div class="wg-in">' + head('How big?', 'The longest and tallest record breakers, next to a bus and you.') + barsHTML(rows) + '</div></div>';
-        growBars(shell.pane);
+        sw.use('big'); big.sel = ''; big.z = 0; big.goal = 0;
+        zui = scaleUI(shell, big, 'Tap an animal to hear its record. Lengths and heights are about, and rounded.');
+        shell.setSub('big');
+        if (shell.pane.clientWidth < 700) shell.show({ kind: 'How big?', text: 'Drag the picture to slide along the line, from the smallest to the biggest. Tap an animal to hear its record.', lang: 'en-GB' }, false);
         return;
       }
-      stop = grid(shell, head('Animal record breakers', 'Tap an animal to find out its record.'), list.map((r, i) => cardHTML(i, r.wiki, r.icon, r.title, r.name, r.value)).join(''), open);
+      sw.use('stage');
+      cards.mount();
     },
-    mount() { shell.pane.addEventListener('click', (e) => { if (e.target.closest('[data-rc-go]')) race(); }); },
-    unmount() { if (stop) stop(); clearTimeout(raceT); },
-    sub(s) { if (W.tabs.some((x) => x.id === s)) shell.tab(s); }
+    unmount() { cards.unmount(); if (zui) zui.remove(); if (rui) rui.remove(); },
+    arrow(d) { if (tab === 'cards') cards.arrow(d); },
+    sub(s) {
+      if (W.tabs.some((x) => x.id === s)) { shell.tab(s); return; }
+      if (list.some((x) => x.id === s)) { if (tab !== 'cards') shell.tab('cards'); cards.sub(s); }
+    },
+    tick() { if (zui) zui.tick(); },
+    onScene(r) {
+      if (r && r.race) { sfx('whoosh'); return; }
+      if (r && r.size) { const x = list.find((y) => y.id === r.size); shell.show(x ? { kind: x.name, text: x.title + ': ' + x.value + '. ' + x.text, lang: 'en-GB' } : { kind: 'For scale', text: r.size === 'bus' ? 'A London double-decker bus is about 11 metres long.' : 'A Year 4 pupil is about 1.3 metres tall.', lang: 'en-GB' }, true); }
+    },
+    context() { return tab === 'race' ? 'The record breakers window shows the speed race.' : tab === 'big' ? 'The record breakers window shows how big the record-breaking animals are, next to a bus and a pupil.' : 'The record breakers window shows the ' + list[cards.i].name + ': ' + list[cards.i].title + '.'; }
   };
   return W;
 }
 
 /* ---------- Wonders of Malaysia, in English or Bahasa Melayu ---------- */
 function malaysiaWin(shell) {
-  let stop = null;
   const list = D.MALAYSIA;
-  const open = (i) => {
-    const m = list[i], ms = shell.lang() === 'ms';
-    openCard(shell, { title: ms ? m.bmName : m.name, sub: ms ? 'Keajaiban Malaysia' : 'Wonders of Malaysia', e: m.icon, wiki: m.wiki, text: ms ? m.bm : m.text, lang: ms ? 'ms' : 'en', nav: (d) => open((i + d + list.length) % list.length) });
-  };
-  const render = () => {
-    if (stop) stop();
-    const ms = shell.lang() === 'ms';
-    stop = grid(shell, ms ? head('Keajaiban Malaysia', 'Tekan satu kad untuk mengetahui lebih lanjut.') : head('Wonders of Malaysia', 'Tap a card to find out more. Tap BM for Bahasa Melayu.'),
-      list.map((m, i) => cardHTML(i, m.wiki, m.icon, ms ? m.name : m.bmName, ms ? m.bmName : m.name, '')).join(''), open);
-  };
-  return {
-    scene: backdrop('#10B981', '#EF4444'), sound: 'forest', bm: true, quiz: 'malaysia', sources: 'malaysia',
-    caption: (ms) => items(D.CAPTIONS.malaysia.facts, D.CAPTIONS.malaysia.wonders, ms),
-    mount: render, setLang: render,
-    unmount() { if (stop) stop(); },
-    sub(s) { const i = list.findIndex((m) => m.id === s); if (i >= 0) open(i); }
-  };
+  const ms = () => shell.lang() === 'ms';
+  const W = stageWin(shell, list, {
+    label: 'Wonders of Malaysia', bm: true,
+    kick: (x) => (ms() ? 'Keajaiban Malaysia · ' + x.name : 'Wonders of Malaysia · ' + x.bmName),
+    name: (x) => (ms() ? x.bmName : x.name), text: (x) => (ms() ? x.bm : x.text),
+    more: function more(k, go) { const m = list[k]; openCard(shell, { title: ms() ? m.bmName : m.name, sub: ms() ? 'Keajaiban Malaysia' : 'Wonders of Malaysia', e: m.icon, wiki: m.wiki, text: ms() ? m.bm : m.text, lang: ms() ? 'ms' : 'en', nav: (d) => { const j = (k + d + list.length) % list.length; go(j, true); more(j, go); } }); }
+  });
+  return Object.assign(W, {
+    scene: W.stage, pad: true, bm: true, quiz: 'malaysia', sources: 'malaysia',
+    caption: (m) => items(D.CAPTIONS.malaysia.facts, D.CAPTIONS.malaysia.wonders, m),
+    setLang() { W.relabel(); },
+    context() { const x = list[W.i]; return 'The Wonders of Malaysia window shows ' + x.name + ' (' + x.bmName + ').'; }
+  });
 }
 
 /* ---------- Seasons ---------- */

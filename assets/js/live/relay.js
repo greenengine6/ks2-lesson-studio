@@ -6,9 +6,11 @@
    pupils. What the teacher sends (the current class moment) is locked with the lesson key (AES-128-GCM).
 
    Two relays carry the locked messages, and both only ever see scrambled text and random ids:
-   - the public relay (ntfy.sh): works straight away, no set-up; it deletes messages after 12 hours;
+   - the public relay (ntfy.sh): works straight away, no set-up; it deletes messages after 12 hours. It is free,
+     so it has limits for each network (each internet address): about 30 devices listening at once and about 250
+     messages a day. Fine for an online lesson, where pupils are at home; tight for a whole class on one Wi-Fi;
    - the school relay: the site's own Google Apps Script (inbox/Code.gs) once it is switched on; it keeps
-     messages in the script's short-term cache for 6 hours at most.
+     messages in the script's short-term cache for 6 hours at most, and has no such limits.
    This file has no other imports, so the pupils' page stays small and fast. */
 
 const subtle = crypto.subtle;
@@ -130,13 +132,65 @@ export async function codeKey(code) {
 }
 export const channel = (sid, side) => 'ks2le-' + sid + '-' + side;      // side: t (teacher to class) or p (pupils to teacher)
 
-/* ---------------- the relays ---------------- */
+/* ---------------- the relays ----------------
+   Every listener reports how the line is with onState(s):
+     'on'   connected;
+     'off'  reconnecting by itself (no internet for a moment, a phone that slept);
+     'busy' the relay asked us to slow down, so we wait longer before trying again;
+     'subs' the public relay has too many devices open on this network (about 30 on one Wi-Fi).
+   A failed send says why in e.code: 'network', 'busy', 'full' (the public relay's daily limit for this network
+   is used up), or 'relay'. Each listener's stop function also has .retry() to reconnect at once. */
 function relayError(code) { const e = new Error(code); e.code = code; return e; }
 const NOREF = { cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' };
 
-/* The public relay. Sending is one POST; listening is one long request that streams a line per message (the
-   relay keeps it open). If it closes, we reconnect from the last message we saw, waiting a little longer each time
-   nothing new arrived, so a quiet or busy relay is never hammered. */
+/* Where the public relay is: the site's own choice (config "liveRelay": an https address, or a path on this
+   site), or ntfy.sh. */
+export function relayBase(b) {
+  b = String(b || '').trim().replace(/\/+$/, '');
+  if (/^https:\/\/[a-z0-9.-]+(:\d+)?(\/[A-Za-z0-9._~/-]*)?$/i.test(b)) return b;
+  if (/^\/[A-Za-z0-9._~-][A-Za-z0-9._~/-]*$/.test(b)) return location.origin + b;
+  return PUBLIC;
+}
+/* What the public relay meant by "too many": its answer carries a code. */
+async function why429(r) {
+  let c = 0;
+  try { c = Number((await r.json()).code) || 0; } catch (e) { /* no reason given */ }
+  return c === 42908 ? 'full' : c === 42903 ? 'subs' : 'busy';
+}
+/* Phones put a page to sleep when the screen locks or another app comes to the front, and a long-lived line can
+   die quietly while it sleeps. fn(away) runs when the page wakes again: back on screen (away = how long it was
+   hidden), back online, or restored from the back button (away = a long time). */
+function onWake(fn) {
+  if (typeof document === 'undefined') return () => {};
+  let hiddenAt = document.visibilityState === 'hidden' ? Date.now() : 0;
+  const vis = () => {
+    if (document.visibilityState === 'hidden') { hiddenAt = Date.now(); return; }
+    const away = hiddenAt ? Date.now() - hiddenAt : 0; hiddenAt = 0; fn(away);
+  };
+  const back = () => fn(1e9);
+  const shown = (e) => { if (e.persisted) fn(1e9); };
+  document.addEventListener('visibilitychange', vis);
+  document.addEventListener('resume', back);
+  window.addEventListener('online', back);
+  window.addEventListener('pageshow', shown);
+  return () => {
+    document.removeEventListener('visibilitychange', vis); document.removeEventListener('resume', back);
+    window.removeEventListener('online', back); window.removeEventListener('pageshow', shown);
+  };
+}
+/* 1, 2, 4, 8, 16, then 30 seconds, give or take a little, so a whole class never retries at the same moment. */
+const backoff = (n) => Math.min(30000, 1000 * Math.pow(2, Math.min(Math.max(n, 0), 5))) * (0.7 + Math.random() * 0.6);
+const QUIET = 75000;                // the public relay sends a keep-alive every 45 seconds, so this long means the line is dead
+
+/* The public relay (ntfy.sh). Sending is one POST. Listening is one long line that stays open:
+   - server-sent events (EventSource) first, because phones, school web filters and proxies handle them best;
+     a plain streamed request if that kind never opens;
+   - a watchdog: 75 seconds without even a keep-alive means the line died quietly, so it starts again;
+   - when the page wakes up (screen back on, back online) it starts again at once, from the last message it saw,
+     so nothing is missed and nothing comes twice;
+   - after a failure it asks the relay directly once (which also catches up on anything missed) and waits a little
+     longer each time; if the relay says it is too busy it waits 20 to 45 seconds, because the public relay blocks
+     networks that keep knocking. */
 export function publicRelay(base) {
   base = base || PUBLIC;
   return {
@@ -144,60 +198,113 @@ export function publicRelay(base) {
     async send(ch, text) {
       let r;
       try { r = await fetch(base + '/' + ch, Object.assign({ method: 'POST', body: text }, NOREF)); } catch (e) { throw relayError('network'); }
-      if (r.status === 429) throw relayError('busy');
+      if (r.status === 429) throw relayError(await why429(r));
       if (!r.ok) throw relayError('relay');
     },
     listen(ch, onText, onState) {
-      let stop = false, ctl = null, since = 'all', wait = 300;
-      const seen = new Set();
-      (async () => {
-        while (!stop) {
-          const t0 = Date.now();
-          let got = 0;
-          try {
-            ctl = new AbortController();
-            const r = await fetch(base + '/' + ch + '/json?since=' + encodeURIComponent(since), Object.assign({ signal: ctl.signal }, NOREF));
-            if (!r.ok) throw relayError(r.status === 429 ? 'busy' : 'relay');
-            if (onState) onState('on');
-            const rd = r.body.getReader();
-            let buf = '';
-            for (;;) {
-              const { value, done } = await rd.read();
-              if (done) break;
-              buf += td.decode(value, { stream: true });
-              let i;
-              while ((i = buf.indexOf('\n')) >= 0) {
-                const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
-                if (!line) continue;
-                let m; try { m = JSON.parse(line); } catch (e) { continue; }
-                if (!m || m.event !== 'message' || !m.id || seen.has(m.id)) continue;
-                seen.add(m.id); since = m.id; got++;
-                try { await onText(String(m.message || '')); } catch (e) { /* one bad message never stops the rest */ }
-              }
-            }
-          } catch (e) {
-            if (stop) break;
-            if (onState) onState(e && e.code === 'busy' ? 'busy' : 'off');
+      const L = { stop: false, es: null, ctl: null, last: 'all', beat: 0, openAt: 0, fails: 0, t: 0, state: '', mode: typeof EventSource === 'function' ? 'sse' : 'stream' };
+      const seen = new Set(), order = [];
+      let chain = Promise.resolve();
+      const say = (s) => { if (s === L.state) return; L.state = s; if (onState) { try { onState(s); } catch (e) { /* ignore */ } } };
+      const take = (line) => {
+        let m; try { m = JSON.parse(line); } catch (e) { return; }
+        if (!m || m.event !== 'message' || !m.id || seen.has(m.id)) return;
+        seen.add(m.id); order.push(m.id); if (order.length > 4000) seen.delete(order.shift());
+        L.last = m.id;
+        const text = String(m.message || '');
+        chain = chain.then(() => onText(text)).catch(() => { /* one bad message never stops the rest */ });
+      };
+      const shut = () => {
+        if (L.es) { try { L.es.close(); } catch (e) { /* ignore */ } L.es = null; }
+        if (L.ctl) { try { L.ctl.abort(); } catch (e) { /* ignore */ } L.ctl = null; }
+      };
+      const up = () => { L.openAt = Date.now(); L.beat = L.openAt; L.fails = 0; say('on'); };
+      const open = () => {
+        clearTimeout(L.t); shut();
+        if (L.stop) return;
+        L.openAt = 0; L.beat = Date.now();
+        if (L.mode === 'sse') openSSE(); else openStream();
+      };
+      function openSSE() {
+        let es;
+        try { es = new EventSource(base + '/' + ch + '/sse?since=' + encodeURIComponent(L.last)); } catch (e) { L.mode = 'stream'; openStream(); return; }
+        L.es = es;
+        es.onopen = () => { if (L.es === es) up(); };
+        es.onmessage = (e) => { if (L.es === es) { L.beat = Date.now(); take(e.data); } };
+        es.addEventListener('keepalive', () => { if (L.es === es) L.beat = Date.now(); });
+        es.onerror = () => { if (L.es !== es || L.stop) return; shut(); lost(''); };
+      }
+      async function openStream() {
+        const ctl = new AbortController(); L.ctl = ctl;
+        try {
+          const r = await fetch(base + '/' + ch + '/json?since=' + encodeURIComponent(L.last), Object.assign({ signal: ctl.signal }, NOREF));
+          if (r.status === 429) throw relayError(await why429(r));
+          if (!r.ok || !r.body) throw relayError('relay');
+          if (L.ctl !== ctl) return;
+          up();
+          const rd = r.body.getReader();
+          let buf = '';
+          for (;;) {
+            const { value, done } = await rd.read();
+            if (done || L.ctl !== ctl) break;
+            L.beat = Date.now();
+            buf += td.decode(value, { stream: true });
+            let i;
+            while ((i = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (line) take(line); }
           }
-          if (stop) break;
-          wait = got || Date.now() - t0 > 20000 ? 300 : Math.min(wait * 2, 4000);
-          await sleep(wait);
+          if (L.ctl === ctl && !L.stop) { L.ctl = null; lost(''); }
+        } catch (e) {
+          if (L.ctl !== ctl || L.stop) return;
+          L.ctl = null; lost(e && e.code);
         }
-      })();
-      return () => { stop = true; try { if (ctl) ctl.abort(); } catch (e) { /* ignore */ } };
+      }
+      /* Ask the relay directly: it says whether it is too busy, and hands over anything missed. */
+      async function probe() {
+        try {
+          const r = await fetch(base + '/' + ch + '/json?poll=1&since=' + encodeURIComponent(L.last), NOREF);
+          if (r.status === 429) return why429(r);
+          if (!r.ok) return 'down';
+          (await r.text()).split('\n').forEach((l) => { if (l.trim()) take(l); });
+          return 'ok';
+        } catch (e) { return 'offline'; }
+      }
+      /* The line closed or failed. */
+      async function lost(code) {
+        const lasted = L.openAt && Date.now() - L.openAt > 20000, never = !L.openAt;
+        if (lasted) L.fails = 0;
+        L.openAt = 0; L.fails += 1;
+        let why = code === 'busy' || code === 'subs' ? code : '';
+        if (!why && (never || L.fails > 1)) why = await probe();
+        if (L.stop) return;
+        if (why === 'ok' && never && typeof EventSource === 'function') L.mode = L.mode === 'sse' ? 'stream' : 'sse';   // a filter may block one kind of line
+        if (why === 'busy' || why === 'subs') say(why); else if (why !== 'ok' || never) say('off');
+        const wait = why === 'busy' || why === 'subs' ? 20000 + Math.random() * 25000 : why === 'ok' && lasted ? 300 : backoff(L.fails - 1);
+        clearTimeout(L.t); L.t = setTimeout(open, wait);
+      }
+      const dog = setInterval(() => { if (!L.stop && L.openAt && Date.now() - L.beat > QUIET) open(); }, 10000);
+      const unwake = onWake((away) => {
+        if (L.stop || L.state === 'busy' || L.state === 'subs') return;
+        if (away > 5000 || !L.openAt || Date.now() - L.beat > 50000) { L.fails = 0; open(); }
+      });
+      open();
+      const stop = () => { L.stop = true; clearTimeout(L.t); clearInterval(dog); unwake(); shut(); };
+      stop.retry = () => { if (!L.stop) { L.fails = 0; open(); } };
+      return stop;
     },
     async all(ch) {
       let r;
       try { r = await fetch(base + '/' + ch + '/json?poll=1&since=all', NOREF); } catch (e) { throw relayError('network'); }
-      if (!r.ok) throw relayError(r.status === 429 ? 'busy' : 'relay');
+      if (r.status === 429) throw relayError(await why429(r));
+      if (!r.ok) throw relayError('relay');
       return (await r.text()).split('\n').map((l) => { try { return JSON.parse(l); } catch (e) { return null; } })
         .filter((m) => m && m.event === 'message').map((m) => String(m.message || ''));
     }
   };
 }
 
-/* The school relay: the site's Apps Script. It cannot hold a request open, so we ask for new messages every second
-   or two (more slowly when nothing is happening). */
+/* The school relay: the site's Apps Script (inbox/Code.gs). It cannot hold a request open, so devices ask for new
+   messages about once a second while things are happening, every 2 to 3 seconds when it is quiet, and at once
+   when the page wakes up. */
 export const SCRIPT = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/;
 export function schoolRelay(url) {
   const get = async (q) => {
@@ -217,39 +324,47 @@ export function schoolRelay(url) {
         const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ relay: 'ks2-live', ch, m: text }), redirect: 'follow', credentials: 'omit', cache: 'no-store' });
         j = await r.json();
       } catch (e) { throw relayError('network'); }
-      if (!j || !j.ok) throw relayError(j && j.error === 'busy' ? 'busy' : 'relay');
+      if (!j || !j.ok) throw relayError(j && j.error === 'busy' ? 'busy' : j && j.error === 'full' ? 'full' : 'relay');
     },
     listen(ch, onText, onState) {
-      let stop = false, since = 0, wait = 1200;
-      (async () => {
-        while (!stop) {
-          try {
-            const j = await get('ch=' + encodeURIComponent(ch) + '&since=' + since);
-            if (stop) break;
-            if (onState) onState('on');
-            const msgs = Array.isArray(j.msgs) ? j.msgs : [];
-            for (const m of msgs) {
-              if (!(m && m.n > since)) continue;
-              since = m.n;
-              try { await onText(String(m.m || '')); } catch (e) { /* keep going */ }
-            }
-            if (typeof j.last === 'number' && j.last > since && !msgs.length) since = j.last;
-            wait = msgs.length ? 900 : Math.min(wait + 300, 2400);
-          } catch (e) {
-            if (stop) break;
-            if (onState) onState(e && e.code === 'busy' ? 'busy' : 'off');
-            wait = Math.min(wait * 2, 8000);
+      let stop = false, since = 0, wait = 1200, t = 0, asking = false, state = '';
+      const say = (s) => { if (s === state) return; state = s; if (onState) { try { onState(s); } catch (e) { /* ignore */ } } };
+      const ask = async () => {
+        clearTimeout(t);
+        if (stop || asking) return;
+        asking = true;
+        try {
+          const j = await get('ch=' + encodeURIComponent(ch) + '&since=' + since);
+          if (stop) return;
+          say('on');
+          const msgs = Array.isArray(j.msgs) ? j.msgs : [];
+          for (const m of msgs) {
+            if (!(m && m.n > since)) continue;
+            since = m.n;
+            try { await onText(String(m.m || '')); } catch (e) { /* keep going */ }
           }
-          await sleep(wait);
-        }
-      })();
-      return () => { stop = true; };
+          if (typeof j.last === 'number' && j.last > since && !msgs.length) since = j.last;
+          const hidden = typeof document !== 'undefined' && document.visibilityState === 'hidden';
+          wait = msgs.length ? 900 : Math.min(wait + 300, hidden ? 8000 : 2600);
+        } catch (e) {
+          if (stop) return;
+          say(e && e.code === 'busy' ? 'busy' : 'off');
+          wait = Math.min(Math.max(wait, 1000) * 2, 15000);
+        } finally { asking = false; }
+        if (!stop) t = setTimeout(ask, wait * (0.85 + Math.random() * 0.3));
+      };
+      const unwake = onWake(() => { wait = 900; ask(); });
+      ask();
+      const s = () => { stop = true; clearTimeout(t); unwake(); };
+      s.retry = () => { wait = 900; ask(); };
+      return s;
     },
     async all(ch) { const j = await get('ch=' + encodeURIComponent(ch) + '&since=0'); return (Array.isArray(j.msgs) ? j.msgs : []).map((m) => String(m.m || '')); }
   };
 }
 
-/* Send one message, in parts if it is long, trying again if the relay is busy for a moment. */
+/* Send one message, in parts if it is long, trying again if the relay is busy for a moment. A relay that says its
+   limit for today is used up is not asked again. */
 export async function post(relay, ch, env, tries) {
   const parts = split(env);
   for (const part of parts) {
@@ -257,8 +372,9 @@ export async function post(relay, ch, env, tries) {
     for (;;) {
       try { await relay.send(ch, part); break; } catch (e) {
         n += 1;
-        if (n >= (tries || 3) || (e && e.code === 'relay')) throw e;
-        await sleep(n * 1500 + Math.random() * 1200);
+        const code = e && e.code;
+        if (n >= (tries || 3) || code === 'relay' || code === 'full') throw e;
+        await sleep((code === 'busy' ? 2500 : 1200) * n + Math.random() * 1200);
       }
     }
   }

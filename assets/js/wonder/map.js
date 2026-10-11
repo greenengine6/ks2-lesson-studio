@@ -1,7 +1,10 @@
 /* World Explorer's map: the whole Earth with day and night as they are right now (the dark side shows city lights),
-   a little sun where the Sun is overhead, and 24 cities to tap. The map gives room to the postcard when one is open. */
-import { CITIES } from './data.js?v=7a165bee';
-import { TAU, clamp, smooth, layer, sunAt, sunHeight, view, FONT, flag } from './util.js?v=7a165bee';
+   a little sun where the Sun is overhead, and 24 cities to tap. Choosing a city flies a plane there along the
+   shortest route over the globe (a great circle, which looks curved on a flat map), from Kuala Lumpur or from the
+   last city visited, with the distance and about how long the flight takes. The map gives room to the postcard
+   when one is open. */
+import { CITIES } from './data.js?v=1e9e4bc0';
+import { TAU, clamp, smooth, layer, sunAt, sunHeight, view, FONT, flag, drawEmoji } from './util.js?v=1e9e4bc0';
 
 const TOP = 78, BOTTOM = -58, SPAN = TOP - BOTTOM, ASPECT = 360 / SPAN;   // the far north and most of Antarctica are left off
 const RAD = Math.PI / 180;
@@ -35,10 +38,32 @@ function nightMask(sun) {
 }
 export const xy = (lat, lon, r) => ({ x: r.x + (lon + 180) / 360 * r.w, y: r.y + (TOP - lat) / SPAN * r.h });
 
+/* ---------------- flying between cities ---------------- */
+/* Kilometres between two places, over the curve of the Earth. */
+export function distanceKm(a, b) {
+  const p1 = a.lat * RAD, p2 = b.lat * RAD, dp = p2 - p1, dl = (b.lon - a.lon) * RAD;
+  const h = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+/* About how long a passenger plane takes: about 850 km an hour, plus half an hour to take off and land. */
+export function flightHours(km) { return km / 850 + 0.5; }
+/* Points along the shortest route (a great circle), as latitude and longitude. */
+function route(a, b, n) {
+  const v = (c) => [Math.cos(c.lat * RAD) * Math.cos(c.lon * RAD), Math.cos(c.lat * RAD) * Math.sin(c.lon * RAD), Math.sin(c.lat * RAD)];
+  const A = v(a), B = v(b), d = Math.acos(clamp(A[0] * B[0] + A[1] * B[1] + A[2] * B[2], -1, 1)) || 1e-6, out = [];
+  for (let i = 0; i <= n; i++) {
+    const f = i / n, s1 = Math.sin((1 - f) * d) / Math.sin(d), s2 = Math.sin(f * d) / Math.sin(d);
+    const x = s1 * A[0] + s2 * B[0], y = s1 * A[1] + s2 * B[1], z = s1 * A[2] + s2 * B[2];
+    out.push({ lat: Math.atan2(z, Math.hypot(x, y)) / RAD, lon: Math.atan2(y, x) / RAD });
+  }
+  return out;
+}
+
 export const explorer = {
   id: 'explorer',
   init(w, h) {
-    this.w = w; this.h = h; this.sel = null; this.hover = null; this.comp = null; this.compAt = 0; this.dock = this.dock || 0; this.cur = null;
+    this.w = w; this.h = h; this.sel = null; this.hover = null; this.comp = null; this.compAt = 0; this.dock = this.dock || 0; this.cur = null; this.flight = null; this.rings = [];
+    this.stars = Array.from({ length: Math.round(w * h / 6000) }, () => ({ x: Math.random(), y: Math.random(), s: Math.random() * 1.3 + 0.4, p: Math.random() * TAU }));
     this.layout(true);
     load().then(() => { this.comp = null; });
   },
@@ -72,6 +97,14 @@ export const explorer = {
     }
     return c;
   },
+  haloFor(r) {
+    const key = Math.round(r.w) + 'x' + Math.round(r.h);
+    if (this.halo && this.halo.key === key) return this.halo.c;
+    const c = layer(r.w + 80, r.h + 80), g = c.getContext('2d');
+    g.shadowColor = 'rgba(80,140,255,.35)'; g.shadowBlur = 30; g.fillStyle = '#0A1733'; g.fillRect(40, 40, r.w, r.h);
+    this.halo = { key, c };
+    return c;
+  },
   /* The city nearest to a point, if it is close enough to mean it. */
   cityAt(x, y, reach) {
     const r = this.cur;
@@ -82,15 +115,51 @@ export const explorer = {
   pointer(x, y) { this.hover = this.cityAt(x, y, 18); },
   click(x, y) { const c = this.cityAt(x, y, view.small ? 30 : 24); return c ? { city: c.id } : null; },
   select(id) { this.sel = id || null; },
+  /* Fly from one city to another; done() runs when the plane lands. */
+  fly(from, to, done) {
+    if (!from || !to || from.id === to.id) { this.flight = null; if (done) done(); return; }
+    const km = distanceKm(from, to);
+    this.flight = { from, to, pts: route(from, to, 90), t: 0, d: clamp(1.6 + km / 9000, 1.8, 3.4), done, landed: false, at: performance.now() };
+  },
   step(dt) {
     const c = this.cur, g = this.goal, k = 1 - Math.pow(0.0005, dt);
     ['x', 'y', 'w', 'h'].forEach((p) => { c[p] += (g[p] - c[p]) * k; if (Math.abs(g[p] - c[p]) < 0.3) c[p] = g[p]; });
     if (img.day && (!this.comp || Date.now() - this.compAt > 30000)) this.comp = this.compose();
+    const f = this.flight;
+    if (f && !f.landed) {
+      f.t = (performance.now() - f.at) / 1000;                      // real seconds, so a slow screen still lands on time
+      if (f.t >= f.d) { f.landed = true; f.t = f.d; this.rings.push({ id: f.to.id, t: 0 }); if (f.done) f.done(); }
+    }
+    this.rings.forEach((r) => { r.t += dt; });
+    this.rings = this.rings.filter((r) => r.t < 1.6);
+  },
+  /* the plane's route, with breaks where it crosses the edge of the map */
+  drawFlight(ctx, r, t) {
+    const f = this.flight;
+    if (!f) return;
+    const k = smooth(clamp(f.t / f.d, 0, 1)), n = f.pts.length - 1, upto = Math.max(1, Math.round(k * n));
+    const P = f.pts.map((p) => xy(p.lat, p.lon, r));
+    const path = (from, to, dash, col, wdt) => {
+      ctx.save(); ctx.setLineDash(dash); ctx.strokeStyle = col; ctx.lineWidth = wdt; ctx.lineCap = 'round'; ctx.beginPath();
+      for (let i = from; i <= to; i++) { const p = P[i]; if (i === from || Math.abs(p.x - P[i - 1].x) > r.w / 2) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); }
+      ctx.stroke(); ctx.restore();
+    };
+    path(0, n, [3, 7], 'rgba(255,255,255,.28)', 1.5);                  // the whole way, faint
+    path(0, upto, [], 'rgba(255,214,102,.95)', 2.6);                    // flown so far
+    if (!f.landed || f.t < f.d + 0.01) {
+      const i = Math.min(n, upto), a = P[Math.max(0, i - 1)], b = P[Math.min(n, i + 1)];
+      let ang = Math.atan2(b.y - a.y, b.x - a.x); if (Math.abs(b.x - a.x) > r.w / 2) ang = Math.PI - ang;
+      const lift = Math.sin(k * Math.PI);                                 // the plane grows as it climbs and shrinks as it lands
+      drawEmoji(ctx, '✈️', P[i].x, P[i].y - lift * 6, clamp(r.w / 38, 18, 34) * (0.75 + 0.35 * lift), { rot: ang + Math.PI / 4 });
+    }
   },
   draw(ctx, w, h, t) {
     const bg = ctx.createLinearGradient(0, 0, 0, h);
     bg.addColorStop(0, '#040714'); bg.addColorStop(1, '#0A1733');
     ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#fff';
+    (this.stars || []).forEach((s) => { ctx.globalAlpha = 0.25 + 0.55 * Math.abs(Math.sin(t * 0.6 + s.p)); ctx.fillRect(s.x * w, s.y * h, s.s, s.s); });
+    ctx.globalAlpha = 1;
     const r = this.cur;
     if (!this.comp) {
       ctx.fillStyle = 'rgba(80,120,190,.25)'; ctx.fillRect(r.x, r.y, r.w, r.h);
@@ -98,10 +167,9 @@ export const explorer = {
       ctx.fillText('Loading the map…', r.x + r.w / 2, r.y + r.h / 2); ctx.textAlign = 'left';
       return;
     }
-    ctx.save();
-    ctx.shadowColor = 'rgba(80,140,255,.35)'; ctx.shadowBlur = 30;
+    const halo = this.haloFor(this.goal), pad = 40 * r.w / this.goal.w;          // the soft blue glow, drawn once
+    ctx.drawImage(halo, r.x - pad, r.y - pad, r.w + pad * 2, r.h + pad * 2);
     ctx.drawImage(this.comp, r.x, r.y, r.w, r.h);
-    ctx.restore();
     const fs = clamp(r.w / 105, 10.5, 15.5);
     // the equator
     const eq = xy(0, 0, r).y;
@@ -146,6 +214,8 @@ export const explorer = {
         return;
       }
     };
+    this.rings.forEach((g) => { const c = CITIES.find((x) => x.id === g.id); if (!c) return; const p = xy(c.lat, c.lon, r), k = g.t / 1.6; ctx.strokeStyle = 'rgba(255,214,102,' + (0.9 * (1 - k)).toFixed(3) + ')'; ctx.lineWidth = 3 * (1 - k) + 1; ctx.beginPath(); ctx.arc(p.x, p.y, dot * 1.5 + k * 46, 0, TAU); ctx.stroke(); });
+    this.drawFlight(ctx, r, t);
     const firsts = pts.filter((q) => q.c.id === this.sel || (this.hover && q.c.id === this.hover.id));
     firsts.forEach((q) => label(q.c, q.p, true));
     if (r.w > 560) pts.forEach((q) => { if (!firsts.includes(q)) label(q.c, q.p, false); });

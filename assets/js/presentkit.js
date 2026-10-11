@@ -1,31 +1,80 @@
 /* Present-mode tools shared by the engines, Slide Studio and lkie.like:
    - Draw (D): pen, highlighter, rubber, six colours, three sizes, undo and clear. Drawings are kept per slide while
      the page is open, so going back to a slide shows what you drew on it.
-   - Join (J): the QR code for a live lesson; the button then shows how many pupils have joined.
+   - Join (J): the QR code for a live lesson; the button then shows how many pupils have joined, and a dot that
+     says whether the latest slide reached their devices (green: sent; amber: sending or retrying; red: the relay
+     is full for today).
+   - In a live lesson, what is on the board goes to pupils' devices: the slide's title, and its question (the
+     "how pupils respond" pill) by itself, with a count on the pill of how many have answered.
    - A timer, for screens that have none of their own.
    Each present screen calls kit.paint() after it draws a slide, and kit.close() when it closes. */
-import { $, $$, icon } from './core.js?v=7a165bee';
-import { sfx } from './fx/audio.js?v=7a165bee';
-import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=7a165bee';
-import { Live, onLive, pupilsIn } from './live/session.js?v=7a165bee';
-import { openJoin, closeJoin } from './live/panel.js?v=7a165bee';
-import { closeMoment } from './moments.js?v=7a165bee';
+import { $, $$, icon } from './core.js?v=1e9e4bc0';
+import { sfx } from './fx/audio.js?v=1e9e4bc0';
+import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=1e9e4bc0';
+import { Live, onLive, pupilsIn, setBoard, boardQuestion, answersFor } from './live/session.js?v=1e9e4bc0';
+import { openJoin, closeJoin } from './live/panel.js?v=1e9e4bc0';
+import { closeMoment, infoOf, liveSpec, MOMENTS } from './moments.js?v=1e9e4bc0';
 
 const TRAY_COLOURS = [1, 2, 3, 0, 4, 6];          // red, blue, green, black, yellow, white
 const kits = [];
 const visible = (el) => !!el && !el.hidden && !el.closest('[hidden]');
 const fmt = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 
-function paintLive() {
-  const n = pupilsIn().length;
-  kits.forEach((k) => $$('[data-kit="join"]', k.o.root).forEach((b) => {
-    b.classList.toggle('live', Live.on);
-    b.setAttribute('aria-label', Live.on ? 'Live lesson: ' + n + ' joined. Show the join code' : 'Pupils join on their own device');
-    const s = $('span', b);
-    if (s) s.textContent = Live.on ? 'Live · ' + n : 'Join';
-  }));
+/* Has the latest slide reached pupils' devices? */
+function sendNote() {
+  if (!Live.on) return '';
+  if (Live.send === 'full') return 'full';
+  if (Live.send === 'retry' || Live.status === 'busy' || Live.status === 'subs') return 'retry';
+  if (Live.send === 'sending' || Live.status === 'off' || Live.status === 'connecting') return 'sending';
+  return 'sent';
 }
-onLive(paintLive);
+const SEND_WORDS = { sent: 'On pupils’ devices', sending: 'Sending to pupils’ devices…', retry: 'Trying again…', full: 'The free relay is full for today' };
+function paintLive() {
+  const n = pupilsIn().length, note = sendNote();
+  kits.forEach((k) => {
+    $$('[data-kit="join"]', k.o.root).forEach((b) => {
+      b.classList.toggle('live', Live.on);
+      if (note) b.dataset.send = note; else delete b.dataset.send;
+      b.setAttribute('aria-label', Live.on ? 'Live lesson: ' + n + ' joined. ' + SEND_WORDS[note] + '. Show the join code' : 'Pupils join on their own device');
+      b.title = Live.on ? SEND_WORDS[note] + ' · show the join code (J)' : 'Pupils join on their own device (J)';
+      const s = $('span', b);
+      if (s) s.textContent = Live.on ? 'Live · ' + n : 'Join';
+    });
+    paintPill(k);
+  });
+}
+/* The count of answers on the board's own pill, while its question is on pupils' devices. */
+function paintPill(k) {
+  const fr = visible(k.o.root) && k.o.frame();
+  const pill = fr && fr.querySelector('[data-moment]');
+  if (!pill) return;
+  const q = boardQuestion();
+  let n = $('.mo-n', pill);
+  pill.classList.toggle('on-devices', !!q);
+  if (!q) { if (n) n.remove(); return; }
+  if (!n) { n = document.createElement('b'); n.className = 'mo-n'; pill.appendChild(n); }
+  const c = answersFor(q.id).size, was = n.textContent;
+  n.textContent = String(c);
+  n.setAttribute('aria-label', c + (c === 1 ? ' answer' : ' answers') + ' from pupils’ devices');
+  pill.title = 'This question is on pupils’ devices. Tap to see the answers.';
+  if (was && was !== String(c)) { n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); }
+}
+/* What is on the board now, for pupils' devices. */
+function boardOf(k) {
+  const fr = k.o.frame();
+  if (!fr) return null;
+  const pill = fr.querySelector('[data-moment]');
+  const head = fr.querySelector('.sl-title, .t-title, .b-title, h1, h2, h3');
+  const title = (head && head.textContent.trim()) || k.o.title() || '';
+  const kind = pill && pill.dataset.moment;
+  const moment = kind && MOMENTS[kind] && MOMENTS[kind].live ? liveSpec(kind, infoOf(pill)) : null;
+  return { key: String(k.o.key()), title, moment };
+}
+function sendBoard(k) { if (Live.on && visible(k.o.root)) { const b = boardOf(k); if (b) setBoard(b); } }
+onLive((what) => {
+  if (what === 'start' || what === 'auto') kits.forEach(sendBoard);
+  paintLive();
+});
 
 /* o: { root, frame: () => element, key: () => string, title: () => string, timer: boolean } */
 export function presentKit(o) {
@@ -72,9 +121,13 @@ export function presentKit(o) {
       if (!st) { st = { strokes: [], undos: [] }; k.store.set(key, st); }
       k.ink.load(st.strokes, st.undos);
     }
-    apply(); paintLive();
+    apply(); sendBoard(k); paintLive();
   };
-  k.close = () => { k.setDraw(false); closeJoin(); closeMoment(); stopTimer(); const m = $('[data-kit-menu]', root); if (m) m.hidden = true; };
+  k.close = () => {
+    k.setDraw(false); closeJoin(); closeMoment(); stopTimer();
+    const m = $('[data-kit-menu]', root); if (m) m.hidden = true;
+    if (Live.on) setBoard({ key: '', title: '', moment: null });        // nothing on the board: pupils' devices wait
+  };
 
   /* the timer (only where the screen asks for one) */
   function stopTimer() { if (k.timer) clearInterval(k.timer.id); k.timer = null; const t = $('.kit-timer', root); if (t) { t.hidden = true; t.className = 'kit-timer'; } }

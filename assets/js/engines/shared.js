@@ -1,12 +1,12 @@
 /* The engine framework: every engine is a small definition (fields, prompt, normaliser, class screens, notes).
    This file renders the engine page, talks to Claude, keeps saved activities, and runs Present mode. */
-import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=7a165bee';
-import { Ribbons } from '../fx/ribbons.js?v=7a165bee';
-import { sfx } from '../fx/audio.js?v=7a165bee';
-import { Ambient, Speech } from '../fx/sound.js?v=7a165bee';
-import { track } from '../track.js?v=7a165bee';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=7a165bee';
-import { presentKit } from '../presentkit.js?v=7a165bee';
+import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=1e9e4bc0';
+import { Ribbons } from '../fx/ribbons.js?v=1e9e4bc0';
+import { sfx } from '../fx/audio.js?v=1e9e4bc0';
+import { Ambient, Speech } from '../fx/sound.js?v=1e9e4bc0';
+import { track } from '../track.js?v=1e9e4bc0';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=1e9e4bc0';
+import { presentKit } from '../presentkit.js?v=1e9e4bc0';
 
 /* ---------------- how pupils respond (online or in class) ---------------- */
 export const RESPOND = {

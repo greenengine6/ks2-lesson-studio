@@ -4,7 +4,7 @@
    the page pauses and hides itself. Typing, pasting, and the site's own Copy buttons keep working, and so does
    screen sharing on Teams, Zoom or Meet. No website can block phone screenshots, cameras, or someone reading the
    published code. */
-import { guard } from './core.js?v=7a165bee';
+import { guard } from './core.js?v=1e9e4bc0';
 
 const ALLOW = 'input, textarea, select, [contenteditable="true"], .allow-copy, .fb-text, .msg .mt';
 const allowed = (n) => { const e = n && (n.nodeType === 1 ? n : n.parentElement); return !!(e && e.closest && e.closest(ALLOW)); };

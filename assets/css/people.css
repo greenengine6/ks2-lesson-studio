@@ -2,7 +2,7 @@
 
 /* ---------- until someone signs in, only the landing page shows ---------- */
 body.gated #view-home > :not(#hero),body.gated #view-engine,body.gated #view-slides,body.gated #view-admin,body.gated #view-play,
-body.gated .dock,body.gated .sym-fab,body.gated .symc,body.gated .nav,body.gated .top-r .seg,body.gated .conn,body.gated #menu-btn,body.gated #mnav,
+body.gated .dock,body.gated .sym-fab,body.gated .symc,body.gated .nav,body.gated .top-r .seg,body.gated .top-r .seg-q,body.gated .act-chip,body.gated .conn,body.gated #menu-btn,body.gated #mnav,
 body.gated .hero-cta,body.gated .who-wrap,body.gated .present,body.gated .spresent{display:none!important}
 html:not([data-who="admin"]) .conn{display:none!important}
 body.gated .hero{padding-bottom:calc(30px + env(safe-area-inset-bottom,0px))}
