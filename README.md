@@ -32,7 +32,7 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 | **Escape Room** | Code locks that drop away when cracked, with a timer and hints. |
 | **Brain Break** | A timed calm-down led by Symphony, who breathes with the class. |
 | **Big Debate** | A news story becomes a fair debate with before-and-after votes. |
-| **Wonder Window** | A full-screen play area for the whole class: starlings dodging a falcon, fireflies that learn to flash together, the planets at their real relative speeds, and the northern lights. Symphony reads the facts, and wonder questions appear for the chat. |
+| **Wonder Window** | A full-screen play area for the whole class with 17 windows: a live world map with 24 cities (their food, greeting and the time there now), festivals, the Seven Wonders, Wonders of Malaysia (English and Bahasa Melayu), extreme weather, the seasons, six habitats from Malaysia's rainforest to the poles, animal record breakers, the planets, the northern lights, starlings and fireflies. Symphony reads the facts; every window has a quiz and a class vote. More below. |
 | **Symphony** | The helper. Say **“Hey Symphony”** and she answers in a small bubble, even over your slides; she waits for a real pause before answering, does what you ask (open and close pages and Wonder Window's windows, next slide, reveal, a timer, pick someone from our class), and knows what is on the screen, so “Hey Symphony, explain this slide” works. More below. She is a girl who speaks English and Malay and was named for her musical voice. Click her, or tap **Ask Symphony**, to ask anything by text. Tap the **mic** for voice mode: everything else disappears, a glow along the bottom follows your voice while she listens, sweeps while she thinks and follows her words while she speaks, and her answer appears word by word. She then listens again. Every voice on the site is hers: Brain Break, Sound Journey and Wonder Window read in the same girl's voice. |
 | **The Earth** | The landing page background: day colour, night lights, relief, sunlight glinting off the oceans, drifting clouds and a glowing atmosphere, lit for this exact moment. Drag to spin it on a laptop; tilt the phone to look around (iPhones ask once). Space sound pans around you as it turns. |
 
@@ -56,11 +56,35 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 - **Text size:** Smaller, Normal, Bigger or Biggest, for one slide or every slide. If the words would not fit, the slide shrinks them a little by itself.
 - An AI change keeps the slide's picture, video, background and size.
 
+## Wonder Window
+
+Open it from the home page or say “Hey Symphony, open Wonder Window”. It starts on a picker in five groups; tap a window, or say its name (“Hey Symphony, show the rainforest”, “show me Tokyo”, “show the hurricane”, “show the speed race”). **All windows** goes back to the picker; Esc does too.
+
+| Window | What the class sees and does |
+|---|---|
+| **World Explorer** | The whole world with day and night as they are right now (the dark side shows city lights) and a little sun where it is overhead. Tap one of 24 cities, or **Choose a city** / **Surprise me**: its postcard shows the time there now and how far ahead or behind us, day or night, how to say hello (**Hear it** in that language when the device has the voice), what it is famous for and a food to try, with real photos, and a fact. |
+| **Festivals** | 16 festivals, from Hari Raya, Chinese New Year, Deepavali, Gawai and Kaamatan to Holi, Hanukkah, Vaisakhi and the Day of the Dead: where, when, food, the greeting (**Say the greeting**), with photos. Fixed-date festivals get a “This month” badge. |
+| **Seven Wonders** | The ancient seven and the new seven, still standing or gone, and **How tall?**: the wonders next to Big Ben's tower, a double-decker bus and a Year 4 pupil. |
+| **Wonders of Malaysia** | Kinabalu, Taman Negara, Rafflesia, orangutans, the Malayan tiger, Mulu, the fireflies of Kuala Selangor and more. **BM** switches the cards, the captions, Symphony's voice and the quiz to Bahasa Melayu. |
+| **Extreme weather** | **Hurricane** seen from space (switch north and south of the equator to see it spin the other way; tap the eye, the eyewall or a rain band). **Thunderstorm**: after each flash the class counts until the thunder, then “6 seconds ÷ 3 = about 2 kilometres away” (tap the sky or **Make lightning**). **Monsoon**: Malaysia's east coast month by month (wind, rain, rough seas and floods). **Blizzard**: move the temperature and wind and see how cold it feels (wind chill). |
+| **Seasons** | The Earth going round the Sun with its tilt, and a close-up showing which half leans towards the Sun on any day. Daylight hours for London, Kuala Lumpur and Sydney, with their season. **Play the year**, drag the slider, or tap the orbit. |
+| **Rainforest, Savannah, Desert, Coral reef, Tundra, Polar lands** | Living scenes with animals that walk, fly, swim, swing and hop. Tap an animal for its card and photo. The rainforest names its four layers (tap one) and has **BM**. The polar lands are split in two: polar bears in the Arctic, penguins in Antarctica, because they never meet. |
+| **Animal record breakers** | 12 record breakers with photos, a **Speed race** (falcon, car, cheetah, ostrich, Usain Bolt, a fast Year 5 runner and a snail, all at their real relative speeds) and **How big?** |
+| **Planets, Northern lights, Starlings, Fireflies** | The planets at their real relative speeds (tap one to hear about it), the northern lights over snowy mountains (tap for a solar storm), starlings dodging a falcon at dusk, and fireflies that slowly learn to flash together. |
+
+Every window has:
+- **a caption** that changes every 18 seconds: a fact, then a wonder question for the class. The speaker button has Symphony read it; the arrow shows the next one.
+- **Quiz**: tap an answer (right or wrong shows at once, with the score at the end). **Class vote** puts the question on pupils' own devices in a live lesson, or lets you count hands.
+- **For teachers**: where the facts come from, and who took each photo and its licence. Facts are rounded the way a child would say them; “about” means the experts' figures differ a little.
+- **Sound** (a soundscape or soft music; thunder in the storm) and **Full screen**.
+
+Photos come from Wikipedia with their credits; if a school network blocks Wikipedia, cards show a picture symbol instead. Symphony knows which window and card are open, so “Hey Symphony, tell us more about this” fits what the class sees.
+
 ## Symphony: Hey Symphony, patient listening and our class
 
 - **Hey Symphony** (switch in Symphony's panel and in the menu, off until you switch it on): she listens in the background for her name. Say “Hey Symphony” and then your question or what to do, in one go or after a breath. A small pill (top left while presenting) shows the microphone is on; tap it to stop. Anything not said to her is thrown away at once: never shown, kept or sent to the engine. She pauses her ear while she speaks, when the tab is hidden, and switches it off after 45 quiet minutes.
 - **Patient listening** (on by default): she waits for a 3.5-second pause before deciding you have finished (1.8 seconds when it is off), so nobody is cut off mid-thought. Tap the mic to send straight away. After she answers she listens for about 9 seconds for a follow-up without her name, and only takes it if it is said to her (a question, a request, or her name), not classroom chatter.
-- **She does it herself** (no engine call): “open lkie.like”, “open Slide Studio”, “go home”, “open Wonder Window”, “show the northern lights”, any engine by name; “present”, “next slide”, “back”, “go to slide 5”, “reveal the answers”, “notes”, “show the join code”, “draw”, “class feedback”, “close”; “start a timer for 2 minutes”; “read this slide”; “what time is it”; “make a lesson about volcanoes” (fills in the topic; you press Make). Typed in the chat they work too. Malay works for the main ones (buka, tutup, seterusnya, pilih seorang, ingat kelas kita…).
+- **She does it herself** (no engine call): “open lkie.like”, “open Slide Studio”, “go home”, “open Wonder Window”, “show the northern lights”, “show me Tokyo”, “show the monsoon”, any engine or Wonder Window window by name; “present”, “next slide”, “back”, “go to slide 5”, “reveal the answers”, “notes”, “show the join code”, “draw”, “class feedback”, “close”; “start a timer for 2 minutes”; “read this slide”; “what time is it”; “make a lesson about volcanoes” (fills in the topic; you press Make). Typed in the chat they work too. Malay works for the main ones (buka, tutup, seterusnya, pilih seorang, ingat kelas kita…).
 - **She knows the screen:** while you present she sees the words the class can see on the current slide (never answers still hidden), so “explain this slide simply” or “give me a question about this” fits the lesson.
 - **Our class:** “Hey Symphony, remember our class: Aisyah, Wei Jie and Priya”, or **Our class** in her panel (one first name per line, or add the pupils who joined the live lesson). “Pick someone” shows a short shuffle and one name, big, and says it; nobody is picked twice until everyone has had a turn. First names only, kept on this device only, never sent to the engine or to the reports.
 
@@ -178,7 +202,10 @@ assets/js/fx/voice.js    Symphony's voice: a girl's voice, one sentence at a tim
 inbox/Code.gs            the Apps Script inbox (stores locked activity only)
 tools/stamp.py           stamps one version on every script and style address; run before each commit
 assets/js/chat.js        Symphony chat (voice and text, English and Malay)
-assets/js/play.js        Wonder Window scenes
+assets/js/play.js        Wonder Window's frame: the picker, top bar, caption, sound, voice words
+assets/js/wonder/        Wonder Window's windows (loaded the first time it opens): data.js (all the facts, quizzes and
+                         sources), windows.js (cards, postcard, quiz, sources, controls), map.js (World Explorer),
+                         biomes.js (habitats), weather.js, seasons.js, nature.js (planets, lights, starlings, fireflies)
 assets/js/fx/earth.js    the landing Earth (three.js, real Sun position, tilt and drag, space sound)
 assets/js/fx/beam.js     Symphony's voice glow
 assets/js/fx/audio.js    the one sound engine: effects, sound switch, quiet while Symphony speaks
@@ -212,6 +239,7 @@ assets/js/crypto.js, idb.js, settings.js, theme.js, slides.js, engines/, fx/
 - Other visual effects are vanilla re-implementations (no libraries), inspired by CardSwap and Ribbons (React Bits), MagnificationDock and Interactive Waves.
 - PowerPoint export: [PptxGenJS](https://github.com/gitbrent/PptxGenJS) 4.0.1, MIT licence (`assets/PPTXGENJS-LICENSE.txt`).
 - Pictures: from [Wikipedia](https://en.wikipedia.org) and [Wikimedia Commons](https://commons.wikimedia.org), each shown with its author and licence.
+- Wonder Window's World Explorer map uses the same Solar System Scope Earth textures (CC BY 4.0, based on NASA imagery). Day and night, the Sun's position and day lengths are worked out on the device from the date and time; local times come from the browser's time zone data. Animals and icons are the device's own emoji.
 - QR codes: [QR Code generator library](https://www.nayuki.io/page/qr-code-generator-library) by Project Nayuki, MIT licence, compiled from its TypeScript source (`assets/vendor/qrcodegen-3c6d0b3/`).
 - lkie.like curriculum map: statutory statements from the National Curriculum in England (2014) and the Relationships and Health Education guidance, lightly shortened (Crown copyright, Open Government Licence v3.0); RE after the RE Council's national framework (2013); Bahasa Melayu after the KSSR skill areas (Malaysia), paraphrased. The objective codes are this site's own.
 - Slide fonts: TeX Gyre Adventor and Schola, GUST Font Licence. Interface fonts: Plus Jakarta Sans, DM Sans and JetBrains Mono from Google Fonts.

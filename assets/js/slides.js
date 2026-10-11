@@ -1,13 +1,13 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
-import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=7c13e055';
-import { track } from './track.js?v=7c13e055';
-import EXAMPLE_RAW from './slides-example.js?v=7c13e055';
-import { Ribbons } from './fx/ribbons.js?v=7c13e055';
-import { sfx } from './fx/audio.js?v=7c13e055';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=7c13e055';
-import { presentKit } from './presentkit.js?v=7c13e055';
-import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=7c13e055';
+import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=7a165bee';
+import { track } from './track.js?v=7a165bee';
+import EXAMPLE_RAW from './slides-example.js?v=7a165bee';
+import { Ribbons } from './fx/ribbons.js?v=7a165bee';
+import { sfx } from './fx/audio.js?v=7a165bee';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=7a165bee';
+import { presentKit } from './presentkit.js?v=7a165bee';
+import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=7a165bee';
 
 const I = {
   flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',

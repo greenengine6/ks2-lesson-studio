@@ -3,13 +3,13 @@
    feedback), a timer, our class's names (remember, pick someone fairly, read them, forget them), read the slide,
    the time, and filling in a topic so the teacher can press Make. Commands are matched in English and Malay; anything
    else is a question for her to answer. */
-import { $, $$, esc, icon, bus } from './core.js?v=7c13e055';
-import { ENGINES } from './engines/registry.js?v=7c13e055';
-import { pupils, namesIn, addPupils, clearPupils, showPick } from './pupils.js?v=7c13e055';
-import { presenting, page } from './context.js?v=7c13e055';
-import { sfx } from './fx/audio.js?v=7c13e055';
-import { Voice } from './fx/voice.js?v=7c13e055';
-import { settings } from './settings.js?v=7c13e055';
+import { $, $$, esc, icon, bus } from './core.js?v=7a165bee';
+import { ENGINES } from './engines/registry.js?v=7a165bee';
+import { pupils, namesIn, addPupils, clearPupils, showPick } from './pupils.js?v=7a165bee';
+import { presenting, page } from './context.js?v=7a165bee';
+import { sfx } from './fx/audio.js?v=7a165bee';
+import { Voice } from './fx/voice.js?v=7a165bee';
+import { settings } from './settings.js?v=7a165bee';
 
 /* ---------------- where she can take you ---------------- */
 const ENGINE_WORDS = { maths: 'maths reasoning|maths|math reasoning|math|which one doesn\'t belong|open middle', story: 'story spark|story|stories|creative writing', reading: 'reading ladder|reading|reading comprehension',
@@ -39,6 +39,8 @@ const NUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eigh
   satu: 1, dua: 2, tiga: 3, empat: 4, lima: 5, enam: 6, tujuh: 7, lapan: 8, sembilan: 9, sepuluh: 10 };
 const num = (w) => (/^\d+(?:\.\d+)?$/.test(w) ? Number(w) : NUM[w] || 0);
 export const lc = (t) => String(t || '').toLowerCase().replace(/[’`]/g, '\'').replace(/[^\p{L}\p{N}' :]+/gu, ' ').replace(/\s+/g, ' ').trim();
+const NAV_WORDS = ['open', 'open up', 'see', 'go', 'go to', 'go back', 'go back to', 'back to', 'return to', 'show', 'show me', 'show us', 'take me to', 'take us to', 'start', 'launch', 'switch to', 'bring up', 'let\'s see', 'lets see', 'let\'s go to', 'lets go to', 'buka', 'pergi ke', 'kembali ke', 'tunjuk', 'tunjukkan'];
+const NAV = new RegExp('^(?:' + NAV_WORDS.slice().sort((a, b) => b.length - a.length).join('|') + ')(?: the)? (.+)$');
 const POLITE = /^(?:(?:hey |ok |okay |so |now |right |um |uh )*(?:symphony )?(?:(?:can|could|would|will) you (?:please )?|please |could we |can we |let's |lets |i want to |i'd like to |tolong |boleh (?:awak |kamu |anda )?|sila )*)/;
 export function parseCommand(text) {
   const raw = String(text || '').trim();
@@ -73,8 +75,9 @@ export function parseCommand(text) {
   if (/^(?:read|read out|read aloud|say) (?:this|the) (?:slide|screen|page)|^what(?:'s| is) on (?:this|the) (?:slide|screen)|^baca (?:slaid|skrin)/.test(t)) return { k: 'read' };
   if (/^(?:what(?:'s| is) the time|what time is it|the time|pukul berapa(?: sekarang)?)$/.test(t)) return { k: 'time' };
   if ((m = /^(?:make|create|plan|build|buat|cipta)(?: me| us)? (?:a |an |some )?(?:new )?(lesson pack|lesson|pack|slides|slide deck|slideshow|presentation|pelajaran|slaid)(?: about| on| for| tentang| mengenai)? (.{2,80})$/.exec(t))) return { k: 'make', slides: /slide|presentation/.test(m[1]), topic: m[2] };
-  // "open Wonder Window", "show me the northern lights", or just the name of a page or window
-  const nav = /^(?:open|open up|go|go to|go back|go back to|back to|return to|show|show me|show us|take me to|take us to|start|launch|switch to|bring up|let's see|lets see|let's go to|lets go to|buka|pergi ke|kembali ke|tunjuk|tunjukkan)(?: the)? (.+)$/.exec(t);
+  // "open Wonder Window", "show me the northern lights", or just the name of a page or window (longest words first,
+  // so "show me Tokyo" is not read as "show" + "me Tokyo")
+  const nav = NAV.exec(t);
   const want = (nav ? nav[1] : t).replace(/^(?:the|a|an) /, '').trim();
   const sc = SCENES.find((s) => s.re.test(want));
   if (sc) return { k: 'scene', id: sc.id, name: sc.name };

@@ -1,25 +1,25 @@
 /* KS2 Lesson Engine: start-up, routing, header, dock, landing page and the Connect dialog. */
-import './security.js?v=7c13e055';
-import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=7c13e055';
-import { Dock } from './fx/dock.js?v=7c13e055';
-import { CardSwap } from './fx/cardswap.js?v=7c13e055';
-import { Symphony } from './fx/symphony.js?v=7c13e055';
-import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=7c13e055';
-import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=7c13e055';
-import { initSlides, examplePreview, fitSlide, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=7c13e055';
-import { initSettings } from './settings.js?v=7c13e055';
-import { initChat } from './chat.js?v=7c13e055';
-import { track } from './track.js?v=7c13e055';
-import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=7c13e055';
-import { initFeedback } from './feedback.js?v=7c13e055';
-import { renderAdmin } from './admin.js?v=7c13e055';
-import { initPlay } from './play.js?v=7c13e055';
-import { initSync } from './sync.js?v=7c13e055';
-import { sfx } from './fx/audio.js?v=7c13e055';
-import { landed } from './guard.js?v=7c13e055';
-import { initShelf, renderShelf } from './shelf.js?v=7c13e055';
+import './security.js?v=7a165bee';
+import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=7a165bee';
+import { Dock } from './fx/dock.js?v=7a165bee';
+import { CardSwap } from './fx/cardswap.js?v=7a165bee';
+import { Symphony } from './fx/symphony.js?v=7a165bee';
+import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=7a165bee';
+import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=7a165bee';
+import { initSlides, examplePreview, fitSlide, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=7a165bee';
+import { initSettings } from './settings.js?v=7a165bee';
+import { initChat } from './chat.js?v=7a165bee';
+import { track } from './track.js?v=7a165bee';
+import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=7a165bee';
+import { initFeedback } from './feedback.js?v=7a165bee';
+import { renderAdmin } from './admin.js?v=7a165bee';
+import { initPlay } from './play.js?v=7a165bee';
+import { initSync } from './sync.js?v=7a165bee';
+import { sfx } from './fx/audio.js?v=7a165bee';
+import { landed } from './guard.js?v=7a165bee';
+import { initShelf, renderShelf } from './shelf.js?v=7a165bee';
 
-const PLAY = { id: 'play', name: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'A play area for the whole class: starlings, fireflies, the planets and the northern lights, with facts Symphony reads aloud.', chips: ['Earth, nature and space', 'Shared screen'] };
+const PLAY = { id: 'play', name: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'For the whole class: a live world map of cities and their food, festivals, the Seven Wonders, wild weather, the seasons, habitats from the rainforest to the poles, and space.', chips: ['17 windows', 'Quizzes and class votes', 'Shared screen'] };
 const SLIDES = { id: 'slides', name: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
 const LKIE = { id: 'lkie', name: 'lkie.like', color: 'heart', icon: 'pack', tagline: 'One topic in, a whole lesson out: slides with exact diagrams, key words, activities and a worksheet in three tiers, for every KS2 subject.', chips: ['All KS2 subjects', 'Bahasa Melayu and Mandarin'] };
 
@@ -97,7 +97,7 @@ function startEarth() {
   if (earthTried) { runEarth(); return; }
   earthTried = true;
   const hero = $('#hero'), fail = () => { earth = null; hero.classList.add('earth-off'); const t = $('#hero-hint'); if (t) t.hidden = true; };
-  import('./fx/earth.js?v=7c13e055').then(async (m) => {
+  import('./fx/earth.js?v=7a165bee').then(async (m) => {
     earth = new m.Earth($('#earth'), { onFail: fail });
     if (!(await earth.init())) return;
     earthTip();
@@ -125,7 +125,7 @@ const PAGES = ['home', 'slides', 'lkie', 'admin', 'play'];
 let lkie = null;
 function showLkie() {
   if (lkie) { lkie.mountLkie($('#view-lkie')); return; }
-  import('./lkie/lkie.js?v=7c13e055').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">lkie.like could not load. Check the connection and reload the page.</p></div>'; });
+  import('./lkie/lkie.js?v=7a165bee').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">lkie.like could not load. Check the connection and reload the page.</p></div>'; });
 }
 function show(id) {
   if (!who.role) id = 'home';

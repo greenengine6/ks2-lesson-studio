@@ -4,12 +4,12 @@
    - Join (J): the QR code for a live lesson; the button then shows how many pupils have joined.
    - A timer, for screens that have none of their own.
    Each present screen calls kit.paint() after it draws a slide, and kit.close() when it closes. */
-import { $, $$, icon } from './core.js?v=7c13e055';
-import { sfx } from './fx/audio.js?v=7c13e055';
-import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=7c13e055';
-import { Live, onLive, pupilsIn } from './live/session.js?v=7c13e055';
-import { openJoin, closeJoin } from './live/panel.js?v=7c13e055';
-import { closeMoment } from './moments.js?v=7c13e055';
+import { $, $$, icon } from './core.js?v=7a165bee';
+import { sfx } from './fx/audio.js?v=7a165bee';
+import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=7a165bee';
+import { Live, onLive, pupilsIn } from './live/session.js?v=7a165bee';
+import { openJoin, closeJoin } from './live/panel.js?v=7a165bee';
+import { closeMoment } from './moments.js?v=7a165bee';
 
 const TRAY_COLOURS = [1, 2, 3, 0, 4, 6];          // red, blue, green, black, yellow, white
 const kits = [];

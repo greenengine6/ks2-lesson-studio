@@ -1,5 +1,5 @@
 /* KS2 Lesson Engine: shared helpers, Claude connection, copying and small UI pieces. */
-import { sfx } from './fx/audio.js?v=7c13e055';
+import { sfx } from './fx/audio.js?v=7a165bee';
 
 export const $ = (s, r) => (r || document).querySelector(s);
 export const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));

@@ -5,11 +5,11 @@
      typed answers and mini whiteboards wait face down until the teacher reveals them all at once.
    - Without a live lesson, the teacher taps to count hands, reactions or fingers, and the 3-2-1 countdown runs the
      chat waterfall and the "hold it up" moment. */
-import { $, $$, esc, icon, prefs, normAnswer } from './core.js?v=7c13e055';
-import { sfx } from './fx/audio.js?v=7c13e055';
-import { Live, onLive, setMoment, updateMoment, endMoment, answersFor, pupilsIn, nameOf } from './live/session.js?v=7c13e055';
-import { openJoin } from './live/panel.js?v=7c13e055';
-import { strokesSVG, unpackStrokes } from './draw.js?v=7c13e055';
+import { $, $$, esc, icon, prefs, normAnswer } from './core.js?v=7a165bee';
+import { sfx } from './fx/audio.js?v=7a165bee';
+import { Live, onLive, setMoment, updateMoment, endMoment, answersFor, pupilsIn, nameOf } from './live/session.js?v=7a165bee';
+import { openJoin } from './live/panel.js?v=7a165bee';
+import { strokesSVG, unpackStrokes } from './draw.js?v=7a165bee';
 
 export const REACTS = [['👍', 'Got it'], ['👌', 'Nearly'], ['👎', 'Not yet'], ['❤️', 'Love it'], ['😮', 'Wow'], ['👏', 'Clap']];
 export const MOMENTS = {

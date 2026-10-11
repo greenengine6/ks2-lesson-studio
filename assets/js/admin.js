@@ -1,13 +1,13 @@
 /* Rabinder's dashboard (only after "Hello Admin"): teaching time, deviations, engines, class voice, teacher
    feedback, enrolment with personal links and PINs, teachers' activity arriving by itself from the inbox (sync.js),
    the downloadable report, CSV, Symphony's analysis, and this device's passkey. Only the admin downloads. */
-import { $, $$, esc, el, icon, store, bus, toast, copyOut, hasKey, askClaude, errorCopy, CONFIG } from './core.js?v=7c13e055';
-import { evAll, evClear, kvGet, kvSet } from './idb.js?v=7c13e055';
-import { roster, enrol, resetPin, unenrol, linkFor, newPin, isAdmin, adminKey, unlockWithPassword, hasPasskey, setUpPasskey, removePasskey, passkeyOK, platformPasskey, signOut, ADMIN_NAME, initials, forgetAdminKey } from './people.js?v=7c13e055';
-import { INBOX, pull, lastPull } from './sync.js?v=7c13e055';
-import { metrics, period, digest, spoken, reportHTML, csv, fmtDur, fmtDay, fmtDate, fmtTime, ENGINE_NAMES, moodOf } from './report.js?v=7c13e055';
-import { download, FACE_NAMES, FACE_COLOURS, faceSVG } from './feedback.js?v=7c13e055';
-import { makeState, makeStart, makeEnd, deliberate, watch, waitText } from './guard.js?v=7c13e055';
+import { $, $$, esc, el, icon, store, bus, toast, copyOut, hasKey, askClaude, errorCopy, CONFIG } from './core.js?v=7a165bee';
+import { evAll, evClear, kvGet, kvSet } from './idb.js?v=7a165bee';
+import { roster, enrol, resetPin, unenrol, linkFor, newPin, isAdmin, adminKey, unlockWithPassword, hasPasskey, setUpPasskey, removePasskey, passkeyOK, platformPasskey, signOut, ADMIN_NAME, initials, forgetAdminKey } from './people.js?v=7a165bee';
+import { INBOX, pull, lastPull } from './sync.js?v=7a165bee';
+import { metrics, period, digest, spoken, reportHTML, csv, fmtDur, fmtDay, fmtDate, fmtTime, ENGINE_NAMES, moodOf } from './report.js?v=7a165bee';
+import { download, FACE_NAMES, FACE_COLOURS, faceSVG } from './feedback.js?v=7a165bee';
+import { makeState, makeStart, makeEnd, deliberate, watch, waitText } from './guard.js?v=7a165bee';
 
 const RANGE_KEY = 'ks2-engine.adminrange.v1';
 let range = store.get(RANGE_KEY) || 'week', lastM = null, analysis = '', view = null, busyAnalysis = null, pulledAt = 0;
