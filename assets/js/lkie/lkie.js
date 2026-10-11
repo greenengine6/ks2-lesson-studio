@@ -3,23 +3,23 @@
    the curriculum with checked codes. Slides change in plain English with undo; a unit planner sequences up to 25
    lessons with recaps and assessments; packs open instantly from this device; PowerPoint and Word downloads.
    Every engine button goes through the shared guard (guard.js). */
-import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=b8e2dc0e';
-import { track } from '../track.js?v=b8e2dc0e';
-import { sfx } from '../fx/audio.js?v=b8e2dc0e';
-import { Voice } from '../fx/voice.js?v=b8e2dc0e';
-import { evAll } from '../idb.js?v=b8e2dc0e';
-import { moodOf } from '../report.js?v=b8e2dc0e';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=b8e2dc0e';
-import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=b8e2dc0e';
-import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=b8e2dc0e';
-import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=b8e2dc0e';
-import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=b8e2dc0e';
-import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=b8e2dc0e';
-import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=b8e2dc0e';
-import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=b8e2dc0e';
-import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=b8e2dc0e';
-import EXAMPLE from './example.js?v=b8e2dc0e';
-import { presentKit, kitButtons } from '../presentkit.js?v=b8e2dc0e';
+import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=7c13e055';
+import { track } from '../track.js?v=7c13e055';
+import { sfx } from '../fx/audio.js?v=7c13e055';
+import { Voice } from '../fx/voice.js?v=7c13e055';
+import { evAll } from '../idb.js?v=7c13e055';
+import { moodOf } from '../report.js?v=7c13e055';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=7c13e055';
+import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=7c13e055';
+import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=7c13e055';
+import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=7c13e055';
+import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=7c13e055';
+import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=7c13e055';
+import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=7c13e055';
+import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=7c13e055';
+import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=7c13e055';
+import EXAMPLE from './example.js?v=7c13e055';
+import { presentKit, kitButtons } from '../presentkit.js?v=7c13e055';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', UNITS = 'ks2-engine.lkie.units.v1', RULES = 'ks2-engine.lkie.rules.v1', THEME = 'ks2-engine.lkie.theme.v1', FORM = 'ks2-engine.lkie.form.v1';
 const YEARS = ['Year 3', 'Year 4', 'Year 5', 'Year 6'];

@@ -33,7 +33,7 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 | **Brain Break** | A timed calm-down led by Symphony, who breathes with the class. |
 | **Big Debate** | A news story becomes a fair debate with before-and-after votes. |
 | **Wonder Window** | A full-screen play area for the whole class: starlings dodging a falcon, fireflies that learn to flash together, the planets at their real relative speeds, and the northern lights. Symphony reads the facts, and wonder questions appear for the chat. |
-| **Symphony** | The helper. She is a girl who speaks English and Malay and was named for her musical voice. Click her, or tap **Ask Symphony**, to ask anything by text. Tap the **mic** for voice mode: everything else disappears, a glow along the bottom follows your voice while she listens, sweeps while she thinks and follows her words while she speaks, and her answer appears word by word. She then listens again. Every voice on the site is hers: Brain Break, Sound Journey and Wonder Window read in the same girl's voice. |
+| **Symphony** | The helper. Say **“Hey Symphony”** and she answers in a small bubble, even over your slides; she waits for a real pause before answering, does what you ask (open and close pages and Wonder Window's windows, next slide, reveal, a timer, pick someone from our class), and knows what is on the screen, so “Hey Symphony, explain this slide” works. More below. She is a girl who speaks English and Malay and was named for her musical voice. Click her, or tap **Ask Symphony**, to ask anything by text. Tap the **mic** for voice mode: everything else disappears, a glow along the bottom follows your voice while she listens, sweeps while she thinks and follows her words while she speaks, and her answer appears word by word. She then listens again. Every voice on the site is hers: Brain Break, Sound Journey and Wonder Window read in the same girl's voice. |
 | **The Earth** | The landing page background: day colour, night lights, relief, sunlight glinting off the oceans, drifting clouds and a glowing atmosphere, lit for this exact moment. Drag to spin it on a laptop; tilt the phone to look around (iPhones ask once). Space sound pans around you as it turns. |
 
 **Present mode** (every engine, Slide Studio and lkie.like) gives you:
@@ -55,6 +55,14 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 - **Edit text:** every part of the slide as plain boxes (questions and answers, options with the right one ticked, steps, tasks, what you say, minutes, how pupils answer). The title slide edits the lesson title, objective, success criteria and big question.
 - **Text size:** Smaller, Normal, Bigger or Biggest, for one slide or every slide. If the words would not fit, the slide shrinks them a little by itself.
 - An AI change keeps the slide's picture, video, background and size.
+
+## Symphony: Hey Symphony, patient listening and our class
+
+- **Hey Symphony** (switch in Symphony's panel and in the menu, off until you switch it on): she listens in the background for her name. Say “Hey Symphony” and then your question or what to do, in one go or after a breath. A small pill (top left while presenting) shows the microphone is on; tap it to stop. Anything not said to her is thrown away at once: never shown, kept or sent to the engine. She pauses her ear while she speaks, when the tab is hidden, and switches it off after 45 quiet minutes.
+- **Patient listening** (on by default): she waits for a 3.5-second pause before deciding you have finished (1.8 seconds when it is off), so nobody is cut off mid-thought. Tap the mic to send straight away. After she answers she listens for about 9 seconds for a follow-up without her name, and only takes it if it is said to her (a question, a request, or her name), not classroom chatter.
+- **She does it herself** (no engine call): “open lkie.like”, “open Slide Studio”, “go home”, “open Wonder Window”, “show the northern lights”, any engine by name; “present”, “next slide”, “back”, “go to slide 5”, “reveal the answers”, “notes”, “show the join code”, “draw”, “class feedback”, “close”; “start a timer for 2 minutes”; “read this slide”; “what time is it”; “make a lesson about volcanoes” (fills in the topic; you press Make). Typed in the chat they work too. Malay works for the main ones (buka, tutup, seterusnya, pilih seorang, ingat kelas kita…).
+- **She knows the screen:** while you present she sees the words the class can see on the current slide (never answers still hidden), so “explain this slide simply” or “give me a question about this” fits the lesson.
+- **Our class:** “Hey Symphony, remember our class: Aisyah, Wei Jie and Priya”, or **Our class** in her panel (one first name per line, or add the pupils who joined the live lesson). “Pick someone” shows a short shuffle and one name, big, and says it; nobody is picked twice until everyone has had a turn. First names only, kept on this device only, never sent to the engine or to the reports.
 
 ## Your lessons on the dashboard
 
@@ -146,6 +154,7 @@ The numbers are in `index.html` (`"limits"` in the config). These rules live on 
 
 - The site is hidden from search engines. The page’s security policy only allows requests to the engine API, Google Fonts, the Apps Script inbox, the live-lesson relay (ntfy.sh), Wikipedia and Wikimedia (pictures), and YouTube's privacy-enhanced player (videos a teacher adds).
 - Picture searches send only the search words to Wikipedia. Teachers' own pictures stay in their browser. Videos play from youtube-nocookie.com.
+- Speaking to Symphony: the browser turns speech into text, on the device itself where Chrome can, otherwise with the browser's own speech service (Google for Chrome, Microsoft for Edge, Apple for Safari). Hey Symphony is off until switched on, shows a pill while the microphone is on, and throws away everything not said to her.
 - It blocks right-click, text selection and copying (except the site’s own Copy buttons), dragging, printing, and the save, view-source and developer-tools shortcuts.
 - It blanks the page when a screenshot shortcut is pressed, and pauses while developer tools are open.
 - These are deterrents. No website can stop a phone camera or someone reading published code.
@@ -189,6 +198,10 @@ assets/css/live.css      Join screen, class moments, drawing tray
 assets/js/pics.js        pictures (Wikipedia search and credits, quality, own uploads) and YouTube links
 assets/js/lkie/looks.js  lkie.like backgrounds, on screen and in the PowerPoint
 assets/js/shelf.js       Your lessons on the home page (covers, Keep on dashboard)
+assets/js/ear.js         Symphony's ear: patient listening, Hey Symphony, follow-ups
+assets/js/commands.js    what Symphony does herself (pages, windows, slides, timer, our class)
+assets/js/context.js     what is on the screen, for Symphony's answers
+assets/js/pupils.js      our class's first names and fair picking
 assets/js/crypto.js, idb.js, settings.js, theme.js, slides.js, engines/, fx/
 ```
 

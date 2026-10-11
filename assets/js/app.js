@@ -1,23 +1,23 @@
 /* KS2 Lesson Engine: start-up, routing, header, dock, landing page and the Connect dialog. */
-import './security.js?v=b8e2dc0e';
-import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=b8e2dc0e';
-import { Dock } from './fx/dock.js?v=b8e2dc0e';
-import { CardSwap } from './fx/cardswap.js?v=b8e2dc0e';
-import { Symphony } from './fx/symphony.js?v=b8e2dc0e';
-import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=b8e2dc0e';
-import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=b8e2dc0e';
-import { initSlides, examplePreview, fitSlide, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=b8e2dc0e';
-import { initSettings } from './settings.js?v=b8e2dc0e';
-import { initChat } from './chat.js?v=b8e2dc0e';
-import { track } from './track.js?v=b8e2dc0e';
-import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=b8e2dc0e';
-import { initFeedback } from './feedback.js?v=b8e2dc0e';
-import { renderAdmin } from './admin.js?v=b8e2dc0e';
-import { initPlay } from './play.js?v=b8e2dc0e';
-import { initSync } from './sync.js?v=b8e2dc0e';
-import { sfx } from './fx/audio.js?v=b8e2dc0e';
-import { landed } from './guard.js?v=b8e2dc0e';
-import { initShelf, renderShelf } from './shelf.js?v=b8e2dc0e';
+import './security.js?v=7c13e055';
+import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=7c13e055';
+import { Dock } from './fx/dock.js?v=7c13e055';
+import { CardSwap } from './fx/cardswap.js?v=7c13e055';
+import { Symphony } from './fx/symphony.js?v=7c13e055';
+import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=7c13e055';
+import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=7c13e055';
+import { initSlides, examplePreview, fitSlide, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=7c13e055';
+import { initSettings } from './settings.js?v=7c13e055';
+import { initChat } from './chat.js?v=7c13e055';
+import { track } from './track.js?v=7c13e055';
+import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=7c13e055';
+import { initFeedback } from './feedback.js?v=7c13e055';
+import { renderAdmin } from './admin.js?v=7c13e055';
+import { initPlay } from './play.js?v=7c13e055';
+import { initSync } from './sync.js?v=7c13e055';
+import { sfx } from './fx/audio.js?v=7c13e055';
+import { landed } from './guard.js?v=7c13e055';
+import { initShelf, renderShelf } from './shelf.js?v=7c13e055';
 
 const PLAY = { id: 'play', name: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'A play area for the whole class: starlings, fireflies, the planets and the northern lights, with facts Symphony reads aloud.', chips: ['Earth, nature and space', 'Shared screen'] };
 const SLIDES = { id: 'slides', name: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
@@ -97,7 +97,7 @@ function startEarth() {
   if (earthTried) { runEarth(); return; }
   earthTried = true;
   const hero = $('#hero'), fail = () => { earth = null; hero.classList.add('earth-off'); const t = $('#hero-hint'); if (t) t.hidden = true; };
-  import('./fx/earth.js?v=b8e2dc0e').then(async (m) => {
+  import('./fx/earth.js?v=7c13e055').then(async (m) => {
     earth = new m.Earth($('#earth'), { onFail: fail });
     if (!(await earth.init())) return;
     earthTip();
@@ -125,7 +125,7 @@ const PAGES = ['home', 'slides', 'lkie', 'admin', 'play'];
 let lkie = null;
 function showLkie() {
   if (lkie) { lkie.mountLkie($('#view-lkie')); return; }
-  import('./lkie/lkie.js?v=b8e2dc0e').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">lkie.like could not load. Check the connection and reload the page.</p></div>'; });
+  import('./lkie/lkie.js?v=7c13e055').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">lkie.like could not load. Check the connection and reload the page.</p></div>'; });
 }
 function show(id) {
   if (!who.role) id = 'home';

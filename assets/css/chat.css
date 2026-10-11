@@ -127,3 +127,80 @@ body.vmode-on > :not(.vmode):not(.toast){visibility:hidden}
 @keyframes vmring{from{transform:scale(.9);opacity:1}to{transform:scale(1.35);opacity:0}}
 .vm-beam{position:absolute;left:0;right:0;bottom:0;width:100%;height:60vh;z-index:1;pointer-events:none;filter:blur(26px) saturate(1.35);mix-blend-mode:screen}
 @media (prefers-reduced-motion:reduce){.vmode[data-state="listen"] .vm-mic::after{animation:none}}
+
+/* ---------- Hey Symphony and Patient listening (the second options row), and Our class ---------- */
+.symc-ears{padding-top:0;gap:14px;flex-wrap:wrap}
+.symc-ears .symc-class-b{margin-left:auto}
+.symc-card{position:relative}
+.symc-class{position:absolute;left:10px;right:10px;top:150px;bottom:10px;z-index:5;display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:22px;background:var(--surface);box-shadow:var(--ex);overflow:auto}
+.symc-class[hidden]{display:none}
+.pc-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pc-head b{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-display);font-size:max(9px,calc(15px * var(--m,1)))}
+.pc-head b .i{width:18px;height:18px;color:var(--heart)}
+.pc-names{min-height:150px;flex:1}
+.pc-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pc-n{margin:0}
+.pc-say{margin:0}
+
+/* the pill that shows the ear is on (and stops it) */
+.sym-ear{position:fixed;left:16px;bottom:16px;z-index:120;display:inline-flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:8px 14px 8px 11px;cursor:pointer;
+  font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(12.5px * var(--m,1)));color:var(--fg);background:var(--surface);box-shadow:var(--ex-sm);opacity:.92}
+.sym-ear:hover{opacity:1}
+.sym-ear[hidden]{display:none}
+.sym-ear i{width:10px;height:10px;border-radius:50%;background:#9AA3B5;flex:none}
+.sym-ear[data-state="on"] i,.sym-ear[data-state="wait"] i{background:#2BB673;box-shadow:0 0 0 0 rgb(43 182 115 / .5);animation:earPulse 2.2s ease-out infinite}
+.sym-ear[data-state="armed"] i{background:#E2558A;animation:earPulse 1s ease-out infinite}
+.sym-ear[data-state="paused"] i{background:#E0A526}
+.sym-ear[data-state="tap"]{color:var(--accent)}
+@keyframes earPulse{0%{box-shadow:0 0 0 0 rgb(43 182 115 / .55)}100%{box-shadow:0 0 0 10px rgb(43 182 115 / 0)}}
+body.presenting .sym-ear{top:12px;bottom:auto;left:12px;padding:6px 12px 6px 9px;opacity:.75}
+body.vmode-on .sym-ear{display:none}
+
+/* the small bubble Hey Symphony answers in (over slides too) */
+.sym-bub{position:fixed;right:20px;bottom:96px;z-index:121;width:min(420px,calc(100vw - 24px));display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;
+  padding:12px 12px 12px 12px;border-radius:24px;background:var(--surface);color:var(--fg);box-shadow:var(--ex-hover),0 24px 50px -24px rgb(30 40 60 / .5);animation:bubIn .35s var(--ease)}
+.sym-bub[hidden]{display:none}
+@keyframes bubIn{from{opacity:0;transform:translateY(12px) scale(.98)}}
+body.presenting .sym-bub{bottom:84px}
+body.symc-open .sym-bub{display:none}
+.sb-ava{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;box-shadow:var(--in-sm);background:radial-gradient(circle at 50% 46%,#F7F8FB 0%,#EEF1F6 45%,#E0E5EC 72%)}
+.sb-ava .sym{width:112%;margin:-6%}
+[data-theme="night"] .sb-ava{background:radial-gradient(circle at 50% 46%,#2D3C58 0%,#1F2A3A 75%)}
+.sb-txt{min-width:0;display:grid;gap:4px;max-height:40vh;overflow:auto}
+.sb-st{font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(12px * var(--m,1)));letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.sym-bub[data-state="listen"] .sb-st{color:#E2558A}
+.sb-heard{margin:0;font-size:max(9px,calc(13.5px * var(--m,1)));color:var(--muted);font-style:italic}
+.sb-heard:empty,.sb-said:empty{display:none}
+.sb-said{margin:0;font-size:max(9px,calc(15.5px * var(--m,1)));line-height:1.45;font-weight:600}
+.sb-btns{display:grid;gap:6px}
+.sb-b{width:36px;height:36px;border-radius:12px;border:0;display:grid;place-items:center;cursor:pointer;background:var(--surface);color:var(--muted);box-shadow:var(--ex-sm)}
+.sb-b .i{width:16px;height:16px}
+.sb-b:hover{color:var(--fg)}
+
+/* a timer anyone can start by voice */
+.sym-timer{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:121;display:inline-flex;align-items:center;gap:10px;padding:8px 10px 8px 16px;border-radius:999px;
+  background:var(--surface);color:var(--fg);box-shadow:var(--ex);font-family:var(--f-display)}
+.sym-timer[hidden]{display:none}
+.st-i .i{width:20px;height:20px;color:var(--accent)}
+.st-t{font-size:max(9px,calc(26px * var(--m,1)));font-weight:800;font-variant-numeric:tabular-nums;min-width:3.2ch;text-align:center}
+.sym-timer.low .st-t{color:#C0392B}
+.sym-timer.done{background:#E2574C;color:#FFFFFF}
+.sym-timer.done .st-i .i{color:#FFFFFF}
+.st-x{width:34px;height:34px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;background:transparent;color:inherit}
+.st-x .i{width:16px;height:16px}
+
+/* pick someone: a short shuffle, then one name, big */
+.pick{position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:16px;background:rgb(15 20 35 / .55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.pick[hidden]{display:none}
+.pick-card{width:min(560px,100%);display:grid;justify-items:center;gap:10px;padding:30px 24px 22px;border-radius:32px;background:var(--surface);color:var(--fg);box-shadow:var(--ex-hover);text-align:center}
+.pick-k{margin:0;font-family:var(--f-display);font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-size:max(9px,calc(14px * var(--m,1)))}
+.pick-name{margin:0;font-family:var(--f-display);font-weight:800;font-size:clamp(44px,11vw,96px);line-height:1.05;letter-spacing:-.02em;color:var(--accent);min-height:1.1em;overflow-wrap:anywhere}
+.pick.landed .pick-name{color:var(--heart);animation:pickIn .5s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes pickIn{from{transform:scale(.7)}}
+.pick-left{margin:0;color:var(--muted);font-size:max(9px,calc(14px * var(--m,1)))}
+.pick-btns{display:flex;gap:10px;margin-top:6px}
+@media (max-width:640px){
+  .sym-bub{right:12px;bottom:84px}
+  .sym-ear{left:12px;bottom:auto;top:calc(env(safe-area-inset-top,0px) + 72px)}
+  .symc-class{top:176px}
+}

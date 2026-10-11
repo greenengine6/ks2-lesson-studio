@@ -11,9 +11,9 @@
    Reaching a cap is noted in the activity log, so Rabinder's dashboard shows who keeps hitting the limits.
    The numbers can be changed in index.html ("limits"). These rules live on each device; the hard ceiling is the
    monthly spend limit on the key itself. */
-import { store, bus, CONFIG } from './core.js?v=b8e2dc0e';
-import { who } from './people.js?v=b8e2dc0e';
-import { track } from './track.js?v=b8e2dc0e';
+import { store, bus, CONFIG } from './core.js?v=7c13e055';
+import { who } from './people.js?v=7c13e055';
+import { track } from './track.js?v=7c13e055';
 
 const DEF = { rest: 5, hour: 15, day: 40, editGap: 8, editHour: 40, chatGap: 3, chatTen: 20, chatDay: 150 };
 const C = Object.assign({}, DEF, (CONFIG && typeof CONFIG.limits === 'object' && CONFIG.limits) || {});

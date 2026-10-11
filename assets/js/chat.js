@@ -4,17 +4,26 @@
    bottom of the screen follows your voice while she listens, sweeps while she thinks and follows her words while she
    speaks, and her answer appears word by word as she says it. After she answers she listens again, until the mic is
    tapped or nothing is heard. Questions about her, the site, greetings and language changes are answered on the
-   device; everything else needs the device to be connected. */
-import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=b8e2dc0e';
-import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=b8e2dc0e';
-import { settings, paintSwitches } from './settings.js?v=b8e2dc0e';
-import { isAdmin, ADMIN_NAME } from './people.js?v=b8e2dc0e';
-import { briefing, downloadReport } from './admin.js?v=b8e2dc0e';
-import { track } from './track.js?v=b8e2dc0e';
-import { Voice } from './fx/voice.js?v=b8e2dc0e';
-import { Beam } from './fx/beam.js?v=b8e2dc0e';
-import { sfx } from './fx/audio.js?v=b8e2dc0e';
-import { chatState, chatStart, chatEnd, clockAt } from './guard.js?v=b8e2dc0e';
+   device; everything else needs the device to be connected.
+   She listens patiently (ear.js): a real pause, not the first breath, ends what you say. With Hey Symphony on she
+   listens in the background for her name and answers in a small bubble, even while you present; she carries out
+   commands herself (commands.js: open and close pages and windows, next slide, reveal, a timer, pick someone from
+   our class), and knows what is on the screen (context.js) so "explain this slide" works. */
+import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, toast, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=7c13e055';
+import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=7c13e055';
+import { settings, paintSwitches } from './settings.js?v=7c13e055';
+import { isAdmin, ADMIN_NAME } from './people.js?v=7c13e055';
+import { briefing, downloadReport } from './admin.js?v=7c13e055';
+import { track } from './track.js?v=7c13e055';
+import { Voice } from './fx/voice.js?v=7c13e055';
+import { Beam } from './fx/beam.js?v=7c13e055';
+import { sfx } from './fx/audio.js?v=7c13e055';
+import { chatState, chatStart, chatEnd, clockAt } from './guard.js?v=7c13e055';
+import { Ear } from './ear.js?v=7c13e055';
+import { parseCommand, runCommand, COMMANDS_HELP } from './commands.js?v=7c13e055';
+import { screenContext, presenting } from './context.js?v=7c13e055';
+import { pupils, pupilsHTML, setPupils, namesIn, showPick, clearPupils } from './pupils.js?v=7c13e055';
+import { Live, pupilsIn } from './live/session.js?v=7c13e055';
 
 const LANG_KEY = 'ks2-engine.symlang.v1';
 const T = {
@@ -24,7 +33,7 @@ const T = {
     hello: 'Hello! I am Symphony. Ask me anything, by typing or by tapping the mic. I can brainstorm lessons with you, explain things simply, or tell you about the planets, animals and the natural world.',
     stageHello: 'Hello, I am Symphony',
     hi: 'Hello! It is lovely to hear from you. What would you like to know?',
-    site: 'This site has ten lesson engines, a Slide Studio, lkie.like for whole lesson packs with worksheets in three tiers, and a Wonder Window play area. Pick an engine from the dock at the bottom, type your topic, and you get a class screen to share plus teacher notes. Press Present to share it on Teams, Zoom or Meet, with a magic pointer, a timer and your notes. You can also switch on Night mode, and collect feedback from your class for a report.',
+    site: 'This site has ten lesson engines, a Slide Studio, lkie.like for whole lesson packs with worksheets in three tiers, and a Wonder Window play area. Pick an engine from the dock at the bottom, type your topic, and you get a class screen to share plus teacher notes. Press Present to share it on Teams, Zoom or Meet, with a magic pointer, a timer and your notes. You can also switch on Night mode, and collect feedback from your class for a report. Switch on Hey Symphony in my panel, then say “Hey Symphony, next slide” or “Hey Symphony, pick someone”, and I do it without you touching the screen.',
     toEn: 'Of course. I will speak English. What would you like to know?',
     noKey: 'I can tell you about me and about this site right now. For anything else, this device needs setting up once: open the personal link Rabinder sent you.',
     micDenied: 'Please allow the microphone, then tap the mic again so I can hear you.',
@@ -38,6 +47,12 @@ const T = {
     restTen: 'That was a lot of questions in a few minutes! Let us take a short break. I can answer again at {at}.',
     restDay: 'We have talked a lot today! Let us talk again tomorrow.',
     copy: 'Copy', again: 'Say again', copied: 'Copied. Paste it anywhere.', newChat: 'New chat',
+    noMicDevice: 'I cannot find a microphone on this device.', wakeT: 'Hey Symphony', patientT: 'Patient', classT: 'Our class',
+    yes: 'Yes? Say “Hey Symphony” and then your question.', heard: 'Listening…', follow: 'Anything else? I am listening.',
+    earOn: 'Listening for “Hey Symphony”. Tap to stop.', earTap: 'Hey Symphony: tap to start', earPaused: 'Hey Symphony (paused while I speak)',
+    wakeDenied: 'Hey Symphony needs the microphone. Allow it in the browser, then switch Hey Symphony on again.', wakeNet: 'Hey Symphony needs an internet connection on this browser. It is off for now.',
+    wakeSleep: 'I stopped listening for my name after 45 quiet minutes. Switch Hey Symphony on again when you need me.', wakeTouch: 'Hey Symphony works best on a laptop or classroom computer.',
+    classH: 'Our class', classSave: 'Save', classPick: 'Pick someone', classLive: 'Add the pupils who joined', classClear: 'Clear the list', classSaved: 'Saved. {n} names, on this device only.', classEmpty: 'Add the first names first.',
     chips: [['Who are you?', 'ask'], ['Brainstorm a lesson', 'fill:Brainstorm a fun KS2 lesson about '], ['A fun fact about space', 'ask'], ['Explain fractions to a Year 3 class', 'ask'], ['What can this site do?', 'ask'], ['Cakap Melayu', 'lang:ms']]
   },
   ms: {
@@ -46,7 +61,7 @@ const T = {
     hello: 'Hai! Saya Symphony. Tanyalah apa sahaja, dengan menaip atau menekan mikrofon. Saya boleh membantu merancang pelajaran, menerangkan sesuatu dengan mudah, atau bercerita tentang planet, haiwan dan alam semula jadi.',
     stageHello: 'Hai, saya Symphony',
     hi: 'Hai! Seronok mendengar daripada anda. Apa yang anda ingin tahu?',
-    site: 'Laman ini ada sepuluh enjin pelajaran, Slide Studio, lkie.like untuk pek pelajaran lengkap dengan lembaran kerja tiga tahap, dan ruang main Wonder Window. Pilih enjin dari dok di bawah, taip topik anda, dan anda akan mendapat skrin kelas serta nota guru. Tekan Present untuk berkongsi di Teams, Zoom atau Meet. Anda juga boleh menghidupkan mod malam dan mengumpul maklum balas kelas untuk laporan.',
+    site: 'Laman ini ada sepuluh enjin pelajaran, Slide Studio, lkie.like untuk pek pelajaran lengkap dengan lembaran kerja tiga tahap, dan ruang main Wonder Window. Pilih enjin dari dok di bawah, taip topik anda, dan anda akan mendapat skrin kelas serta nota guru. Tekan Present untuk berkongsi di Teams, Zoom atau Meet. Anda juga boleh menghidupkan mod malam dan mengumpul maklum balas kelas untuk laporan. Hidupkan Hey Symphony dalam panel saya, kemudian sebut “Hey Symphony, slaid seterusnya” atau “Hey Symphony, pilih seorang”.',
     toMs: 'Baiklah, saya akan bercakap dalam bahasa Melayu. Apa yang anda ingin tahu?',
     noKey: 'Saya boleh bercerita tentang diri saya dan laman ini sekarang. Untuk soalan lain, peranti ini perlu disediakan sekali: buka pautan peribadi yang Rabinder hantar kepada anda.',
     micDenied: 'Sila benarkan mikrofon, kemudian tekan mikrofon sekali lagi supaya saya boleh mendengar anda.',
@@ -60,6 +75,12 @@ const T = {
     restTen: 'Banyak soalan dalam beberapa minit! Mari kita berehat sebentar. Saya boleh menjawab lagi pada pukul {at}.',
     restDay: 'Kita sudah banyak berbual hari ini! Kita berbual lagi esok, ya.',
     copy: 'Salin', again: 'Ulang', copied: 'Disalin.', newChat: 'Sembang baharu',
+    noMicDevice: 'Saya tidak menjumpai mikrofon pada peranti ini.', wakeT: 'Hey Symphony', patientT: 'Sabar', classT: 'Kelas kita',
+    yes: 'Ya? Sebut “Hey Symphony” dan soalan anda.', heard: 'Sedang mendengar…', follow: 'Ada lagi? Saya mendengar.',
+    earOn: 'Mendengar “Hey Symphony”. Tekan untuk berhenti.', earTap: 'Hey Symphony: tekan untuk mula', earPaused: 'Hey Symphony (berhenti sebentar semasa saya bercakap)',
+    wakeDenied: 'Hey Symphony memerlukan mikrofon. Benarkannya dalam pelayar, kemudian hidupkan semula.', wakeNet: 'Hey Symphony memerlukan internet pada pelayar ini. Ia dimatikan buat masa ini.',
+    wakeSleep: 'Saya berhenti mendengar nama saya selepas 45 minit senyap. Hidupkan semula Hey Symphony apabila perlu.', wakeTouch: 'Hey Symphony paling sesuai pada komputer riba atau komputer kelas.',
+    classH: 'Kelas kita', classSave: 'Simpan', classPick: 'Pilih seorang', classLive: 'Tambah murid yang menyertai', classClear: 'Kosongkan senarai', classSaved: 'Disimpan. {n} nama, pada peranti ini sahaja.', classEmpty: 'Tambah nama pertama dahulu.',
     chips: [['Siapa awak?', 'ask'], ['Idea pelajaran', 'fill:Beri idea pelajaran KS2 yang seronok tentang '], ['Fakta menarik tentang angkasa', 'ask'], ['Apa yang laman ini boleh buat?', 'ask'], ['Speak English', 'lang:en']]
   }
 };
@@ -74,7 +95,7 @@ const RX = {
 };
 
 let lang = store.get(LANG_KEY) === 'ms' ? 'ms' : 'en';
-let state = 'idle', busy = null, talk = false, rec = null, opened = false, greeted = false, lastFrom = 'text';
+let state = 'idle', busy = null, talk = false, capturing = false, opened = false, greeted = false, lastFrom = 'text';
 let adminDigest = '', adminSpoken = '', adminLabel = 'last 7 days';
 const reportAction = () => ({ label: lang === 'ms' ? 'Muat turun laporan' : 'Download report', icon: 'download', fn: () => downloadReport() });
 async function adminGreeting() {
@@ -108,6 +129,7 @@ async function afterSpeaking() {
   setTimeout(() => {
     if (g !== sayGen || busy) return;
     if (state === 'speak') { setState('idle'); showWord(''); }
+    if (lastFrom === 'wake') { wakeDone(); return; }
     if (talk && lastFrom === 'voice' && (vmOn || (panel && !panel.hidden))) listen();
   }, 350);
 }
@@ -135,6 +157,7 @@ function setState(s) {
   if (s === 'think') showWord(lang === 'ms' ? 'Berfikir' : 'Thinking');
   if (s === 'listen') showWord(lang === 'ms' ? 'Mendengar' : 'Listening');
   vmPaint();
+  if (lastFrom === 'wake') bubState(s);
 }
 
 /* ---------------- voice mode: everything else hidden; her voice, the words and the glow ---------------- */
@@ -162,7 +185,7 @@ function vmBuild() {
   vm.beam = new Beam($('.vm-beam', vm), { type: 'mobile', level: vmLevel, sensitivity: 1, threshold: 0.03 });
   $('.vm-x', vm).addEventListener('click', vmClose);
   $('.vm-mic', vm).addEventListener('click', () => {
-    if (state === 'listen' && rec) { try { rec.stop(); } catch (e) { /* ignore */ } return; }   // done talking: send it
+    if (state === 'listen' && capturing) { Ear.finish(); return; }                                  // done talking: send it
     listen();                                                                                      // talk, or interrupt her
   });
   vm.addEventListener('click', (e) => { const b = e.target.closest('[data-vlang]'); if (b) { setLang(b.dataset.vlang); vmPaint(); } });
@@ -178,8 +201,9 @@ function vmPaint() {
   $$('[data-vlang]', vm).forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.vlang === lang)));
   vm.beam.set({ processing: state === 'think' });
 }
-function vmHeard(t, final) { if (!vm || !vmOn) return; const h = $('.vm-heard', vm); h.textContent = t || ''; h.classList.toggle('final', !!final); }
+function vmHeard(t, final) { if (lastFrom === 'wake') bubHeard(t); if (!vm || !vmOn) return; const h = $('.vm-heard', vm); h.textContent = t || ''; h.classList.toggle('final', !!final); }
 function vmText(t) {
+  if (lastFrom === 'wake') bubSaid(t);
   if (!vm || !vmOn) return;
   const words = String(t || '').split(/\s+/).filter(Boolean);
   $('.vm-said', vm).innerHTML = words.map((w, i) => '<span class="' + (i < vmIdx ? 'on' : '') + (i === vmIdx - 1 ? ' now' : '') + '">' + esc(w) + '</span>').join(' ');
@@ -230,7 +254,7 @@ function vmOpen() {
 function vmClose() {
   if (!vmOn) return;
   vmOn = false; talk = false;
-  if (rec) { try { rec.abort(); } catch (e) { /* ignore */ } rec = null; }
+  if (capturing) Ear.cancel();
   if (busy) { busy.abort(); busy = null; }
   hush();
   setState('idle');
@@ -271,7 +295,7 @@ function reply(text, o) {
   vmIdx = 0; vmText(text);
   addMsg('sym', text, { muted: o.muted, action: o.action });
   if (!o.muted) history.push({ role: 'assistant', content: text });
-  if (o.silent) { stageLine(text.split(/\s+/).slice(0, 8).join(' ')); return; }
+  if (o.silent) { stageLine(text.split(/\s+/).slice(0, 8).join(' ')); if (lastFrom === 'wake') wakeDone(); return; }
   speakAll(text);
 }
 function note(text) { addMsg('sym', text, { muted: true }); stageLine(text.split(/\s+/).slice(0, 6).join(' ')); }
@@ -285,7 +309,10 @@ function systemPrompt() {
     'Use British English spelling. ' + HOUSE_WORDS + ' If the person writes in Malay, reply in Malay (Bahasa Melayu). The current reply language is ' + (lang === 'ms' ? 'Malay' : 'English') + '. ' +
     'For children be kind, simple and encouraging, and keep everything suitable for primary school. Never ask for personal details such as full names, addresses, phone numbers or photos; if someone shares them, gently say you do not need them. ' +
     'If someone asks who you are, say you are Symphony, the helper in the KS2 Lesson Engine, a girl who speaks English and Malay and was named for her musical voice. ' +
-    'The site has ten lesson engines (Maths Reasoning, Story Spark, Reading Ladder, Science Mystery, Sound Journey, Unplugged Code, Step-by-Step, Escape Room, Brain Break, Big Debate), Slide Studio for slides and a PowerPoint download, lkie.like (one topic becomes a whole lesson pack for any KS2 subject, including Bahasa Melayu and Mandarin: 10 to 15 slides with exact diagrams, key words, activities, a worksheet in three tiers, a unit planner and a slide editor that takes plain-English changes), the Wonder Window play area, Present mode with a magic pointer, timer and teacher notes, Night mode, and class feedback reports.' +
+    (lastFrom === 'wake' ? 'You were just called with "Hey Symphony", probably in front of the class: answer in at most 3 short sentences. ' : '') +
+    'The site has ten lesson engines (Maths Reasoning, Story Spark, Reading Ladder, Science Mystery, Sound Journey, Unplugged Code, Step-by-Step, Escape Room, Brain Break, Big Debate), Slide Studio for slides and a PowerPoint download, lkie.like (one topic becomes a whole lesson pack for any KS2 subject, including Bahasa Melayu and Mandarin: 10 to 15 slides with exact diagrams, key words, activities, a worksheet in three tiers, a unit planner and a slide editor that takes plain-English changes), the Wonder Window play area, Present mode with a magic pointer, timer and teacher notes, Night mode, and class feedback reports. ' + COMMANDS_HELP +
+    '\n\nWhat is on the screen now (when the teacher says "this", "this slide" or "this page", they mean this):\n' + screenContext() +
+    (pupils().length ? '\nThe class list on this device has ' + pupils().length + ' first names. You are not told them; never ask for them.' : '') +
     (isAdmin() && adminDigest ? '\n\nYou are now talking with ' + ADMIN_NAME + ', the admin (Head of Key Stage 2), who is signed in to her dashboard. Call her Rabinder. Here is the activity data her dashboard has worked out:\n' + adminDigest +
       '\n\nWhen she asks about her teachers, time logged, lessons, pupils or anything in this data, answer meticulously: think it through, use the exact numbers and names above, compare where useful, say what stands out and what she might do next. Never invent numbers or people that are not in the data; if the data cannot answer, say so plainly. ' +
       'If she wants the full detail, tables, charts, a file, something to print or share, or everything at once, tell her the full report is ready and to tap Download report.' : '');
@@ -304,7 +331,18 @@ async function ask(text, from) {
   vmHeard(text, true); vmIdx = 0; vmText('');
   if (!vmOn) sfx('send');
   history.push({ role: 'user', content: text });
-  track('chat', { via: lastFrom, lang });
+  track('chat', { via: lastFrom === 'wake' ? 'voice' : lastFrom, lang });
+  // things she does herself, at once, with no engine call
+  const cmd = parseCommand(text);
+  if (cmd) {
+    history.pop();
+    const r = runCommand(cmd, lang);
+    if (r) {
+      if (!r.text) { setState('idle'); if (lastFrom === 'wake') bubHide(900); return; }
+      reply(r.text, { muted: true, silent: !!r.short && !!presenting() });
+      return;
+    }
+  }
   if (isAdmin()) {
     try { const b = await briefing(); adminDigest = b.digest; adminSpoken = b.spoken; adminLabel = b.label; } catch (e) { /* keep the last one */ }
     if (RX.report.test(text)) { reply((lang === 'ms' ? 'Laporan anda untuk ' : 'Your full report for ') + adminLabel.toLowerCase() + (lang === 'ms' ? ' sudah sedia. Tekan Muat turun laporan.' : ' is ready, with every table and chart. Tap Download report.'), { action: reportAction() }); return; }
@@ -363,59 +401,161 @@ async function ask(text, from) {
   }
 }
 
-/* ---------------- voice in ---------------- */
+/* ---------------- voice in: patient listening (ear.js) ---------------- */
 function listen() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   Voice.unlock();
-  if (!SR) { note(T[lang].noMic); return; }
-  if (state === 'listen' && rec) { talk = false; try { rec.stop(); } catch (e) { /* ignore */ } return; }
+  if (!Ear.supported) { note(T[lang].noMic); return; }
+  if (state === 'listen' && capturing) { talk = false; Ear.finish(); return; }     // done talking: send it now
   hush();
   if (busy) { busy.abort(); busy = null; }
-  talk = true;
-  let finalText = '';
-  try {
-    rec = new SR();
-    rec.lang = lang === 'ms' ? 'ms-MY' : 'en-GB';
-    rec.interimResults = true; rec.maxAlternatives = 1; rec.continuous = false;
-  } catch (e) { note(T[lang].noMic); return; }
-  rec.onstart = () => { setState('listen'); sfx('listen'); vmHeard(''); vmIdx = 0; vmText(''); };
-  rec.onspeechstart = () => { vmPulse = 0.55; vmPulseAt = performance.now(); };
-  rec.onresult = (e) => {
-    let interim = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) finalText += r[0].transcript; else interim += r[0].transcript; }
-    input.value = (finalText + ' ' + interim).replace(/\s+/g, ' ').trim();
-    const w = input.value.split(' '); showWord(w[w.length - 1] || '');
-    vmHeard(input.value); vmPulse = 0.7 + Math.random() * 0.3; vmPulseAt = performance.now();
-  };
-  rec.onerror = (e) => {
-    talk = false;
-    Voice.hold(700);
-    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { note(T[lang].micDenied); vmHeard(T[lang].micDenied); }
-    else if (e.error === 'no-speech') { note(T[lang].noSpeech); vmHeard(T[lang].noSpeech); }
-    else if (e.error === 'network') { note(T[lang].micNet); vmHeard(T[lang].micNet); }
-  };
-  rec.onend = () => {
-    const t = (finalText || input.value).trim();
-    rec = null;
+  talk = true; capturing = true; lastFrom = 'voice';
+  Ear.setLang(lang); Ear.setPatient(settings.patient);
+  setState('listen'); sfx('listen'); vmHeard(''); vmIdx = 0; vmText('');
+  Ear.capture({
+    onInterim: (t) => {
+      if (input) input.value = t;
+      const w = t.split(' '); showWord(w[w.length - 1] || '');
+      vmHeard(t); vmPulse = 0.7 + Math.random() * 0.3; vmPulseAt = performance.now();
+    }
+  }).then((r) => {
+    capturing = false;
     Voice.hold(700);                                  // phones need a moment to hand the sound back from the microphone
     if (state === 'listen') setState('idle');
-    if (t) { input.value = ''; ask(t, 'voice'); } else { showWord(''); sfx('unlisten'); }
-  };
-  try { rec.start(); } catch (e) { talk = false; setState('idle'); }
+    if (r.text) { if (input) input.value = ''; ask(r.text, 'voice'); return; }
+    talk = false; showWord(''); sfx('unlisten');
+    const msg = r.error === 'denied' ? T[lang].micDenied : r.error === 'nothing' ? T[lang].noSpeech : r.error === 'network' ? T[lang].micNet : r.error === 'nomic' ? T[lang].noMicDevice : '';
+    if (msg) { note(msg); vmHeard(msg); }
+  });
 }
+
+/* ---------------- Hey Symphony: the background ear, the small bubble and the pill ---------------- */
+let bub = null, bubT = 0, earEl = null;
+const touchy = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
+function bubBuild() {
+  bub = el('div', 'sym-bub');
+  bub.hidden = true; bub.setAttribute('role', 'status'); bub.setAttribute('aria-live', 'polite');
+  bub.innerHTML = '<span class="sb-ava">' + MINI() + '</span><div class="sb-txt"><small class="sb-st"></small><p class="sb-heard"></p><p class="sb-said"></p></div>' +
+    '<div class="sb-btns"><button type="button" class="sb-b" data-sb="stop" aria-label="Stop">' + icon('stop') + '</button><button type="button" class="sb-b" data-sb="open" aria-label="Open the chat">' + icon('chat') + '</button></div>';
+  document.body.appendChild(bub);
+  bub.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-sb]');
+    if (!b) return;
+    if (b.dataset.sb === 'stop') { hush(); if (busy) { busy.abort(); busy = null; } Ear.cancel(); setState('idle'); bubHide(0); }
+    else { bubHide(0); openChat(); }
+  });
+}
+function bubShow() { if (vmOn || (panel && !panel.hidden)) return; if (!bub) bubBuild(); clearTimeout(bubT); bub.hidden = false; }
+function bubState(s) {
+  if (!bub || bub.hidden) return;
+  bub.dataset.state = s;
+  $('.sb-st', bub).textContent = s === 'listen' ? T[lang].heard : s === 'follow' ? T[lang].follow : (T[lang][s] || 'Symphony');
+}
+function bubHeard(t) { if (!bub || bub.hidden) return; $('.sb-heard', bub).textContent = t ? '“' + t + '”' : ''; }
+function bubSaid(t) { if (!bub || bub.hidden) return; $('.sb-said', bub).textContent = t || ''; }
+function bubHide(ms) { clearTimeout(bubT); bubT = setTimeout(() => { if (bub) bub.hidden = true; if (lastFrom === 'wake' && state !== 'think') lastFrom = 'text'; }, ms || 0); }
+/* After she has answered: a few seconds for a follow-up (Patient listening), then the bubble goes. */
+function wakeDone() {
+  if (settings.wake && settings.patient && Ear.wake) { Ear.follow(9000); bubState('follow'); bubHide(9600); }
+  else bubHide(4500);
+}
+function onWake(t) {
+  if (!settings.wake) return;
+  build();
+  lastFrom = 'wake';
+  hush();
+  if (busy) { busy.abort(); busy = null; }
+  bubShow(); bubSaid(''); bubHeard(t || ''); setState('listen');
+  sfx('listen');
+}
+function onHeard(t) { if (lastFrom === 'wake') { bubShow(); bubHeard(t); if (state !== 'listen') setState('listen'); } }
+function onQuestion(q) {
+  if (!q.text) {                                           // only her name: she answers, then listens for the question
+    lastFrom = 'wake'; bubShow(); setState('idle'); bubHeard(''); bubSaid(T[lang].yes);
+    if (settings.voice) Voice.say(lang === 'ms' ? 'Ya?' : 'Yes?', { lang: lang === 'ms' ? 'ms' : 'en-GB' });
+    setTimeout(() => { if (Ear.wake) { Ear.follow(8000); bubState('follow'); bubHide(8600); } }, 900);
+    return;
+  }
+  lastFrom = 'wake'; bubShow();
+  ask(q.text, 'wake');
+}
+function onEarOff(why) {
+  if (settings.wake) settings.wake = false;
+  const m = why === 'denied' ? T[lang].wakeDenied : why === 'network' ? T[lang].wakeNet : why === 'sleep' ? T[lang].wakeSleep : why === 'nomic' ? T[lang].noMicDevice : '';
+  if (m) toast(m);
+  earPaint();
+}
+function earPaint() {
+  const on = settings.wake && Ear.supported;
+  if (!on) { if (earEl) earEl.hidden = true; return; }
+  if (!earEl) {
+    earEl = el('button', 'sym-ear');
+    earEl.type = 'button';
+    earEl.innerHTML = '<i aria-hidden="true"></i><span></span>';
+    earEl.addEventListener('click', () => { if (!Ear.wake) { Ear.setLang(lang); Ear.setWake(true); earPaint(); return; } settings.wake = false; toast(T[lang].wakeT + ': off'); });
+    document.body.appendChild(earEl);
+  }
+  const st = Ear.state, label = !st.wake ? T[lang].earTap : st.paused ? T[lang].earPaused : T[lang].earOn;
+  earEl.hidden = false;
+  earEl.dataset.state = !st.wake ? 'tap' : st.armed ? 'armed' : st.paused ? 'paused' : st.listening ? 'on' : 'wait';
+  $('span', earEl).textContent = !st.wake ? T[lang].earTap : T[lang].wakeT;
+  earEl.setAttribute('aria-label', label); earEl.title = label;
+}
+/* The switch: on starts the background ear (the browser asks once for the microphone). */
+async function wakeSwitch(on) {
+  if (on && !Ear.supported) { settings.wake = false; toast(T[lang].noMic); return; }
+  if (on && touchy()) toast(T[lang].wakeTouch);
+  Ear.setLang(lang); Ear.setPatient(settings.patient);
+  Ear.setWake(on);
+  earPaint();
+}
+/* After a reload, the ear starts by itself only if the browser already allows the microphone; otherwise the pill
+   says "tap to start", so the browser never asks out of the blue. */
+async function micGranted() {
+  try { const p = await navigator.permissions.query({ name: 'microphone' }); return p.state === 'granted'; } catch (e) { return false; }
+}
+
+/* ---------------- our class (pupils.js): first names on this device, and picking someone fairly ---------------- */
+function classOpen(on) {
+  const box = $('#symc-class', panel);
+  if (!box) return;
+  box.hidden = !on;
+  if (!on) return;
+  const ears = $('.symc-ears', panel);
+  box.style.top = (ears ? ears.offsetTop + ears.offsetHeight + 4 : 150) + 'px';     // just under the switches
+  const ms = lang === 'ms', live = Live.on && pupilsIn().length;
+  box.innerHTML = '<div class="pc-head"><b>' + icon('smile') + esc(T[lang].classH) + '</b><button type="button" class="btn small icon" data-pc="x" aria-label="Close">' + icon('close') + '</button></div>' +
+    pupilsHTML(ms) +
+    '<div class="pc-acts"><button type="button" class="btn small primary" data-pc="save">' + icon('check') + esc(T[lang].classSave) + '</button><button type="button" class="btn small" data-pc="pick">' + icon('spark') + esc(T[lang].classPick) + '</button>' +
+    (live ? '<button type="button" class="btn small" data-pc="live">' + icon('plus') + esc(T[lang].classLive) + '</button>' : '') + '<button type="button" class="linkbtn" data-pc="clear">' + esc(T[lang].classClear) + '</button></div>' +
+    '<p class="fine pc-say">' + (ms ? 'Atau sebut: “Hey Symphony, ingat kelas kita: Aisyah, Wei Jie dan Priya.” Kemudian: “Hey Symphony, pilih seorang.”' : 'Or say: “Hey Symphony, remember our class: Aisyah, Wei Jie and Priya.” Then: “Hey Symphony, pick someone.”') + '</p>';
+  const ta = $('.pc-names', box); if (ta) setTimeout(() => ta.focus(), 30);
+}
+function classAct(a) {
+  const box = $('#symc-class', panel), ta = box && $('.pc-names', box);
+  if (a === 'x') { classOpen(false); paintClassBtn(); return; }
+  if (a === 'save' && ta) { const list = setPupils(namesIn(ta.value)); toast(T[lang].classSaved.replace('{n}', list.length)); classOpen(true); paintClassBtn(); return; }
+  if (a === 'pick') { if (ta && namesIn(ta.value).length && namesIn(ta.value).join('|') !== pupils().join('|')) setPupils(namesIn(ta.value)); if (!pupils().length) { toast(T[lang].classEmpty); return; } showPick(lang); paintClassBtn(); return; }
+  if (a === 'live' && ta) { const names = pupilsIn().map((p) => p.name).filter(Boolean); ta.value = namesIn([ta.value].concat(names).join('\n')).filter((n, i, all) => all.findIndex((x) => x.toLowerCase() === n.toLowerCase()) === i).join('\n'); return; }
+  if (a === 'clear') { clearPupils(); classOpen(true); paintClassBtn(); }
+}
+function paintClassBtn() { const b = panel && $('#symc-class-b', panel); if (b) $('span', b).textContent = T[lang].classT + (pupils().length ? ' (' + pupils().length + ')' : ''); }
 
 /* ---------------- open, close, language ---------------- */
 function setLang(l) {
   lang = l === 'ms' ? 'ms' : 'en';
   store.set(LANG_KEY, lang === 'ms' ? 'ms' : '');
+  Ear.setLang(lang);
   if (!panel) return;
   $$('[data-lang]', panel).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
   input.placeholder = T[lang].place;
   $('.symc-send', panel).setAttribute('aria-label', T[lang].send);
   $('#symc-new span').textContent = T[lang].newChat; $('.symc-voice-t', panel).textContent = lang === 'ms' ? 'Suara' : 'Voice';
   $('.symc-fine', panel).textContent = T[lang].talkHint;
+  $('.symc-wake-t', panel).textContent = T[lang].wakeT; $('.symc-pat-t', panel).textContent = T[lang].patientT;
+  paintClassBtn();
   paintChips();
   setState(state);
+  Ear.setLang(lang); earPaint();
 }
 function paintChips() {
   $('#symc-chips').innerHTML = T[lang].chips.map(([t, a]) => '<button type="button" data-chip="' + esc(a) + '">' + esc(t) + '</button>').join('');
@@ -440,7 +580,7 @@ export function closeChat() {
   sfx('close');
   panel.hidden = true;
   talk = false;
-  if (rec) { try { rec.abort(); } catch (e) { /* ignore */ } rec = null; }
+  if (capturing) Ear.cancel();
   if (busy) { busy.abort(); busy = null; }
   hush();
   setState('idle');
@@ -459,8 +599,12 @@ function build() {
     '<div class="symc-opts"><div class="seg symc-lang" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="ms" aria-pressed="false">Melayu</button></div>' +
     '<label class="symc-voice"><button type="button" class="lsw rose" role="switch" aria-checked="true" data-switch="voice" aria-label="Read answers aloud"><span class="lsw-handle"></span></button><span class="symc-voice-t">Voice</span></label>' +
     '<button type="button" class="linkbtn symc-new" id="symc-new">' + icon('refresh') + '<span></span></button></div>' +
+    '<div class="symc-opts symc-ears"><label class="symc-voice"><button type="button" class="lsw teal" role="switch" aria-checked="false" data-switch="wake" aria-label="Hey Symphony: listen for my name"><span class="lsw-handle"></span></button><span class="symc-wake-t">Hey Symphony</span></label>' +
+    '<label class="symc-voice"><button type="button" class="lsw violet" role="switch" aria-checked="true" data-switch="patient" aria-label="Patient listening"><span class="lsw-handle"></span></button><span class="symc-pat-t">Patient</span></label>' +
+    '<button type="button" class="linkbtn symc-new symc-class-b" id="symc-class-b">' + icon('smile') + '<span>Our class</span></button></div>' +
     '<div class="symc-stage" aria-hidden="true"><div class="sam"><span class="sam-tri"></span><div class="sam-line"><span class="sam-word" id="sam-word"></span><span class="sam-bar" id="sam-bar"></span></div></div></div>' +
     '<div class="symc-log" id="symc-log" aria-live="polite"></div>' +
+    '<div class="symc-class" id="symc-class" hidden></div>' +
     '<div class="symc-chips" id="symc-chips"></div>' +
     '<form class="symc-bar" id="symc-form" novalidate><button type="button" class="symc-mic" id="symc-mic" aria-pressed="false">' + icon('mic') + '</button>' +
     '<input type="text" id="symc-in" autocomplete="off" enterkeyhint="send" maxlength="600"><button type="submit" class="symc-send">' + icon('send') + '</button></form>' +
@@ -471,7 +615,10 @@ function build() {
   $('#symc-new').addEventListener('click', () => { hush(); if (busy) { busy.abort(); busy = null; } history.length = 0; logEl.innerHTML = ''; addMsg('sym', T[lang].hello); stageLine(T[lang].stageHello, 300); setState('idle'); });
   $('#symc-form').addEventListener('submit', (e) => { e.preventDefault(); Voice.unlock(); const t = input.value; input.value = ''; ask(t, 'text'); });
   mic.addEventListener('click', () => { Voice.unlock(); if (vmOpen()) listen(); });
+  $('#symc-class-b').addEventListener('click', () => { const box = $('#symc-class', panel); classOpen(box.hidden); });
   panel.addEventListener('click', (e) => {
+    const pc = e.target.closest('[data-pc]');
+    if (pc) { classAct(pc.dataset.pc); return; }
     const l = e.target.closest('[data-lang]');
     if (l) { setLang(l.dataset.lang); return; }
     const c = e.target.closest('[data-chip]');
@@ -482,7 +629,7 @@ function build() {
     else if (a.startsWith('lang:')) ask(c.textContent, 'text');
     else ask(c.textContent, 'text');
   });
-  panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeChat(); } });
+  panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); if (!$('#symc-class', panel).hidden) { classOpen(false); return; } closeChat(); } });
   setLang(lang);
   setState('idle');
   showWord('');
@@ -499,5 +646,11 @@ export function initChat() {
   bus.on('present', (on) => { fab.classList.toggle('away', !!on); if (on) closeChat(); });
   bus.on('header', (h) => fab.classList.toggle('tone-dark', !!h));
   bus.on('voice', (v) => { if (!v) hush(); });
-  bus.on('who', () => { closeChat(); history.length = 0; if (logEl) logEl.innerHTML = ''; greeted = false; opened = false; adminDigest = ''; adminSpoken = ''; });
+  bus.on('who', (w) => { closeChat(); history.length = 0; if (logEl) logEl.innerHTML = ''; greeted = false; opened = false; adminDigest = ''; adminSpoken = ''; if (!w || !w.role) Ear.setWake(false); else if (settings.wake) wakeSwitch(true); earPaint(); });
+  bus.on('wake', (on) => wakeSwitch(on));
+  bus.on('patient', (v) => Ear.setPatient(v));
+  bus.on('pupils', () => paintClassBtn());
+  Ear.setPatient(settings.patient); Ear.setLang(lang);
+  Ear.on('state', earPaint); Ear.on('wake', onWake); Ear.on('heard', onHeard); Ear.on('question', onQuestion); Ear.on('off', onEarOff);
+  if (settings.wake) micGranted().then((ok) => { if (ok) wakeSwitch(true); else earPaint(); });
 }

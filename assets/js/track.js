@@ -2,8 +2,8 @@
    and for how long (active time only: the page is open and someone used it in the last two minutes), which
    engines were used, lessons made and presented, and class feedback. It never records pupils' names or what
    anyone asks Symphony. sync.js sends it to Rabinder by itself, locked so only her dashboard can open it. */
-import { store, bus, uid } from './core.js?v=b8e2dc0e';
-import { evPut, evAll } from './idb.js?v=b8e2dc0e';
+import { store, bus, uid } from './core.js?v=7c13e055';
+import { evPut, evAll } from './idb.js?v=7c13e055';
 
 const DEV_KEY = 'ks2-engine.device.v1', SES_KEY = 'ks2-engine.ses.v1';
 const TICK = 15000, IDLE = 120000;

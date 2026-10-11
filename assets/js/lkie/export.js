@@ -2,11 +2,11 @@
    them) with the diagrams, pictures, backgrounds and text sizes as on screen, each video as its picture with a link,
    and the teacher notes and picture credits in the speaker notes; and the worksheet as an editable Word document
    (opens in Word and Google Docs). */
-import { esc } from '../core.js?v=b8e2dc0e';
-import { KIND, TONE, diagramSVG, answersOf, learnText, respondText } from './render.js?v=b8e2dc0e';
-import { TIERS } from './model.js?v=b8e2dc0e';
-import { lookFor, lookInfo, lookForPptx } from './looks.js?v=b8e2dc0e';
-import { pictureData, urlData, creditText, safePic, safeVideo, ytThumb, ytWatch, ytShort } from '../pics.js?v=b8e2dc0e';
+import { esc } from '../core.js?v=7c13e055';
+import { KIND, TONE, diagramSVG, answersOf, learnText, respondText } from './render.js?v=7c13e055';
+import { TIERS } from './model.js?v=7c13e055';
+import { lookFor, lookInfo, lookForPptx } from './looks.js?v=7c13e055';
+import { pictureData, urlData, creditText, safePic, safeVideo, ytThumb, ytWatch, ytShort } from '../pics.js?v=7c13e055';
 
 /* ---------------- diagrams as pictures ---------------- */
 export function svgSize(svg) { const m = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg); return m ? [Number(m[1]), Number(m[2])] : [640, 200]; }

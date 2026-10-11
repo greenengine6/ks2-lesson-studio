@@ -5,8 +5,8 @@
    reloads, the lesson carries on: the keys stay in this tab (sessionStorage) for up to 4 hours, and everything the
    pupils sent is read again from the relay. Pupils' names and answers stay on this screen only; nothing is saved
    to the device or sent to Rabinder's reports. */
-import { CONFIG, bus } from '../core.js?v=b8e2dc0e';
-import * as R from './relay.js?v=b8e2dc0e';
+import { CONFIG, bus } from '../core.js?v=7c13e055';
+import * as R from './relay.js?v=7c13e055';
 
 const SS = 'ks2-engine.live.v1', TTL = 4 * 3600e3;
 export const Live = {

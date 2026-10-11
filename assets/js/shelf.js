@@ -1,9 +1,9 @@
 /* The dashboard shelf on the home page: the lessons made on this device (lkie.like packs and Slide Studio lessons),
    each with its topic and a picture of the topic. "Keep on dashboard" pins a lesson to the front of the shelf.
    Covers: the lesson's own title picture, or the best Wikipedia picture for its topic. */
-import { $, esc, icon, store, bus } from './core.js?v=b8e2dc0e';
-import { who } from './people.js?v=b8e2dc0e';
-import { coverFor, picURL, safePic, hydrate } from './pics.js?v=b8e2dc0e';
+import { $, esc, icon, store, bus } from './core.js?v=7c13e055';
+import { who } from './people.js?v=7c13e055';
+import { coverFor, picURL, safePic, hydrate } from './pics.js?v=7c13e055';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', DECKS = 'ks2-lesson-studio.recent.v1', PINS = 'ks2-engine.shelf.pins.v1';
 export const OPEN_KEY = { lkie: 'ks2-engine.lkie.open', slides: 'ks2-engine.slides.open' };

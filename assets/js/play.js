@@ -3,12 +3,13 @@
    something to do with the mouse: starlings that dodge a falcon, fireflies that slowly learn to flash together,
    the planets at their real relative speeds, and the northern lights over snowy mountains. All drawn live
    (no images or videos to download). */
-import { $, $$, esc, el, icon, bus, reduceMotion, toast } from './core.js?v=b8e2dc0e';
-import { Sound, sfx } from './fx/audio.js?v=b8e2dc0e';
-import { Ambient, Speech } from './fx/sound.js?v=b8e2dc0e';
-import { track } from './track.js?v=b8e2dc0e';
-import { MINI } from './fx/symphony.js?v=b8e2dc0e';
-import { settings } from './settings.js?v=b8e2dc0e';
+import { $, $$, esc, el, icon, bus, reduceMotion, toast } from './core.js?v=7c13e055';
+import { Sound, sfx } from './fx/audio.js?v=7c13e055';
+import { Ambient, Speech } from './fx/sound.js?v=7c13e055';
+import { track } from './track.js?v=7c13e055';
+import { MINI } from './fx/symphony.js?v=7c13e055';
+import { settings } from './settings.js?v=7c13e055';
+import { registerScenes } from './commands.js?v=7c13e055';
 
 const TAU = Math.PI * 2;
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -499,4 +500,9 @@ export function closePlay() {
   stopLoop(); Ambient.stop(); Pad.stop(); Speech.stop();
   try { if (document.fullscreenElement === root) document.exitFullscreen(); } catch (e) { /* ignore */ }
 }
-export function initPlay() { bus.on('play', (on) => (on ? openPlay() : closePlay())); }
+const WORDS = { birds: ['starlings', 'starling', 'birds', 'the birds', 'murmuration'], flies: ['fireflies', 'firefly', 'fire flies'], space: ['planets', 'the planets', 'solar system', 'the solar system', 'space'], aurora: ['northern lights', 'the northern lights', 'aurora', 'aurora borealis'] };
+export function initPlay() {
+  bus.on('play', (on) => (on ? openPlay() : closePlay()));
+  registerScenes(SCENES.map((s) => ({ id: s.id, name: s.name, words: WORDS[s.id] || [] })));     // "Hey Symphony, show the northern lights"
+  bus.on('play-scene', (id) => { if (root && document.body.classList.contains('playing') && SCENES.some((x) => x.id === id)) choose(id); });
+}
