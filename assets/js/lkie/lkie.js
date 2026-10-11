@@ -3,20 +3,23 @@
    the curriculum with checked codes. Slides change in plain English with undo; a unit planner sequences up to 25
    lessons with recaps and assessments; packs open instantly from this device; PowerPoint and Word downloads.
    Every engine button goes through the shared guard (guard.js). */
-import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=cfc5dfc4';
-import { track } from '../track.js?v=cfc5dfc4';
-import { sfx } from '../fx/audio.js?v=cfc5dfc4';
-import { Voice } from '../fx/voice.js?v=cfc5dfc4';
-import { evAll } from '../idb.js?v=cfc5dfc4';
-import { moodOf } from '../report.js?v=cfc5dfc4';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=cfc5dfc4';
-import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=cfc5dfc4';
-import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=cfc5dfc4';
-import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes } from './model.js?v=cfc5dfc4';
-import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText } from './render.js?v=cfc5dfc4';
-import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=cfc5dfc4';
-import EXAMPLE from './example.js?v=cfc5dfc4';
-import { presentKit, kitButtons } from '../presentkit.js?v=cfc5dfc4';
+import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=b8e2dc0e';
+import { track } from '../track.js?v=b8e2dc0e';
+import { sfx } from '../fx/audio.js?v=b8e2dc0e';
+import { Voice } from '../fx/voice.js?v=b8e2dc0e';
+import { evAll } from '../idb.js?v=b8e2dc0e';
+import { moodOf } from '../report.js?v=b8e2dc0e';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=b8e2dc0e';
+import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=b8e2dc0e';
+import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=b8e2dc0e';
+import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=b8e2dc0e';
+import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=b8e2dc0e';
+import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=b8e2dc0e';
+import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=b8e2dc0e';
+import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=b8e2dc0e';
+import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=b8e2dc0e';
+import EXAMPLE from './example.js?v=b8e2dc0e';
+import { presentKit, kitButtons } from '../presentkit.js?v=b8e2dc0e';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', UNITS = 'ks2-engine.lkie.units.v1', RULES = 'ks2-engine.lkie.rules.v1', THEME = 'ks2-engine.lkie.theme.v1', FORM = 'ks2-engine.lkie.form.v1';
 const YEARS = ['Year 3', 'Year 4', 'Year 5', 'Year 6'];
@@ -52,8 +55,10 @@ const isExample = (p) => !p || p.id === 'example';
 const S = {
   view: null, pack: EX, origin: 'example', tab: 'slides', sel: -1, tier: 'standard', answers: false, theme: store.get(THEME) === 'calm' ? 'calm' : 'bright',
   list: [], chosen: [], busy: null, live: null, editing: false, sheetBusy: false, unit: null, unitBusy: false, briefing: false, hist: new Map(),
-  pr: { open: false, i: 0, reveal: 0, notes: false, t0: 0, seen: 0 }, rec: null
+  pr: { open: false, i: 0, reveal: 0, notes: false, t0: 0, seen: 0 }, rec: null,
+  ed: 'ai', drawer: '', pq: '', pres: null, pbusy: false, perr: '', ptarget: '', pfor: '', vq: '', vres: null, vbusy: false, auto: null
 };
+const clone = (x) => JSON.parse(JSON.stringify(x));
 
 /* ---------------- saved packs and units (this device) ---------------- */
 let memPacks = [];
@@ -66,8 +71,20 @@ function writePacks(list) {
   memPacks = list;
   for (let l = list.slice(); l.length; l.pop()) { try { localStorage.setItem(PACKS, JSON.stringify(l)); return; } catch (e) { /* full: drop the oldest and try again */ } }
 }
-function savePack(p) { if (isExample(p)) return; writePacks([p].concat(loadPacks().filter((x) => x.id !== p.id)).slice(0, 15)); }
-function dropPack(id) { writePacks(loadPacks().filter((x) => x.id !== id)); }
+function savePack(p) { if (isExample(p)) return; writePacks([p].concat(loadPacks().filter((x) => x.id !== p.id)).slice(0, 15)); bus.emit('shelf'); if (S.view) renderRecent(); }
+/* The teacher's own pictures live in this browser; a deleted pack takes its pictures with it (unless another pack uses them). */
+function uploadsIn(p) {
+  const ids = [], add = (pic) => { if (pic && pic.up) ids.push(pic.up); };
+  (p.slides || []).forEach((s) => { add(s.pic); if (s.look && s.look.pic) add(s.look.pic); });
+  if (p.look && p.look.pic) add(p.look.pic);
+  return ids;
+}
+function dropPack(id) {
+  const all = loadPacks(), gone = all.find((x) => x.id === id), rest = all.filter((x) => x.id !== id);
+  writePacks(rest); unpin('lkie', id);
+  if (gone) { const keep = new Set(rest.flatMap(uploadsIn)); forgetUploads(uploadsIn(gone).filter((u) => !keep.has(u))); }
+  bus.emit('shelf');
+}
 function findCached(key) { return loadPacks().find((p) => p.key === key && Date.now() - (p.at || 0) < 30 * 864e5) || null; }
 const loadUnits = () => { const v = store.getJSON(UNITS, []); return Array.isArray(v) ? v.filter((u) => u && u.id && Array.isArray(u.lessons)) : []; };
 function saveUnit(u) { store.setJSON(UNITS, [u].concat(loadUnits().filter((x) => x.id !== u.id)).slice(0, 5)); }
@@ -106,7 +123,9 @@ function pageHTML() {
     '<div class="lhead" id="lk-head"></div>' +
     '<div class="actions" id="lk-actions"><button type="button" class="btn primary" data-lk="present">' + icon('play') + 'Present</button><button type="button" class="btn" data-lk="ppt">' + icon('download') + '<span>PowerPoint</span></button>' +
     '<button type="button" class="btn" data-lk="word">' + icon('notes') + '<span>Worksheet (Word)</span></button><button type="button" class="btn" data-lk="brief">' + icon('volume') + '<span>Listen</span></button>' +
-    '<div class="seg lk-theme" role="group" aria-label="Slide style"><button type="button" data-lk-theme="bright">Bright</button><button type="button" data-lk-theme="calm">Calm</button></div></div>' +
+    '<button type="button" class="btn" data-lk="looks" aria-expanded="false" aria-controls="lk-drawer">' + icon('palette') + '<span>Background</span></button><button type="button" class="btn" data-lk="pics" aria-expanded="false" aria-controls="lk-drawer">' + icon('image') + '<span>Pictures</span></button>' +
+    '<button type="button" class="btn" data-lk="keep" aria-pressed="false">' + icon('pin') + '<span>Keep on dashboard</span></button></div>' +
+    '<div class="lk-drawer" id="lk-drawer" hidden></div>' +
     '<div class="seg lk-tabs" role="tablist" aria-label="Pack views">' + [['slides', 'Slides'], ['vocab', 'Key words'], ['acts', 'Activities'], ['sheet', 'Worksheet'], ['notes', 'Teacher notes']].map(([k, l]) => '<button type="button" role="tab" data-lk-tab="' + k + '">' + l + '</button>').join('') + '</div>' +
     '<div id="lk-panel" role="tabpanel"></div>' +
     '</section></div></div>';
@@ -241,6 +260,7 @@ async function makePack(o) {
     S.live = null; outcome = 'ok';
     savePack(pack); openPack(pack, 'new');
     if (o.unit) { const l = o.unit.lessons[o.index]; if (l) { l.pack = pack.id; saveUnit(o.unit); renderUnit(); } }
+    autoPictures(pack);
     track('deck', { eng: 'lkie', title: pack.title, year: input.year, subject: input.subjectName, slides: pack.slides.length, ok: 1, ms: Date.now() - t0 });
     sfx('success'); toast(w ? 'Your lesson pack is ready.' : 'Your slides are ready. The worksheet did not come through: open Worksheet to write it again.');
   } catch (e) {
@@ -256,7 +276,7 @@ async function makePack(o) {
   }
 }
 function openPack(p, origin) {
-  S.pack = p; S.origin = origin || 'saved'; S.sel = -1; S.tab = 'slides';
+  S.pack = p; S.origin = origin || 'saved'; S.sel = -1; S.tab = 'slides'; S.ed = 'ai'; S.drawer = ''; S.pres = null; S.pfor = ''; S.vres = null;
   if (S.briefing) { Voice.stop(); S.briefing = false; }
   renderPack(); renderRecent();
 }
@@ -273,7 +293,7 @@ function renderPack() {
   const live = !!S.live, p = live ? livePack() : S.pack;
   $('#lk-head', S.view).innerHTML = headHTML(p, live);
   $('#lk-actions', S.view).hidden = live;
-  $$('[data-lk-theme]', S.view).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lkTheme === S.theme)));
+  paintActions(p, live);
   const tabs = $('.lk-tabs', S.view);
   tabs.hidden = live;
   $$('[data-lk-tab]', S.view).forEach((t) => t.setAttribute('aria-selected', String(t.dataset.lkTab === S.tab)));
@@ -285,7 +305,9 @@ function renderPack() {
   else if (S.tab === 'sheet') panel.innerHTML = sheetPanel(p);
   else panel.innerHTML = notesHTML(p);
   paintBrief();
+  hydrate(panel);
   refit();
+  sweepCredits(p);
 }
 function slidesPanel(p, live) {
   const cards = p.slides.map((s, i) => '<article class="scard' + (S.sel === i ? ' sel' : '') + (S.editing && S.sel === i ? ' busy' : '') + '" data-i="' + i + '"><button type="button" class="sthumb" data-sel="' + i + '" aria-pressed="' + (S.sel === i) + '" aria-label="Slide ' + (i + 1) + ': ' + esc(s.title || (KIND[s.layout] || {}).label || '') + '. Select to change it">' + slideHTML(p, s, i, { reveal: s.layout === 'guided' ? 99 : 0, mode: prefs.mode, theme: S.theme }) + '</button>' +
@@ -295,21 +317,191 @@ function slidesPanel(p, live) {
   if (!live && S.sel >= 0 && p.slides[S.sel]) cards.splice(S.sel + 1, 0, editorHTML(p));
   return (live || S.sel >= 0 ? '' : editorHTML(p)) + '<div class="sgrid lk-grid">' + cards.join('') + '</div>';
 }
+/* ---------------- the slide editor: six ways to change a slide ---------------- */
+const ED_TABS = [['ai', 'wand', 'Change with AI'], ['text', 'type', 'Edit text'], ['pic', 'image', 'Picture'], ['video', 'video', 'Video'], ['bg', 'palette', 'Background'], ['size', 'textsize', 'Text size']];
+const RESP_OPTS = [['chat', 'Write or type an answer'], ['vote', 'Vote A, B, C or D'], ['show', 'Show me'], ['talk', 'Talk to a partner'], ['react', 'Thumbs up, sideways or down'], ['none', 'No answer on this slide']];
 function editorHTML(p) {
   const h = S.hist.get(p.id) || { undo: [], redo: [] };
   if (S.sel < 0 || !p.slides[S.sel]) {
-    return '<div class="lk-ed idle"><p>' + icon('wand') + '<span><b>Tap a slide to change it.</b> Say what you want in plain English, for example “Make this simpler” or “Add a football analogy”.</span></p>' +
+    return '<div class="lk-ed idle"><p>' + icon('wand') + '<span><b>Tap a slide to change it.</b> Edit the words, add a picture or a video, change the background or the text size, or say what you want in plain English, for example “Make this simpler”.</span></p>' +
       '<span class="lk-ed-tools">' + (h.undo.length ? '<button type="button" class="btn small" data-ed="undo">' + icon('left') + 'Undo</button>' : '') + (h.redo.length ? '<button type="button" class="btn small" data-ed="redo">Redo' + icon('right') + '</button>' : '') + '</span></div>';
   }
   const s = p.slides[S.sel], k = KIND[s.layout] || KIND.concept;
+  const pane = S.ed === 'text' ? textPane(p, s) : S.ed === 'pic' ? picPane(p, s) : S.ed === 'video' ? videoPane(p, s) : S.ed === 'bg' ? bgPane(p, s) : S.ed === 'size' ? sizePane(s) : aiPane();
   return '<div class="lk-ed" role="region" aria-label="Change slide ' + (S.sel + 1) + '"><div class="lk-ed-top"><b>Slide ' + (S.sel + 1) + ' · ' + esc(k.label) + '</b><span class="lk-ed-tools">' +
     '<button type="button" class="btn small icon" data-ed="left" aria-label="Move slide earlier"' + (S.sel === 0 ? ' disabled' : '') + '>' + icon('left') + '</button><button type="button" class="btn small icon" data-ed="right" aria-label="Move slide later"' + (S.sel === p.slides.length - 1 ? ' disabled' : '') + '>' + icon('right') + '</button>' +
     '<button type="button" class="btn small icon" data-ed="del" aria-label="Delete this slide"' + (p.slides.length <= 5 ? ' disabled' : '') + '>' + icon('trash') + '</button>' +
     '<button type="button" class="btn small" data-ed="undo"' + (h.undo.length ? '' : ' disabled') + ' aria-label="Undo">' + icon('refresh') + '<span class="lbl">Undo</span></button><button type="button" class="btn small" data-ed="redo"' + (h.redo.length ? '' : ' disabled') + ' aria-label="Redo"><span class="lbl">Redo</span>' + icon('right') + '</button>' +
     '<button type="button" class="btn small icon" data-ed="close" aria-label="Close the editor">' + icon('close') + '</button></span></div>' +
-    '<div class="lk-ed-chips">' + CHIPS.map((id) => { const it = INTENTS.find((x) => x.id === id); return '<button type="button" class="lk-ichip" data-intent="' + id + '"' + (S.editing ? ' disabled' : '') + '>' + esc(it.label) + '</button>'; }).join('') + '</div>' +
-    '<form class="lk-ed-form" id="lk-ed-form" novalidate><input type="text" id="lk-ed-in" maxlength="300" autocomplete="off" enterkeyhint="send" placeholder="Or type a change: Add a slide on halfway numbers"' + (S.editing ? ' disabled' : '') + '><button type="submit" class="btn primary small" id="lk-ed-go"' + (S.editing ? ' disabled' : '') + '>' + icon('wand') + (S.editing ? 'Changing…' : 'Change it') + '</button></form>' +
-    '<p class="notice" id="lk-ed-note" hidden role="status"></p></div>';
+    '<div class="lk-ed-tabs" role="tablist" aria-label="Ways to change this slide">' + ED_TABS.map(([id, ic, label]) => '<button type="button" role="tab" data-edtab="' + id + '" aria-selected="' + (S.ed === id) + '">' + icon(ic) + '<span>' + label + '</span></button>').join('') + '</div>' +
+    '<div class="lk-ed-pane" role="tabpanel">' + pane + '</div><p class="notice" id="lk-ed-note" hidden role="status"></p></div>';
+}
+function aiPane() {
+  return '<div class="lk-ed-chips">' + CHIPS.map((id) => { const it = INTENTS.find((x) => x.id === id); return '<button type="button" class="lk-ichip" data-intent="' + id + '"' + (S.editing ? ' disabled' : '') + '>' + esc(it.label) + '</button>'; }).join('') + '</div>' +
+    '<form class="lk-ed-form" id="lk-ed-form" novalidate><input type="text" id="lk-ed-in" maxlength="300" autocomplete="off" enterkeyhint="send" placeholder="Or type a change: Add a slide on halfway numbers"' + (S.editing ? ' disabled' : '') + '><button type="submit" class="btn primary small" id="lk-ed-go"' + (S.editing ? ' disabled' : '') + '>' + icon('wand') + (S.editing ? 'Changing…' : 'Change it') + '</button></form>';
+}
+function fld(name, label, val, o) {
+  o = o || {};
+  const box = o.area ? '<textarea name="' + name + '" rows="' + (o.rows || 3) + '" maxlength="' + (o.max || 300) + '">' + esc(val || '') + '</textarea>' : '<input type="text" name="' + name + '" maxlength="' + (o.max || 200) + '" value="' + esc(val || '') + '" autocomplete="off">';
+  return '<label class="fld"><span>' + label + '</span>' + box + (o.hint ? '<small class="fine">' + o.hint + '</small>' : '') + '</label>';
+}
+const linesOf = (xs) => (xs || []).join('\n');
+function textPane(p, s) {
+  let h = s.layout === 'title' ? fld('ptitle', 'Lesson title', p.title, { max: 100 }) + fld('pobj', 'Objective', p.objective, { area: true, rows: 2, max: 240 }) + fld('psc', 'Success criteria', linesOf(p.successCriteria), { area: true, rows: 3, max: 680, hint: 'One on each line, up to 4.' }) + fld('pbq', 'Big question', p.bigQuestion, { max: 200 })
+    : fld('title', 'Slide title', s.title, { max: 90 });
+  const tasks = { area: true, rows: 2, max: 620, hint: 'One on each line, up to 3.' };
+  switch (s.layout) {
+    case 'recap': case 'exit':
+      h += '<div class="lk-qa"><span class="lk-qa-h"><b>Questions</b><b>Answers</b></span>' + [0, 1, 2, 3, 4].map((j) => { const q = s.questions[j] || {}; return '<div class="lk-qa-row"><b>' + (j + 1) + '</b><input type="text" name="q' + j + '" maxlength="240" value="' + esc(q.q || '') + '" placeholder="Question ' + (j + 1) + '" aria-label="Question ' + (j + 1) + '" autocomplete="off"><input type="text" name="a' + j + '" maxlength="160" value="' + esc(q.a || '') + '" placeholder="Answer" aria-label="Answer ' + (j + 1) + '" autocomplete="off"></div>'; }).join('') + '<small class="fine">Leave a row empty to remove it.</small></div>';
+      break;
+    case 'hook': h += fld('prompt', 'Hook question or problem', s.prompt, { area: true, rows: 2, max: 260 }) + fld('detail', 'Follow-up line', s.detail, { max: 200 }); break;
+    case 'vocab': h += fld('words', 'Key words on this slide', linesOf(s.words), { area: true, rows: 3, max: 400, hint: 'One on each line, up to 8. Leave it empty to show the pack’s key words.' }); break;
+    case 'concept': h += fld('points', 'Points', linesOf(s.points), { area: true, rows: 3, max: 680, hint: 'One on each line, up to 4.' }) + fld('example', 'Example', s.example, { area: true, rows: 2, max: 260 }); break;
+    case 'guided': h += fld('problem', 'Worked example', s.problem, { area: true, rows: 2, max: 260 }) + fld('steps', 'Steps', linesOf(s.steps), { area: true, rows: 4, max: 1050, hint: 'One on each line, up to 5.' }) + fld('answer', 'Answer', s.answer, { max: 160 }); break;
+    case 'check':
+      h += fld('question', 'Question', s.question, { area: true, rows: 2, max: 260 }) + '<div class="lk-qa" role="radiogroup" aria-label="Options and the right answer">' + [0, 1, 2, 3].map((j) => '<div class="lk-qa-row opt"><label class="lk-right" title="The right answer"><input type="radio" name="right" value="' + j + '"' + (s.answer === j ? ' checked' : '') + ' aria-label="' + 'ABCD'[j] + ' is right"><b>' + 'ABCD'[j] + '</b></label><input type="text" name="o' + j + '" maxlength="120" value="' + esc(s.options[j] || '') + '" placeholder="Option ' + 'ABCD'[j] + '" aria-label="Option ' + 'ABCD'[j] + '" autocomplete="off"></div>').join('') + '<small class="fine">Tick the right answer. Wrong options work best as common mistakes.</small></div>' + fld('why', 'Why it is right', s.why, { area: true, rows: 2, max: 300 });
+      break;
+    case 'independent': h += fld('support', 'Support', linesOf(s.support), tasks) + fld('core', 'Core', linesOf(s.core), tasks) + fld('stretch', 'Stretch', linesOf(s.stretch), tasks) + fld('answers', 'Answers', s.answers, { area: true, rows: 2, max: 500 }); break;
+    case 'talk': h += fld('prompt', 'Question to discuss', s.prompt, { area: true, rows: 2, max: 260 }) + fld('starter', 'Sentence starter', s.starter, { max: 120 }); break;
+    case 'plenary': h += fld('points', 'Key takeaways', linesOf(s.points), { area: true, rows: 3, max: 680, hint: 'One on each line, up to 4.' }) + fld('prompt', 'Reflection question', s.prompt, { max: 200 }); break;
+    default: break;
+  }
+  h += fld('say', 'What you say (your notes)', s.say, { area: true, rows: 3, max: 700 }) +
+    '<div class="row2"><label class="fld"><span>Minutes</span><input type="number" name="minutes" inputmode="numeric" min="0" max="30" value="' + (s.minutes || 0) + '"></label>' +
+    '<label class="fld"><span>How pupils answer</span><select name="respond">' + RESP_OPTS.map(([v, l]) => '<option value="' + v + '"' + (s.respond === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label></div>';
+  return '<form class="lk-textform" id="lk-text-form" novalidate>' + h + '<div class="lk-row"><button type="submit" class="btn primary small">' + icon('check') + 'Save the changes</button><button type="button" class="btn small" data-ed="text-reset">' + icon('undo') + 'Start again</button></div></form>';
+}
+const NEEDS = { recap: 'A recap needs at least one question.', exit: 'An exit ticket needs at least one question.', hook: 'Write the hook question or problem.', concept: 'Add at least one point or an example.', guided: 'Write the worked example.', check: 'A check point needs a question and at least two options.', independent: 'Add at least one task.', talk: 'Write the question to discuss.', plenary: 'Add a takeaway or a reflection question.' };
+function readText(form, p, s) {
+  const el = form.elements, raw = (n) => String(el[n] ? el[n].value : ''), v = (n) => str(raw(n));
+  const lines = (n, max, len) => raw(n).split(/\n+/).map((x) => str(x)).filter(Boolean).slice(0, max).map((x) => x.slice(0, len));
+  const t = clone(s);
+  if (s.layout !== 'title') t.title = v('title').slice(0, 90);
+  t.say = v('say').slice(0, 700);
+  t.minutes = Math.max(0, Math.min(30, Math.round(Number(v('minutes')) || 0)));
+  if (RESP_OPTS.some((r) => r[0] === v('respond'))) t.respond = v('respond');
+  switch (s.layout) {
+    case 'recap': case 'exit': t.questions = [0, 1, 2, 3, 4].map((j) => ({ q: v('q' + j).slice(0, 240), a: v('a' + j).slice(0, 160) })).filter((x) => x.q); break;
+    case 'hook': t.prompt = v('prompt'); t.detail = v('detail'); break;
+    case 'vocab': t.words = lines('words', 8, 40); break;
+    case 'concept': t.points = lines('points', 4, 160); t.example = v('example'); break;
+    case 'guided': t.problem = v('problem'); t.steps = lines('steps', 5, 200); t.answer = v('answer'); break;
+    case 'check': {
+      const r = form.querySelector('input[name="right"]:checked'), right = r ? Number(r.value) : -1;
+      const kept = [0, 1, 2, 3].map((j) => ({ j, t: v('o' + j).slice(0, 120) })).filter((o) => o.t);
+      if (kept.length >= 2 && !kept.some((o) => o.j === right)) return { err: 'Tick the right answer next to one of the options.' };
+      t.question = v('question'); t.options = kept.map((o) => o.t); t.answer = Math.max(0, kept.findIndex((o) => o.j === right)); t.why = v('why');
+      break;
+    }
+    case 'independent': t.support = lines('support', 3, 200); t.core = lines('core', 3, 200); t.stretch = lines('stretch', 3, 200); t.answers = v('answers').slice(0, 500); break;
+    case 'talk': t.prompt = v('prompt'); t.starter = v('starter'); break;
+    case 'plenary': t.points = lines('points', 4, 160); t.prompt = v('prompt'); break;
+    default: break;
+  }
+  const n = normSlide(t);
+  if (!n) return { err: NEEDS[s.layout] || 'Something this slide needs is missing.' };
+  carryExtras(s, n);
+  const out = { slide: n };
+  if (s.layout === 'title') out.pack = { title: v('ptitle').slice(0, 100) || p.title, objective: v('pobj').slice(0, 240), successCriteria: lines('psc', 4, 160), bigQuestion: v('pbq').slice(0, 200) };
+  return out;
+}
+/* Picture search: the slide's Picture tab, its Background tab, and the whole pack's Background drawer use it. */
+function searchBlock(target, hint) {
+  const mine = S.ptarget === target, res = mine ? S.pres : null;
+  let out = '<form class="lk-ed-form lk-psearch" data-psearch="' + target + '" novalidate><input type="text" name="q" maxlength="120" autocomplete="off" enterkeyhint="search" value="' + esc(mine ? S.pq : '') + '" placeholder="' + esc(hint || 'Search pictures, for example: volcano') + '" aria-label="Search Wikipedia for a picture"><button type="submit" class="btn small primary">' + icon('search') + 'Search</button></form>';
+  if (mine && S.pbusy) out += '<p class="fine lk-wait">' + icon('clock') + 'Looking for pictures…</p>';
+  else if (mine && S.perr) out += '<p class="notice err">' + esc(S.perr) + '</p>';
+  else if (res) {
+    out += res.length ? '<div class="lk-pics">' + res.map((x, j) => '<button type="button" class="lk-pick" data-pick="' + j + '" title="' + esc(x.page + (x.desc ? ': ' + x.desc : '')) + '"><img src="' + esc(picURL(x, '500')) + '" alt="" loading="lazy" decoding="async"><span>' + esc(x.page) + '</span></button>').join('') + '</div>'
+      : '<p class="fine">No pictures found. Try other words: one thing you can see, for example “lighthouse”.</p>';
+  }
+  return out + '<div class="lk-up"><label class="btn small">' + icon('upload') + '<span>Upload your own</span><input type="file" accept="image/*" data-upload="' + target + '" hidden></label><span class="fine">or paste a picture here. Your own pictures stay in this browser.</span></div>';
+}
+function picThumb(pic, cls) {
+  const src = picURL(pic, '500');
+  return '<figure' + (cls ? ' class="' + cls + '"' : '') + '>' + (pic.up && !src ? '<img data-up="' + esc(pic.up) + '" alt="">' : '<img src="' + esc(src) + '" alt="">') + '</figure>';
+}
+function picPane(p, s) {
+  const pic = safePic(s.pic);
+  let h = s.video ? '<p class="lk-tip2">' + icon('info') + '<span>This slide shows its video. Remove the video (Video tab) to show a picture here.</span></p>' : '';
+  if (pic) {
+    h += '<div class="lk-now">' + picThumb(pic) + '<div class="lk-now-t"><b>' + esc(pic.page || pic.alt || 'Your picture') + '</b><span class="fine">' + esc(creditText(pic, false)) + '</span>' +
+      (pic.up ? '<span class="fine">Kept in this browser, up to 1,920 pixels wide.</span>' : '<label class="fld lk-q"><span>Quality</span><select data-ed-quality>' + QUALITY.map(([v, l, d]) => '<option value="' + v + '"' + (String(pic.size || '960') === v ? ' selected' : '') + '>' + l + ': ' + d + '</option>').join('') + '</select></label>') +
+      '<div class="lk-now-tools"><div class="seg small" role="group" aria-label="How the picture fits"><button type="button" data-ed-fit="cover" aria-pressed="' + (pic.fit !== 'contain') + '">Fill the space</button><button type="button" data-ed-fit="contain" aria-pressed="' + (pic.fit === 'contain') + '">Show all of it</button></div>' +
+      '<button type="button" class="btn small" data-ed="pic-bg">' + icon('palette') + 'Use as background</button><button type="button" class="btn small" data-ed="pic-x">' + icon('trash') + 'Remove</button></div></div></div>';
+  } else h += '<p class="fine">No picture on this slide yet. Pick one below.</p>';
+  return h + searchBlock('slide') + '<p class="fine">Free pictures from Wikipedia, each with credit to the person who made it. Your search words go to Wikipedia.</p>';
+}
+function videoPane(p, s) {
+  const v = safeVideo(s.video), m = s.media || {};
+  let h = '';
+  if (v) {
+    h += '<div class="lk-now"><figure class="vid"><img src="' + ytThumb(v.id) + '" alt=""></figure><div class="lk-now-t"><b>' + esc(v.title || 'YouTube video') + '</b><span class="fine">' + (v.start ? 'Starts at ' + mmss(v.start) : 'Starts at the beginning') + '. It plays inside the slide when you present.</span>' +
+      '<div class="lk-now-tools"><a class="btn small" href="' + esc(ytWatch(v)) + '" target="_blank" rel="noopener noreferrer">' + icon('play') + 'Watch it first</a><button type="button" class="btn small" data-ed="vid-x">' + icon('trash') + 'Remove</button></div></div></div>';
+  }
+  h += '<ol class="lk-how"><li><a class="btn small" href="' + esc(ytFind(m.video || ((s.title || '') + ' ' + p.input.topic))) + '" target="_blank" rel="noopener noreferrer">' + icon('search') + 'Find a video on YouTube</a><span class="fine">Short videos only, in a new tab.</span></li><li>On the video, press Share, then Copy.</li><li>Paste the link below.</li></ol>' +
+    '<form class="lk-vform" id="lk-vid-form" novalidate><label class="fld"><span>YouTube link</span><span class="lk-row tight"><input type="text" name="url" inputmode="url" autocomplete="off" placeholder="https://www.youtube.com/watch?v=…"><button type="button" class="btn small" data-ed="vid-paste">' + icon('copy') + 'Paste</button></span></label>' +
+    '<div class="row2"><label class="fld"><span>Name it (optional)</span><input type="text" name="title" maxlength="80" autocomplete="off" placeholder="What the video shows"></label><label class="fld"><span>Start at (optional)</span><input type="text" name="start" maxlength="8" autocomplete="off" placeholder="0:30"></label></div>' +
+    '<button type="submit" class="btn primary small">' + icon('video') + (v ? 'Use this video instead' : 'Add the video') + '</button></form>';
+  if (ytKey()) {
+    h += '<form class="lk-ed-form" id="lk-vsearch" novalidate><input type="text" name="q" maxlength="120" autocomplete="off" value="' + esc(S.vq || m.video || '') + '" placeholder="Search YouTube from here" aria-label="Search YouTube"><button type="submit" class="btn small">' + icon('search') + 'Search</button></form>' +
+      (S.vbusy ? '<p class="fine lk-wait">' + icon('clock') + 'Searching…</p>' : S.vres ? (S.vres.length ? '<div class="lk-pics vids">' + S.vres.map((x, j) => '<button type="button" class="lk-pick" data-vpick="' + j + '"><img src="' + ytThumb(x.id) + '" alt="" loading="lazy" decoding="async"><span>' + esc(x.title) + '<small>' + esc(x.ch) + '</small></span></button>').join('') + '</div>' : '<p class="fine">No videos found. Try other words.</p>') : '');
+  }
+  return h + '<p class="fine">Videos play from youtube-nocookie.com, YouTube’s privacy-enhanced player. Watch a video first: you choose what your class sees.</p>';
+}
+function lookSwatches(cur, attr, inherit) {
+  const id = typeof cur === 'string' ? cur : '', col = cur && cur.c ? cur.c : '';
+  return '<div class="lk-sws" role="group" aria-label="Backgrounds">' + (inherit ? '<button type="button" class="lk-sw" ' + attr + '="" aria-pressed="' + !cur + '"><i class="same"></i><span>Same as the lesson</span></button>' : '') +
+    LOOKS.map((l) => '<button type="button" class="lk-sw" ' + attr + '="' + l.id + '" aria-pressed="' + (id === l.id) + '"><i style="background:' + l.sw + '"></i><span>' + esc(l.name) + '</span></button>').join('') +
+    '<label class="lk-sw colour' + (col ? ' on' : '') + '"><input type="color" ' + attr + '-c value="' + (col || '#FFE8A3').toLowerCase() + '" aria-label="Any colour"><i style="background:' + (col || 'conic-gradient(#E35D5B,#F2C14E,#4FA36B,#2D9C9C,#3E7CC7,#8466C4,#E35D5B)') + '"></i><span>Any colour</span></label></div>';
+}
+function picLookTools(cur, scope) {
+  return '<div class="lk-now">' + picThumb(cur.pic) + '<div class="lk-now-t"><b>Picture background</b><span class="fine">' + esc(creditText(cur.pic, false)) + '</span><div class="lk-now-tools"><div class="seg small" role="group" aria-label="Words on the picture">' +
+    '<button type="button" data-shade="light" data-shade-for="' + scope + '" aria-pressed="' + (cur.shade !== 'dark') + '">Light, dark words</button><button type="button" data-shade="dark" data-shade-for="' + scope + '" aria-pressed="' + (cur.shade === 'dark') + '">Dark, white words</button></div></div></div></div>';
+}
+function bgPane(p, s) {
+  const cur = normLook(s.look);
+  let h = lookSwatches(cur, 'data-look', true);
+  if (cur && cur.pic) h += picLookTools(cur, 'slide');
+  h += '<div class="lk-row">' + (safePic(s.pic) ? '<button type="button" class="btn small" data-ed="bg-pic">' + icon('image') + 'Use this slide’s picture</button>' : '') +
+    '<button type="button" class="btn small" data-ed="bg-find" aria-expanded="' + (S.ptarget === 'bg') + '">' + icon('search') + 'Find a picture for the background</button>' +
+    '<button type="button" class="btn small" data-ed="bg-all">' + icon('layers') + 'Use on every slide</button></div>';
+  if (S.ptarget === 'bg') h += searchBlock('bg', 'A background picture, for example: rainforest');
+  return h + '<p class="fine">Dark backgrounds turn the words white. Boxes stay light, so every word stays easy to read.</p>';
+}
+function sizePane(s) {
+  const cur = TEXT_SIZES.some((t) => t[0] === s.fs) ? s.fs : 1;
+  return '<div class="lk-sizes" role="group" aria-label="Text size">' + TEXT_SIZES.map(([v, l]) => '<button type="button" class="lk-size" data-size="' + v + '" aria-pressed="' + (cur === v) + '"><span style="font-size:' + Math.round(16 * v) + 'px">Aa</span>' + l + '</button>').join('') + '</div>' +
+    '<div class="lk-row"><button type="button" class="btn small" data-ed="fs-all">' + icon('layers') + 'Use this size on every slide</button></div><p class="fine">When the words do not fit, the slide makes them a little smaller by itself, so nothing is cut off.</p>';
+}
+/* The pack's own drawer under the buttons: one background for every slide, and pictures for the whole pack. */
+function drawerHTML(p) {
+  const head = (ic, t) => '<div class="lk-dr-h"><b>' + icon(ic) + t + '</b><button type="button" class="btn small icon" data-lk="drawer-x" aria-label="Close">' + icon('close') + '</button></div>';
+  if (S.drawer === 'looks') {
+    const cur = normLook(p.look);
+    let h = head('palette', 'Background for every slide') + lookSwatches(cur || (S.theme === 'calm' ? 'calm' : 'bright'), 'data-plook', false);
+    if (cur && cur.pic) h += picLookTools(cur, 'pack');
+    h += '<div class="lk-row"><button type="button" class="btn small" data-lk="plook-find" aria-expanded="' + (S.ptarget === 'pack') + '">' + icon('search') + 'Find a picture for the background</button></div>';
+    if (S.ptarget === 'pack') h += searchBlock('pack', 'A background picture, for example: night sky');
+    return h + '<p class="fine">A slide with its own background keeps it (tap the slide, then Background).</p>';
+  }
+  if (S.drawer === 'pics') {
+    const n = p.slides.filter((s) => safePic(s.pic)).length, v = p.slides.filter((s) => safeVideo(s.video)).length;
+    return head('image', 'Pictures and videos') + '<p class="lk-count">' + (n ? n + ' slide' + (n === 1 ? ' has' : 's have') + ' a picture' : 'No pictures yet') + (v ? ' · ' + v + ' video' + (v === 1 ? '' : 's') : '') + '.</p>' +
+      '<div class="lk-row"><button type="button" class="btn small primary" data-lk="autopics"' + (S.auto ? ' disabled' : '') + '>' + icon('wand') + (S.auto ? 'Finding pictures…' : 'Add pictures for me') + '</button>' + (n ? '<button type="button" class="btn small" data-lk="nopics">' + icon('trash') + 'Remove all pictures</button>' : '') + '</div>' +
+      '<p class="fine">“Add pictures for me” picks a free Wikipedia picture for up to 5 slides without a diagram: the title, hook, new learning, talk and plenary. Check each one before you present. To choose your own, tap a slide, then Picture.</p>';
+  }
+  return '';
+}
+function paintActions(p, live) {
+  const bar = $('#lk-actions', S.view), dr = $('#lk-drawer', S.view);
+  if (!bar || !dr) return;
+  const ex = isExample(p), keep = $('[data-lk="keep"]', bar), on = !ex && isPinned('lkie', p.id);
+  keep.hidden = ex || live; keep.setAttribute('aria-pressed', String(on)); $('span', keep).textContent = on ? 'On your dashboard' : 'Keep on dashboard';
+  $('[data-lk="looks"]', bar).setAttribute('aria-expanded', String(S.drawer === 'looks'));
+  $('[data-lk="pics"]', bar).setAttribute('aria-expanded', String(S.drawer === 'pics'));
+  const h = live ? '' : drawerHTML(p);
+  dr.hidden = !h; dr.innerHTML = h; hydrate(dr);
 }
 function sheetPanel(p) {
   if (!p.worksheet) {
@@ -323,8 +515,11 @@ function sheetPanel(p) {
 function refit() { requestAnimationFrame(() => $$('.lk-grid .sthumb .sl', S.view).forEach(fitSlide)); }
 function renderRecent() {
   const list = loadPacks().slice(0, 12), cur = S.pack && S.pack.id;
-  const item = (id, title, sub, rm) => '<li><button type="button" class="recent-open" data-open="' + id + '"' + (cur === id ? ' aria-current="true"' : '') + '><b>' + esc(title) + '</b><span>' + esc(sub) + '</span></button>' + (rm ? '<button type="button" class="icon-btn" data-drop="' + id + '" aria-label="Remove ' + esc(title) + '">' + icon('trash') + '</button>' : '') + '</li>';
-  $('#lk-recent', S.view).innerHTML = list.map((p) => item(p.id, p.title, p.input.year + ' · ' + p.input.subjectName + ' · ' + new Date(p.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), true)).join('') + item('example', EX.title, 'Example · ' + EX.input.year + ' · ' + EX.input.subjectName, false);
+  const cover = (p) => { const c = coverOfPack(p), src = c ? picURL(c, '500') : ''; return !c ? '' : c.up && !src ? '<img class="rc" data-up="' + esc(c.up) + '" alt="">' : '<img class="rc" src="' + esc(src) + '" alt="" loading="lazy" decoding="async">'; };
+  const item = (p, sub, rm) => { const im = cover(p); return '<li><button type="button" class="recent-open' + (im ? ' has-pic' : '') + '" data-open="' + p.id + '"' + (cur === p.id ? ' aria-current="true"' : '') + '>' + im + '<span class="rt"><b>' + esc(p.title) + '</b><span>' + esc(sub) + '</span></span></button>' + (rm ? '<button type="button" class="icon-btn" data-drop="' + p.id + '" aria-label="Remove ' + esc(p.title) + '">' + icon('trash') + '</button>' : '') + '</li>'; };
+  const box = $('#lk-recent', S.view);
+  box.innerHTML = list.map((p) => item(p, p.input.year + ' · ' + p.input.subjectName + ' · ' + new Date(p.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), true)).join('') + item(EX, 'Example · ' + EX.input.year + ' · ' + EX.input.subjectName, false);
+  hydrate(box);
 }
 
 /* ---------------- changing slides (plain English, with undo) ---------------- */
@@ -343,13 +538,16 @@ function run(p, op, back) {
   else if (op.t === 'insert') { if (back) sl.splice(op.i, 1); else sl.splice(op.i, 0, op.slide); }
   else if (op.t === 'remove') { if (back) sl.splice(op.i, 0, op.slide); else sl.splice(op.i, 1); }
   else if (op.t === 'move') { const [a, b] = back ? [op.to, op.from] : [op.from, op.to]; const [x] = sl.splice(a, 1); sl.splice(b, 0, x); }
+  else if (op.t === 'pack') Object.assign(p, clone(back ? op.before : op.after));
+  else if (op.t === 'multi') (back ? op.ops.slice().reverse() : op.ops).forEach((o) => run(p, o, back));
 }
 function apply(op) { const p = own(), h = hist(p); run(p, op, false); h.undo.push(op); h.redo.length = 0; savePack(p); }
 function undo(redo) {
   const p = S.pack, h = hist(p), op = (redo ? h.redo : h.undo).pop();
   if (!op) return;
   run(p, op, !redo); (redo ? h.undo : h.redo).push(op); savePack(p);
-  S.sel = Math.min(op.t === 'move' ? (redo ? op.to : op.from) : op.i, p.slides.length - 1);
+  const at = op.t === 'move' ? (redo ? op.to : op.from) : op.t === 'multi' ? (op.ops.find((o) => o.i != null) || {}).i : op.i;
+  S.sel = Math.min(at == null ? S.sel : at, p.slides.length - 1);
   renderPack(); sfx('page');
 }
 function edNote(msg, err) { const n = $('#lk-ed-note', S.view); if (!n) return; n.textContent = msg; n.className = 'notice' + (err ? ' err' : ''); n.hidden = !msg; }
@@ -367,7 +565,7 @@ async function editSlide(command, intentId) {
     const s = normSlide(raw && raw.slide ? raw.slide : raw);
     if (!s) throw { code: 'invalid_json' };
     if (S.pack !== base && !(isExample(base) && !isExample(S.pack))) throw { code: 'cancelled' };
-    if (it.id === 'add') { apply({ t: 'insert', i: i + 1, slide: s }); S.sel = i + 1; } else apply({ t: 'replace', i, before: S.pack.slides[i], after: s });
+    if (it.id === 'add') { apply({ t: 'insert', i: i + 1, slide: s }); S.sel = i + 1; } else apply({ t: 'replace', i, before: S.pack.slides[i], after: carryExtras(S.pack.slides[i], s) });
     ok = true;
     track('edit', { eng: 'lkie', intent: it.id });
     sfx('success');
@@ -378,6 +576,157 @@ async function editSlide(command, intentId) {
     editEnd(t, ok); S.editing = false; renderPack();
     if (ok) { const c = $('.scard[data-i="' + S.sel + '"]', S.view); if (c) { c.classList.add('flash'); c.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
   }
+}
+
+/* ---------------- pictures, videos, backgrounds and text size (all with undo) ---------------- */
+function editSel(mut) {
+  const p = S.pack, i = S.sel, s = p && p.slides[i];
+  if (!s || S.live) return false;
+  const n = clone(s);
+  mut(n);
+  apply({ t: 'replace', i, before: s, after: n });
+  return true;
+}
+function packOp(after) {
+  const p = S.pack, before = {};
+  Object.keys(after).forEach((k) => { before[k] = p[k] === undefined ? null : clone(p[k]); });
+  apply({ t: 'pack', before, after: clone(after) });
+}
+function note(msg, err) { if ($('#lk-ed-note', S.view)) edNote(msg, err); else if (msg) toast(msg); }
+const defaultQuery = (p, s) => str((s.media && (s.media.image || s.media.wiki)) || (s.layout === 'title' ? p.input.topic : (s.title || '') + ' ' + p.input.topic)).slice(0, 120);
+function setEdTab(id) {
+  const p = S.pack, s = p.slides[S.sel];
+  if (!s) return;
+  S.ed = ED_TABS.some((t) => t[0] === id) ? id : 'ai';
+  if (S.ptarget === 'bg' && S.ed !== 'bg') { S.ptarget = ''; S.pres = null; }
+  const key = p.id + ':' + S.sel;
+  if (S.ed === 'pic' && (S.ptarget !== 'slide' || S.pfor !== key)) { S.pfor = key; picSearch(defaultQuery(p, s), 'slide'); return; }
+  renderPack();
+}
+function openMedia(i, kind) {
+  if (S.live || !S.pack.slides[i]) return;
+  S.sel = i; S.ptarget = ''; S.pres = null;
+  setEdTab(kind === 'video' ? 'video' : 'pic');
+  const ed = $('.lk-ed', S.view); if (ed) ed.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+async function picSearch(q, target) {
+  q = str(q).slice(0, 120);
+  S.ptarget = target; S.pq = q; S.perr = ''; S.pres = null;
+  if (!q) { renderPack(); return; }
+  S.pbusy = true; renderPack();
+  try { S.pres = (await searchPictures(q, 16)).slice(0, 12); }
+  catch (e) { S.pres = null; S.perr = 'Wikipedia could not be reached. Check the internet connection, or upload your own picture.'; }
+  S.pbusy = false;
+  if (S.ptarget === target && S.pq === q) renderPack();
+}
+function usePicture(pic, target) {
+  const keep = keepPic(pic, { size: pic.up ? '1280' : '960', fit: 'cover' });
+  if (target === 'pack') { packOp({ look: { pic: keep, shade: 'light' } }); S.ptarget = ''; S.pres = null; toast('Every slide now has this picture behind it.'); }
+  else if (target === 'bg') { editSel((n) => { n.look = { pic: keep, shade: 'light' }; }); S.ptarget = ''; S.pres = null; }
+  else editSel((n) => { n.pic = keep; });
+  sfx('success'); renderPack();
+}
+async function uploadTo(file, target) {
+  if (!S.pack || S.live) return;
+  note('Adding your picture…');
+  try { usePicture(await savePicture(file), target); note(''); }
+  catch (e) {
+    const m = e && e.message;
+    note(m === 'too-big' ? 'That picture is too big. Choose one under 30 MB.' : m === 'no-space' ? 'This browser is out of space for pictures. Remove a pack you no longer need, then try again.' : 'That file could not be opened as a picture. Try a JPG or PNG.', true);
+  }
+}
+function addVideo(form) {
+  const el = form.elements, v = youTube(el.url.value), st = str(el.start.value);
+  if (!v) { edNote(str(el.url.value) ? 'That is not a YouTube link. On the video press Share, then Copy, and paste it here.' : 'Paste the YouTube link first.', true); el.url.focus(); return; }
+  const start = st ? seconds(st) : v.start;
+  if (st && !start && !/^0+(?::0+)?s?$/.test(st)) { edNote('Write the start time like 1:30 (1 minute 30 seconds).', true); el.start.focus(); return; }
+  editSel((n) => { n.video = { id: v.id, start, title: str(el.title.value).slice(0, 80) }; });
+  sfx('success'); renderPack(); toast('Video added. It plays inside the slide when you present.');
+}
+async function pasteLink() {
+  const inp = $('#lk-vid-form input[name="url"]', S.view);
+  if (!inp) return;
+  try {
+    const t = str(await navigator.clipboard.readText()).slice(0, 300);
+    inp.value = t;
+    edNote(youTube(t) ? 'Link pasted. Now press Add the video.' : 'What you copied is not a YouTube link. On the video press Share, then Copy.', !youTube(t));
+  } catch (e) { inp.focus(); edNote('Paste it by hand: press Ctrl+V, or Cmd+V on a Mac.'); }
+}
+async function videoSearch(q) {
+  S.vq = str(q).slice(0, 120);
+  if (!S.vq) return;
+  S.vbusy = true; S.vres = null; renderPack();
+  try { S.vres = await ytSearch(S.vq); } catch (e) { S.vres = null; setTimeout(() => edNote('YouTube could not be reached. Use Find a video on YouTube instead.', true), 0); }
+  S.vbusy = false; renderPack();
+}
+function setSlideLook(v) { editSel((n) => { const l = normLook(v); if (l) n.look = l; else delete n.look; }); renderPack(); }
+function setPackLook(v) { packOp({ look: normLook(v) }); renderPack(); }
+function saveText(form) {
+  const p = S.pack, i = S.sel, s = p.slides[i];
+  if (!s) return;
+  const r = readText(form, p, s);
+  if (r.err) { edNote(r.err, true); return; }
+  const ops = [{ t: 'replace', i, before: s, after: r.slide }];
+  if (r.pack) { const before = {}; Object.keys(r.pack).forEach((k) => { before[k] = clone(p[k] == null ? '' : p[k]); }); ops.push({ t: 'pack', before, after: clone(r.pack) }); }
+  apply(ops.length > 1 ? { t: 'multi', ops } : ops[0]);
+  sfx('success'); renderPack(); toast('Slide ' + (i + 1) + ' saved. Undo is always there.');
+}
+/* Up to five pictures for a new pack, chosen from the engine's Wikipedia titles and search words. Slides with a
+   diagram keep the diagram alone. The pack opens first; pictures appear one by one. */
+const AUTO = ['title', 'hook', 'concept', 'talk', 'plenary'];
+async function autoPictures(p, manual) {
+  if (!p || S.auto) return;
+  const used = new Set(p.slides.map((s) => s.pic && s.pic.file).filter(Boolean));
+  const want = p.slides.filter((s) => AUTO.includes(s.layout) && !s.diagram && !s.pic && !s.video).slice(0, 5);
+  if (!want.length) { if (manual) toast('The slides that suit a picture already have one, or a diagram.'); return; }
+  S.auto = p.id; if (S.pack === p) paintActions(p, false);
+  let n = 0;
+  for (const s of want) {
+    const m = s.media || {};
+    const pic = await findPicture({ wiki: m.wiki, terms: m.image, also: s.layout === 'title' ? p.input.topic : '', avoid: used }).catch(() => null);
+    const i = p.slides.indexOf(s);
+    if (!pic || i < 0 || s.pic) continue;
+    used.add(pic.file);
+    s.pic = keepPic(pic, { size: '960', fit: 'cover', auto: 1 });
+    n++;
+    if (!isExample(p)) savePack(p);
+    if (S.pack === p) refreshThumb(i);
+  }
+  S.auto = null;
+  if (S.view) renderRecent();
+  if (S.pack === p && S.view) { paintActions(p, !!S.live); if (S.sel >= 0 && !typing()) renderPack(); sweepCredits(p); }
+  if (manual) toast(n ? n + (n === 1 ? ' picture' : ' pictures') + ' added. Check each one before you present.' : 'No suitable pictures were found. Tap a slide, then Picture, to search yourself.');
+}
+const typing = () => { const a = document.activeElement; return !!(a && S.view && S.view.contains(a) && /^(?:INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); };
+function refreshThumb(i) {
+  if (!S.view || S.tab !== 'slides' || S.live) return;
+  const p = S.pack, s = p.slides[i], card = $('.scard[data-i="' + i + '"]', S.view);
+  if (!card || !s) return;
+  const th = $('.sthumb', card), m = $('.lk-media', card);
+  th.innerHTML = slideHTML(p, s, i, { reveal: s.layout === 'guided' ? 99 : 0, mode: prefs.mode, theme: S.theme });
+  if (m) m.innerHTML = mediaLinks(s, i);
+  hydrate(th); fitSlide(th.firstElementChild);
+}
+/* Each Wikipedia picture shows who made it and its licence; the details arrive a moment after the picture. */
+const credited = new WeakSet();
+function sweepCredits(p) {
+  const pics = [], add = (pic) => { if (pic && !pic.up && pic.file && !pic.by && !credited.has(pic)) { credited.add(pic); pics.push(pic); } };
+  (p.slides || []).forEach((s) => { add(s.pic); if (s.look) add(s.look.pic); });
+  if (p.look) add(p.look.pic);
+  if (!pics.length) return;
+  Promise.all(pics.map((x) => creditFor(x))).then(() => {
+    if (!pics.some((x) => x.by)) return;
+    if (!isExample(p)) savePack(p);
+    if (S.pack !== p || S.live || !S.view) return;
+    if (S.sel >= 0 && !typing()) renderPack(); else p.slides.forEach((s, i) => { if (s.pic && pics.includes(s.pic)) refreshThumb(i); });
+  });
+}
+function playVideo(fig) {
+  const v = safeVideo({ id: fig && fig.dataset.vid, start: Number(fig && fig.dataset.start) || 0 });
+  if (!v) return;
+  fig.removeAttribute('data-vid'); fig.classList.add('playing');
+  fig.innerHTML = '<iframe src="' + esc(ytEmbed(v)) + '" title="Video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+  sfx('page');
 }
 
 /* ---------------- the worksheet on its own ---------------- */
@@ -511,7 +860,10 @@ function renderPresent() {
   const p = S.pack, pr = S.pr, s = p.slides[pr.i], frame = $('#lp-frame', lp);
   pr.seen = Math.max(pr.seen, pr.i);
   frame.innerHTML = slideHTML(p, s, pr.i, { reveal: pr.reveal, mode: prefs.mode, theme: S.theme, present: true });
+  hydrate(frame);
   fitSlide(frame.firstElementChild);
+  const nx = p.slides[pr.i + 1];                         // the next slide's picture is ready before it is needed
+  if (nx && safePic(nx.pic) && !nx.pic.up) { const im = new Image(); im.decoding = 'async'; im.src = picURL(nx.pic); }
   $('#lp-count', lp).textContent = (pr.i + 1) + ' / ' + p.slides.length;
   $('[data-lp="prev"]', lp).disabled = pr.i === 0; $('[data-lp="next"]', lp).disabled = pr.i === p.slides.length - 1;
   const mr = maxReveal(s), rb = $('[data-lp="reveal"]', lp);
@@ -519,10 +871,12 @@ function renderPresent() {
   $('span', rb).textContent = s.layout === 'guided' ? (pr.reveal >= mr ? 'All shown' : 'Next step') : pr.reveal ? 'Revealed' : 'Reveal answers';
   const nb = $('#lp-notes', lp);
   nb.hidden = !pr.notes;
-  if (pr.notes) { const a = answersOf(s); nb.innerHTML = '<b>Say:</b> ' + esc(s.say || 'No notes for this slide.') + (a ? '<br><b>Answers:</b> ' + esc(a) : '') + (s.visual ? '<br><b>Picture idea:</b> ' + esc(s.visual) : ''); }
+  if (pr.notes) { const a = answersOf(s); nb.innerHTML = '<b>Say:</b> ' + esc(s.say || 'No notes for this slide.') + (a ? '<br><b>Answers:</b> ' + esc(a) : '') + (s.visual ? '<br><b>Picture idea:</b> ' + esc(s.visual) : '') + (safePic(s.pic) ? '<br><b>Picture:</b> ' + esc(creditText(s.pic, false).replace(/^Picture: /, '')) : ''); }
   $('[data-lp="notes"]', lp).setAttribute('aria-pressed', String(pr.notes));
   if (S.kit) S.kit.paint();
 }
+/* A window resize or full screen only refits the slide, so a playing video keeps playing. */
+function refitPresent() { const f = $('#lp-frame', lp); if (f && f.firstElementChild) fitSlide(f.firstElementChild); if (S.kit) S.kit.paint(); }
 function lpGo(d) { const pr = S.pr, n = S.pack.slides.length, j = Math.max(0, Math.min(n - 1, pr.i + d)); if (j === pr.i) return; sfx('page'); pr.i = j; pr.reveal = 0; renderPresent(); }
 function lpReveal() { const pr = S.pr, s = S.pack.slides[pr.i]; if (pr.reveal < maxReveal(s)) { pr.reveal += 1; renderPresent(); return true; } return false; }
 function closePresent() {
@@ -542,6 +896,9 @@ function wirePresent() {
   document.body.appendChild(lp);
   S.kit = presentKit({ root: lp, frame: () => $('#lp-frame', lp), key: () => (S.pack ? S.pack.id : '') + ':' + S.pr.i, title: () => S.pack ? S.pack.title : '', timer: true });
   lp.addEventListener('click', (e) => {
+    const vid = e.target.closest('[data-vid]');
+    if (vid) { playVideo(vid); return; }
+    if (e.target.closest('.lk-vid.playing')) return;
     const b = e.target.closest('[data-lp]');
     if (!b) { if (e.target.closest('#lp-frame')) { if (!lpReveal()) lpGo(1); } return; }
     const a = b.dataset.lp;
@@ -553,7 +910,8 @@ function wirePresent() {
   });
   document.addEventListener('keydown', (e) => {
     if (!S.pr.open) return;
-    const k = e.key;
+    const k = e.key, play = e.target && e.target.closest && e.target.closest('.lk-play');
+    if (play && (k === 'Enter' || k === ' ')) { e.preventDefault(); playVideo(play.closest('[data-vid]')); return; }
     if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); lpGo(1); }
     else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); lpGo(-1); }
     else if (k === 'r' || k === 'R') lpReveal();
@@ -562,8 +920,8 @@ function wirePresent() {
     else if (k === 'f' || k === 'F') $('[data-lp="full"]', lp).click();
     else if (k === 'Escape' && !document.fullscreenElement) closePresent();
   });
-  document.addEventListener('fullscreenchange', () => { if (S.pr.open) renderPresent(); });
-  window.addEventListener('resize', () => { if (S.pr.open) renderPresent(); });
+  document.addEventListener('fullscreenchange', () => { if (S.pr.open) refitPresent(); });
+  window.addEventListener('resize', () => { if (S.pr.open) refitPresent(); });
 }
 
 /* ---------------- downloads and copies ---------------- */
@@ -660,18 +1018,56 @@ function wire() {
   });
   $('#lk-pack', v).addEventListener('click', (e) => {
     const tab = e.target.closest('[data-lk-tab]'); if (tab) { S.tab = tab.dataset.lkTab; renderPack(); return; }
-    const th = e.target.closest('[data-lk-theme]'); if (th) { S.theme = th.dataset.lkTheme === 'calm' ? 'calm' : 'bright'; store.set(THEME, S.theme === 'calm' ? 'calm' : ''); renderPack(); return; }
     const pres = e.target.closest('[data-present]'); if (pres) { openPresent(Number(pres.dataset.present)); return; }
-    const sel = e.target.closest('[data-sel]'); if (sel && !S.live) { const i = Number(sel.dataset.sel); S.sel = S.sel === i ? -1 : i; renderPack(); if (S.sel >= 0) { const ed = $('.lk-ed', v); if (ed) ed.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } return; }
+    const sel = e.target.closest('[data-sel]');
+    if (sel && !S.live) {
+      const i = Number(sel.dataset.sel);
+      S.sel = S.sel === i ? -1 : i;
+      if (S.ptarget !== 'pack') { S.ptarget = ''; S.pres = null; }
+      if (S.sel >= 0 && S.ed === 'pic') setEdTab('pic'); else renderPack();
+      if (S.sel >= 0) { const ed = $('.lk-ed', v); if (ed) ed.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+      return;
+    }
+    if (S.live) return;
+    const et = e.target.closest('[data-edtab]'); if (et) { setEdTab(et.dataset.edtab); return; }
+    const md = e.target.closest('[data-media]'); if (md) { openMedia(Number(md.dataset.i), md.dataset.media); return; }
+    const pk = e.target.closest('[data-pick]'); if (pk) { const x = S.pres && S.pres[Number(pk.dataset.pick)]; if (x) usePicture(x, S.ptarget || 'slide'); return; }
+    const vp = e.target.closest('[data-vpick]'); if (vp) { const x = S.vres && S.vres[Number(vp.dataset.vpick)]; if (x) { editSel((n) => { n.video = { id: x.id, start: 0, title: x.title }; }); sfx('success'); renderPack(); } return; }
+    const lk = e.target.closest('[data-look]'); if (lk) { setSlideLook(lk.dataset.look); return; }
+    const pl = e.target.closest('[data-plook]'); if (pl) { setPackLook(pl.dataset.plook); return; }
+    const sz = e.target.closest('[data-size]'); if (sz) { const f = Number(sz.dataset.size); editSel((n) => { if (f === 1) delete n.fs; else n.fs = f; }); renderPack(); return; }
+    const fit = e.target.closest('[data-ed-fit]'); if (fit) { editSel((n) => { if (n.pic) n.pic.fit = fit.dataset.edFit === 'contain' ? 'contain' : 'cover'; }); renderPack(); return; }
+    const sh = e.target.closest('[data-shade]');
+    if (sh) {
+      const shade = sh.dataset.shade === 'dark' ? 'dark' : 'light';
+      if (sh.dataset.shadeFor === 'pack') { const l = normLook(S.pack.look); if (l && l.pic) setPackLook(Object.assign({}, l, { shade })); }
+      else { editSel((n) => { if (n.look && n.look.pic) n.look.shade = shade; }); renderPack(); }
+      return;
+    }
     const chip = e.target.closest('[data-intent]'); if (chip) { if (deliberate(e, chip)) editSlide('', chip.dataset.intent); return; }
     const ed = e.target.closest('[data-ed]');
     if (ed) {
       const a = ed.dataset.ed, p = S.pack, i = S.sel;
       if (a === 'undo') undo(false); else if (a === 'redo') undo(true);
-      else if (a === 'close') { S.sel = -1; renderPack(); }
+      else if (a === 'close') { S.sel = -1; S.ed = 'ai'; if (S.ptarget !== 'pack') { S.ptarget = ''; S.pres = null; } renderPack(); }
       else if (a === 'left' && i > 0) { apply({ t: 'move', from: i, to: i - 1 }); S.sel = i - 1; renderPack(); }
       else if (a === 'right' && i < p.slides.length - 1) { apply({ t: 'move', from: i, to: i + 1 }); S.sel = i + 1; renderPack(); }
       else if (a === 'del' && p.slides.length > 5) { apply({ t: 'remove', i, slide: p.slides[i] }); S.sel = Math.min(i, S.pack.slides.length - 1); renderPack(); toast('Slide deleted. Undo brings it back.'); }
+      else if (a === 'text-reset') renderPack();
+      else if (a === 'pic-x') { editSel((n) => { delete n.pic; }); renderPack(); }
+      else if (a === 'pic-bg' || a === 'bg-pic') { editSel((n) => { if (n.pic) { n.look = { pic: n.pic, shade: 'light' }; delete n.pic; } }); S.ed = 'bg'; S.ptarget = ''; S.pres = null; renderPack(); }
+      else if (a === 'vid-x') { editSel((n) => { delete n.video; }); renderPack(); }
+      else if (a === 'vid-paste') pasteLink();
+      else if (a === 'bg-find') { if (S.ptarget === 'bg') { S.ptarget = ''; S.pres = null; renderPack(); } else picSearch(defaultQuery(p, p.slides[i]), 'bg'); }
+      else if (a === 'bg-all') {
+        const look = normLook(p.slides[i].look) || normLook(p.look) || (S.theme === 'calm' ? 'calm' : 'bright');
+        packOp({ look, slides: p.slides.map((x) => { const n = clone(x); delete n.look; return n; }) });
+        renderPack(); toast('Every slide now has this background. Undo brings back the old ones.');
+      } else if (a === 'fs-all') {
+        const f = p.slides[i].fs || 1;
+        packOp({ slides: p.slides.map((x) => { const n = clone(x); if (f === 1) delete n.fs; else n.fs = f; return n; }) });
+        renderPack(); toast('Every slide now has this text size.');
+      }
       return;
     }
     const tier = e.target.closest('[data-tier]'); if (tier) { S.tier = tier.dataset.tier; renderPack(); return; }
@@ -684,8 +1080,34 @@ function wire() {
     else if (a === 'brief') brief();
     else if (a === 'answers') { S.answers = !S.answers; renderPack(); }
     else if (a === 'sheet') { if (deliberate(e, b)) writeSheet(); }
+    else if (a === 'looks' || a === 'pics') { S.drawer = S.drawer === a ? '' : a; if (S.ptarget === 'pack') { S.ptarget = ''; S.pres = null; } paintActions(S.pack, !!S.live); }
+    else if (a === 'drawer-x') { S.drawer = ''; if (S.ptarget === 'pack') { S.ptarget = ''; S.pres = null; } paintActions(S.pack, !!S.live); }
+    else if (a === 'plook-find') { if (S.ptarget === 'pack') { S.ptarget = ''; S.pres = null; paintActions(S.pack, false); } else picSearch(S.pack.input.topic, 'pack'); }
+    else if (a === 'autopics') autoPictures(S.pack, true);
+    else if (a === 'nopics') { packOp({ slides: S.pack.slides.map((x) => { const n = clone(x); delete n.pic; return n; }) }); renderPack(); toast('All pictures removed. Undo brings them back.'); }
+    else if (a === 'keep' && !isExample(S.pack)) { const on = togglePin('lkie', S.pack.id); paintActions(S.pack, false); toast(on ? 'Kept on your dashboard, with a picture of the topic.' : 'Taken off your dashboard.'); }
+  });
+  $('#lk-pack', v).addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.matches('[data-upload]')) { const f = t.files && t.files[0]; if (f) uploadTo(f, t.dataset.upload); t.value = ''; }
+    else if (t.matches('[data-ed-quality]')) { editSel((n) => { if (n.pic && QUALITY.some((q) => q[0] === t.value)) n.pic.size = t.value; }); renderPack(); }
+    else if (t.matches('[data-look-c]')) setSlideLook({ c: t.value });
+    else if (t.matches('[data-plook-c]')) setPackLook({ c: t.value });
+  });
+  document.addEventListener('paste', (e) => {
+    if (!S.view || S.view.closest('[hidden]') || S.pr.open || S.live) return;
+    const target = S.drawer === 'looks' && S.ptarget === 'pack' ? 'pack' : S.sel >= 0 && S.ed === 'pic' ? 'slide' : S.sel >= 0 && S.ed === 'bg' ? 'bg' : '';
+    const f = target && Array.from((e.clipboardData && e.clipboardData.files) || []).find((x) => /^image\//.test(x.type));
+    if (!f) return;
+    e.preventDefault();
+    uploadTo(f, target);
   });
   $('#lk-pack', v).addEventListener('submit', (e) => {
+    const f = e.target;
+    if (f.matches('[data-psearch]')) { e.preventDefault(); picSearch(f.elements.q.value, f.dataset.psearch); return; }
+    if (f.id === 'lk-text-form') { e.preventDefault(); saveText(f); return; }
+    if (f.id === 'lk-vid-form') { e.preventDefault(); addVideo(f); return; }
+    if (f.id === 'lk-vsearch') { e.preventDefault(); videoSearch(f.elements.q.value); return; }
     if (e.target.id !== 'lk-ed-form') return;
     e.preventDefault();
     const inp = $('#lk-ed-in', v), cmd = str(inp && inp.value);
@@ -709,6 +1131,15 @@ export function mountLkie(view) {
   renderRecent(); renderPack();
   const units = loadUnits(); S.unit = units[0] || null; renderUnit();
   guardButtons();
+  openFromShelf();
+  autoPictures(EX);
 }
-export function enterLkie() { repaint(); refit(); renderRecent(); }
+/* The dashboard asked for one of the saved packs. */
+function openFromShelf() {
+  const id = takeOpen('lkie'), p = id && loadPacks().find((x) => x.id === id);
+  if (!p) return;
+  openPack(p, 'saved');
+  requestAnimationFrame(() => { const el = $('#lk-pack', S.view); if (el && window.matchMedia('(max-width: 1060px)').matches) el.scrollIntoView({ block: 'start' }); });
+}
+export function enterLkie() { repaint(); refit(); renderRecent(); openFromShelf(); if (S.pack) paintActions(S.pack, !!S.live); }
 export const lkiePresentInfo = () => (S.pr.open ? { eng: 'lkie', title: S.pack.title } : null);

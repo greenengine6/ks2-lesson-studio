@@ -1,8 +1,10 @@
 /* lkie.like drawing: slides (with diagrams drawn exactly from the numbers), key words, activities, the worksheet in
    three tiers, and the teacher notes. Everything is plain HTML and SVG, so it works offline and on old laptops. */
-import { esc, icon, normAnswer } from '../core.js?v=cfc5dfc4';
-import { TIERS, totalMinutes, sheetBalance } from './model.js?v=cfc5dfc4';
-import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=cfc5dfc4';
+import { esc, icon, normAnswer } from '../core.js?v=b8e2dc0e';
+import { TIERS, totalMinutes, sheetBalance } from './model.js?v=b8e2dc0e';
+import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=b8e2dc0e';
+import { picURL, creditText, ytThumb, safePic, safeVideo } from '../pics.js?v=b8e2dc0e';
+import { lookInfo, lookFor } from './looks.js?v=b8e2dc0e';
 
 /* ---------------- slide kinds ---------------- */
 export const KIND = {
@@ -151,31 +153,62 @@ function vocabFor(p, s) {
   const by = new Map(all.map((v) => [v.word.toLowerCase(), v]));
   return s.words.map((w) => by.get(w.toLowerCase()) || { word: w, meaning: '' }).slice(0, 6);
 }
-function bodyHTML(p, s, rv, tone) {
+/* A picture, a video or a diagram fills the right-hand side of a slide. A diagram is exact teaching content, so when a
+   slide has a diagram and a picture or video, both show, one above the other. */
+const FS_OK = [0.85, 1, 1.15, 1.3];
+export function picHTML(pic, cls, eager) {
+  pic = safePic(pic);
+  if (!pic) return '';
+  const src = picURL(pic), alt = esc(pic.alt || pic.page || ''), cr = creditText(pic, true);
+  const img = pic.up && !src ? '<img data-up="' + esc(pic.up) + '" alt="' + alt + '" decoding="async">' : '<img src="' + esc(src) + '" alt="' + alt + '" decoding="async"' + (eager ? '' : ' loading="lazy"') + '>';
+  return '<figure class="lk-pic' + (pic.fit === 'contain' ? ' fit' : '') + (cls ? ' ' + cls : '') + '">' + img + (cr ? '<figcaption>' + esc(cr) + '</figcaption>' : '') + '</figure>';
+}
+function videoHTML(v, present) {
+  v = safeVideo(v);
+  if (!v) return '';
+  const name = v.title || 'Video';
+  return '<figure class="lk-pic lk-vid"' + (present ? ' data-vid="' + v.id + '" data-start="' + (Number(v.start) || 0) + '"' : '') + '><img src="' + ytThumb(v.id) + '" alt="" decoding="async"' + (present ? '' : ' loading="lazy"') + '>' +
+    '<span class="lk-play"' + (present ? ' role="button" tabindex="0" aria-label="Play the video: ' + esc(name) + '"' : ' aria-hidden="true"') + '>' + icon('play') + '</span><figcaption>' + icon('video') + '<span>' + esc(name) + '</span></figcaption></figure>';
+}
+function visHTML(s, tone, present) {
   const dg = s.diagram ? '<div class="lk-dgw">' + diagramSVG(s.diagram, tone) + '</div>' : '';
+  const md = s.video ? videoHTML(s.video, present) : s.pic ? picHTML(s.pic, '', present) : '';
+  return dg && md ? '<div class="lk-stack">' + dg + md + '</div>' : dg || md;
+}
+function bodyHTML(p, s, rv, tone, present) {
+  const vis = visHTML(s, tone, present), split = (inner) => (vis ? '<div class="lk-split">' + inner + vis + '</div>' : inner);
   switch (s.layout) {
     case 'title': {
       const sc = p.successCriteria.length ? '<div class="t-sc"><span>Success criteria</span><ul>' + p.successCriteria.map((c) => '<li><i class="box"></i><span>' + esc(c) + '</span></li>').join('') + '</ul></div>' : '';
-      return '<div class="t-wrap"><p class="t-eyebrow">' + esc(p.input.year) + ' · ' + esc(p.input.subjectName) + '</p><h3 class="t-title">' + esc(p.title) + '</h3>' +
+      const t = '<div class="t-wrap"><p class="t-eyebrow">' + esc(p.input.year) + ' · ' + esc(p.input.subjectName) + '</p><h3 class="t-title">' + esc(p.title) + '</h3>' +
         (p.objective ? '<p class="t-obj"><b>We are learning to</b> ' + esc(learnText(p.objective)) + '</p>' : '') + sc + (p.bigQuestion ? '<p class="lk-bq">' + icon('spark') + '<span>' + esc(p.bigQuestion) + '</span></p>' : '') + '</div>';
+      return vis ? '<div class="lk-split lk-tsplit">' + t + vis + '</div>' : t;
     }
     case 'recap': case 'exit':
-      return '<div class="' + (dg ? 'lk-split' : '') + '"><ol class="qs' + (s.questions.length > 3 && !dg ? ' two' : '') + '">' + s.questions.map((q, j) => '<li><span class="qn">' + (j + 1) + '</span><span class="qt">' + esc(q.q) + '</span><span class="qa' + (rv ? ' on' : '') + '">' + esc(q.a) + '</span></li>').join('') + '</ol>' + dg + '</div>';
-    case 'hook': return '<div class="' + (dg ? 'lk-split' : '') + '"><div><p class="hook-p">' + esc(s.prompt) + '</p>' + (s.detail ? '<p class="hook-d">' + esc(s.detail) + '</p>' : '') + '</div>' + dg + '</div>';
-    case 'vocab': return '<div class="vocab">' + vocabFor(p, s).map((w) => '<div class="vw"><b>' + esc(w.word) + (w.pinyin ? ' <small>' + esc(w.pinyin) + '</small>' : '') + '</b><span>' + esc(w.meaning) + (w.gloss ? ' · ' + esc(w.gloss) : '') + '</span></div>').join('') + '</div>';
-    case 'concept':
-      return '<div class="' + (dg ? 'lk-split' : 'teach' + (s.example ? '' : ' solo')) + '"><div class="lk-col"><ul class="pts">' + s.points.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' + (dg && s.example ? '<div class="ex-box"><span>Example</span><p>' + esc(s.example) + '</p></div>' : '') + '</div>' +
-        (dg || (s.example ? '<div class="ex-box"><span>Example</span><p>' + esc(s.example) + '</p></div>' : '')) + '</div>';
+      return '<div class="' + (vis ? 'lk-split' : '') + '"><ol class="qs' + (s.questions.length > 3 && !vis ? ' two' : '') + '">' + s.questions.map((q, j) => '<li><span class="qn">' + (j + 1) + '</span><span class="qt">' + esc(q.q) + '</span><span class="qa' + (rv ? ' on' : '') + '">' + esc(q.a) + '</span></li>').join('') + '</ol>' + vis + '</div>';
+    case 'hook': return '<div class="' + (vis ? 'lk-split' : '') + '"><div><p class="hook-p">' + esc(s.prompt) + '</p>' + (s.detail ? '<p class="hook-d">' + esc(s.detail) + '</p>' : '') + '</div>' + vis + '</div>';
+    case 'vocab': return split('<div class="vocab' + (vis ? ' one' : '') + '">' + vocabFor(p, s).map((w) => '<div class="vw"><b>' + esc(w.word) + (w.pinyin ? ' <small>' + esc(w.pinyin) + '</small>' : '') + '</b><span>' + esc(w.meaning) + (w.gloss ? ' · ' + esc(w.gloss) : '') + '</span></div>').join('') + '</div>');
+    case 'concept': {
+      const ex = s.example ? '<div class="ex-box"><span>Example</span><p>' + esc(s.example) + '</p></div>' : '';
+      return '<div class="' + (vis ? 'lk-split' : 'teach' + (s.example ? '' : ' solo')) + '"><div class="lk-col"><ul class="pts">' + s.points.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' + (vis ? ex : '') + '</div>' + (vis || ex) + '</div>';
+    }
     case 'guided':
-      return '<div class="' + (dg ? 'lk-split' : '') + '"><div class="lk-col"><div class="prob">' + esc(s.problem) + '</div><ol class="steps">' + s.steps.map((st, j) => '<li class="' + (rv > j ? 'on' : '') + '">' + esc(st) + '</li>').join('') + '</ol>' +
-        (s.answer ? '<div class="wans' + (rv > s.steps.length ? ' on' : '') + '">Answer: ' + esc(s.answer) + '</div>' : '') + '</div>' + dg + '</div>';
-    case 'check':
-      return '<p class="hq">' + esc(s.question) + '</p><div class="opts">' + s.options.map((o, j) => '<div class="opt' + (rv ? (j === s.answer ? ' right' : ' dim') : '') + '"><b>' + 'ABCD'[j] + '</b><span>' + esc(o) + '</span></div>').join('') + '</div>' + (rv && s.why ? '<p class="why"><b>Why:</b> ' + esc(s.why) + '</p>' : '');
-    case 'independent':
-      return '<div class="tiers">' + [['support', 'Support', 'green', 1], ['core', 'Core', 'orange', 2], ['stretch', 'Stretch', 'red', 3]].map(([k, lab, t, n]) => '<div class="tier" style="' + toneVars(t) + '"><div class="tier-h">' + icon('star').repeat(n) + '<span>' + lab + '</span></div><ul>' + (s[k] || []).map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul></div>').join('') + '</div>' +
+      return '<div class="' + (vis ? 'lk-split' : '') + '"><div class="lk-col"><div class="prob">' + esc(s.problem) + '</div><ol class="steps">' + s.steps.map((st, j) => '<li class="' + (rv > j ? 'on' : '') + '">' + esc(st) + '</li>').join('') + '</ol>' +
+        (s.answer ? '<div class="wans' + (rv > s.steps.length ? ' on' : '') + '">Answer: ' + esc(s.answer) + '</div>' : '') + '</div>' + vis + '</div>';
+    case 'check': {
+      const inner = '<p class="hq">' + esc(s.question) + '</p><div class="opts' + (vis ? ' one' : '') + '">' + s.options.map((o, j) => '<div class="opt' + (rv ? (j === s.answer ? ' right' : ' dim') : '') + '"><b>' + 'ABCD'[j] + '</b><span>' + esc(o) + '</span></div>').join('') + '</div>' + (rv && s.why ? '<p class="why"><b>Why:</b> ' + esc(s.why) + '</p>' : '');
+      return vis ? split('<div class="lk-col">' + inner + '</div>') : inner;
+    }
+    case 'independent': {
+      const inner = '<div class="tiers' + (vis ? ' one' : '') + '">' + [['support', 'Support', 'green', 1], ['core', 'Core', 'orange', 2], ['stretch', 'Stretch', 'red', 3]].map(([k, lab, t, n]) => '<div class="tier" style="' + toneVars(t) + '"><div class="tier-h">' + icon('star').repeat(n) + '<span>' + lab + '</span></div><ul>' + (s[k] || []).map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul></div>').join('') + '</div>' +
         (rv && s.answers ? '<p class="why lk-ans"><b>Answers:</b> ' + esc(s.answers) + '</p>' : '');
-    case 'talk': return '<p class="talk-p">' + esc(s.prompt) + '</p>' + (s.starter ? '<div class="sbub">' + esc(s.starter) + '</div>' : '');
-    case 'plenary': return '<div class="' + (dg ? 'lk-split' : '') + '"><div><ul class="pts">' + s.points.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' + (s.prompt ? '<p class="lk-reflect">' + icon('chat') + '<span>' + esc(s.prompt) + '</span></p>' : '') + '</div>' + dg + '</div>';
+      return vis ? split('<div class="lk-col">' + inner + '</div>') : inner;
+    }
+    case 'talk': {
+      const inner = '<p class="talk-p">' + esc(s.prompt) + '</p>' + (s.starter ? '<div class="sbub">' + esc(s.starter) + '</div>' : '');
+      return vis ? split('<div>' + inner + '</div>') : inner;
+    }
+    case 'plenary': return '<div class="' + (vis ? 'lk-split' : '') + '"><div><ul class="pts">' + s.points.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' + (s.prompt ? '<p class="lk-reflect">' + icon('chat') + '<span>' + esc(s.prompt) + '</span></p>' : '') + '</div>' + vis + '</div>';
     default: return '';
   }
 }
@@ -194,21 +227,21 @@ function respondPill(p, s, rt, present) {
   const inner = icon(RESPOND_ICON[s.respond] || 'chat') + '<span>' + esc(rt) + '</span>';
   return present ? '<span class="sl-respond" role="button" tabindex="0" data-moment="' + s.respond + '" data-info="' + esc(JSON.stringify(momentInfo(p, s))) + '" title="Start this moment on the class screen">' + inner + '</span>' : '<span class="sl-respond">' + inner + '</span>';
 }
-/* o: { reveal, mode, theme, present } */
+/* o: { reveal, mode, theme (the default look), present } */
 export function slideHTML(p, s, i, o) {
   o = o || {};
-  const k = KIND[s.layout] || KIND.concept, rt = respondText(s.respond, o.mode);
-  return '<div class="sl lk-sl lk--' + s.layout + (o.theme === 'calm' ? ' lk-calm' : '') + '" style="' + toneVars(k.tone) + '">' + (o.theme === 'calm' ? '' : EDGE) +
+  const k = KIND[s.layout] || KIND.concept, rt = respondText(s.respond, o.mode), L = lookInfo(lookFor(p, s, o.theme)), fs = FS_OK.includes(s.fs) ? s.fs : 1;
+  return '<div class="sl lk-sl lk--' + s.layout + ' ' + L.cls + '" style="' + toneVars(k.tone) + L.style + (fs !== 1 ? ';--ts:' + fs : '') + '"' + (fs !== 1 ? ' data-fs="' + fs + '"' : '') + '>' + L.layer + (L.edge ? EDGE : '') +
     '<div class="sl-head"><span class="sl-kind">' + icon(k.icon) + esc(k.label) + '</span>' + respondPill(p, s, rt, o.present) + '</div>' +
     (s.layout === 'title' ? '' : '<h3 class="sl-title">' + esc(s.title || k.label) + '</h3>') +
-    '<div class="sl-body">' + bodyHTML(p, s, o.reveal || 0, k.tone) + '</div>' +
+    '<div class="sl-body">' + bodyHTML(p, s, o.reveal || 0, k.tone, o.present) + '</div>' +
     '<div class="sl-foot"><span>' + esc(p.input.year) + ' · ' + esc(p.input.subjectName) + ' · ' + esc(p.title) + '</span><span>' + (i + 1) + ' / ' + p.slides.length + '</span></div></div>';
 }
 export function fitSlide(el) {
   const body = el && el.querySelector('.sl-body');
   if (!body) return;
-  let f = 1;
-  el.style.setProperty('--fs', '1');
+  let f = Number(el.dataset.fs) || 1;
+  el.style.setProperty('--fs', String(f));
   while (body.scrollHeight > body.clientHeight + 1 && f > 0.6) { f = Math.round((f - 0.06) * 100) / 100; el.style.setProperty('--fs', String(f)); }
 }
 /* What the teacher sees under each thumbnail: what to say, answers, the picture idea and where to find media. */
@@ -219,17 +252,16 @@ export function answersOf(s) {
   if (s.layout === 'independent') return s.answers;
   return '';
 }
-export function mediaLinks(s) {
-  const m = s.media || {}, out = [];
-  if (m.image) out.push('<a class="lk-ml" href="https://commons.wikimedia.org/w/index.php?title=Special:MediaSearch&type=image&search=' + encodeURIComponent(m.image) + '" target="_blank" rel="noopener noreferrer">' + icon('search') + 'Find a picture</a>');
-  if (m.video) out.push('<a class="lk-ml" href="https://www.youtube.com/results?search_query=' + encodeURIComponent(m.video) + '" target="_blank" rel="noopener noreferrer">' + icon('play') + 'Find a video</a>');
-  return out.join('');
+/* Pictures and videos are found and added right here, inside lkie.like (the slide editor opens on that tab). */
+export function mediaLinks(s, i) {
+  return '<button type="button" class="lk-ml" data-media="pic" data-i="' + i + '">' + icon('image') + (s.pic ? 'Change the picture' : 'Find a picture') + '</button>' +
+    '<button type="button" class="lk-ml" data-media="video" data-i="' + i + '">' + icon('video') + (s.video ? 'Change the video' : 'Add a video') + '</button>';
 }
 export function thumbMeta(s, i) {
   const k = KIND[s.layout] || KIND.concept, ans = answersOf(s);
   return '<div class="smeta"><span class="sno">' + (i + 1) + '</span><span class="skind" style="' + toneVars(k.tone) + '">' + esc(k.label) + '</span>' + (s.minutes ? '<span class="smin">' + s.minutes + ' min</span>' : '') + '</div>' +
     (s.say ? '<p class="ssay"><b>Say:</b> ' + esc(s.say) + '</p>' : '') + (ans ? '<p class="sans"><b>Answers:</b> ' + esc(ans) + '</p>' : '') +
-    (s.visual ? '<p class="lk-vis">' + icon('eye') + '<span>' + esc(s.visual) + '</span></p>' : '') + (s.media && (s.media.image || s.media.video) ? '<p class="lk-media">' + mediaLinks(s) + '</p>' : '');
+    (s.visual ? '<p class="lk-vis">' + icon('eye') + '<span>' + esc(s.visual) + '</span></p>' : '') + '<p class="lk-media">' + mediaLinks(s, i) + '</p>';
 }
 
 /* ---------------- key words, activities, notes ---------------- */

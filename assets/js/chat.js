@@ -5,16 +5,16 @@
    speaks, and her answer appears word by word as she says it. After she answers she listens again, until the mic is
    tapped or nothing is heard. Questions about her, the site, greetings and language changes are answered on the
    device; everything else needs the device to be connected. */
-import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=cfc5dfc4';
-import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=cfc5dfc4';
-import { settings, paintSwitches } from './settings.js?v=cfc5dfc4';
-import { isAdmin, ADMIN_NAME } from './people.js?v=cfc5dfc4';
-import { briefing, downloadReport } from './admin.js?v=cfc5dfc4';
-import { track } from './track.js?v=cfc5dfc4';
-import { Voice } from './fx/voice.js?v=cfc5dfc4';
-import { Beam } from './fx/beam.js?v=cfc5dfc4';
-import { sfx } from './fx/audio.js?v=cfc5dfc4';
-import { chatState, chatStart, chatEnd, clockAt } from './guard.js?v=cfc5dfc4';
+import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=b8e2dc0e';
+import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=b8e2dc0e';
+import { settings, paintSwitches } from './settings.js?v=b8e2dc0e';
+import { isAdmin, ADMIN_NAME } from './people.js?v=b8e2dc0e';
+import { briefing, downloadReport } from './admin.js?v=b8e2dc0e';
+import { track } from './track.js?v=b8e2dc0e';
+import { Voice } from './fx/voice.js?v=b8e2dc0e';
+import { Beam } from './fx/beam.js?v=b8e2dc0e';
+import { sfx } from './fx/audio.js?v=b8e2dc0e';
+import { chatState, chatStart, chatEnd, clockAt } from './guard.js?v=b8e2dc0e';
 
 const LANG_KEY = 'ks2-engine.symlang.v1';
 const T = {

@@ -1,9 +1,9 @@
 /* Engine 4: Science Mystery. A puzzling "case file", notice and wonder, a live class vote on predictions,
    a safe home investigation (fair test), then the big reveal and myth-busting. */
-import { esc, str, arr, strs, icon } from '../core.js?v=cfc5dfc4';
-import { B } from './shared.js?v=cfc5dfc4';
-import { buildPrompt } from './prompt.js?v=cfc5dfc4';
-import { mountVote } from './widgets.js?v=cfc5dfc4';
+import { esc, str, arr, strs, icon } from '../core.js?v=b8e2dc0e';
+import { B } from './shared.js?v=b8e2dc0e';
+import { buildPrompt } from './prompt.js?v=b8e2dc0e';
+import { mountVote } from './widgets.js?v=b8e2dc0e';
 
 const EXAMPLE = {
   title: 'The Case of the Vanishing Puddle',

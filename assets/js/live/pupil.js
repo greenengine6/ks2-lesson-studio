@@ -2,8 +2,8 @@
    answer on your own device when the teacher asks: reactions, votes, typed answers, a mini whiteboard, talk and
    think time, and how the lesson felt. No sign-in and no account: a first name or nickname only, kept in this
    tab. Everything is locked so only the teacher's screen can read it (see relay.js). */
-import * as R from './relay.js?v=cfc5dfc4';
-import { Ink, COLOURS, packStrokes } from '../draw.js?v=cfc5dfc4';
+import * as R from './relay.js?v=b8e2dc0e';
+import { Ink, COLOURS, packStrokes } from '../draw.js?v=b8e2dc0e';
 
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));

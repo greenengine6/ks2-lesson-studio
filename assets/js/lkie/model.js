@@ -1,8 +1,8 @@
 /* lkie.like data: tidying what the engine returns into a safe, predictable pack (slides, key words, activities,
    worksheet, unit plan), the automatic checks on a unit plan, the cache key, and reading slides out of a reply
    while it is still arriving. */
-import { str, arr, houseFix } from '../core.js?v=cfc5dfc4';
-import { keepCodes, objective } from './curriculum.js?v=cfc5dfc4';
+import { str, arr, houseFix } from '../core.js?v=b8e2dc0e';
+import { keepCodes, objective } from './curriculum.js?v=b8e2dc0e';
 
 export const LAYOUTS = ['title', 'recap', 'hook', 'vocab', 'concept', 'guided', 'check', 'independent', 'talk', 'plenary', 'exit'];
 const RESPONDS = ['chat', 'vote', 'show', 'talk', 'react', 'none'];
@@ -60,7 +60,7 @@ export function normSlide(s) {
   s = houseFix(s);
   const layout = LAYOUTS.includes(str(s.layout)) ? str(s.layout) : null;
   if (!layout) return null;
-  const media = s.media && typeof s.media === 'object' ? { image: str(s.media.image).slice(0, 100), video: str(s.media.video).slice(0, 100) } : { image: '', video: '' };
+  const media = s.media && typeof s.media === 'object' ? { image: str(s.media.image).slice(0, 100), video: str(s.media.video).slice(0, 100), wiki: str(s.media.wiki).replace(/_/g, ' ').slice(0, 100) } : { image: '', video: '', wiki: '' };
   const o = {
     layout, title: str(s.title).slice(0, 90), say: str(s.say).slice(0, 700), visual: str(s.visual).slice(0, 220), media,
     respond: RESPONDS.includes(str(s.respond)) ? str(s.respond) : DEF_RESPOND[layout], minutes: clamp(Math.round(num(s.minutes, 0)), 0, 30)
@@ -89,6 +89,14 @@ export function normSlide(s) {
   }
   return o;
 }
+/* What the teacher added by hand (picture, video, background, text size) stays when the engine rewrites a slide. */
+export const EXTRAS = ['pic', 'video', 'look', 'fs'];
+export function carryExtras(from, to) {
+  if (!from || !to) return to;
+  EXTRAS.forEach((k) => { if (from[k] != null && to[k] == null) to[k] = JSON.parse(JSON.stringify(from[k])); });
+  return to;
+}
+export const TEXT_SIZES = [[0.85, 'Smaller'], [1, 'Normal'], [1.15, 'Bigger'], [1.3, 'Biggest']];
 
 /* ---------------- the whole pack ---------------- */
 export function normPack(raw, input, allowed) {
@@ -107,7 +115,7 @@ export function normPack(raw, input, allowed) {
     worksheet: raw.worksheet ? normSheet(raw.worksheet) : null
   };
   if (p.slides.length < 5) return null;
-  if (p.slides[0].layout !== 'title') p.slides.unshift({ layout: 'title', title: p.title, say: '', visual: '', media: { image: '', video: '' }, respond: 'none', minutes: 1 });
+  if (p.slides[0].layout !== 'title') p.slides.unshift({ layout: 'title', title: p.title, say: '', visual: '', media: { image: '', video: '', wiki: '' }, respond: 'none', minutes: 1 });
   return p;
 }
 export const totalMinutes = (p) => p.slides.reduce((a, s) => a + (s.minutes || 0), 0);

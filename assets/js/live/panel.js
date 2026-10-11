@@ -1,10 +1,10 @@
 /* The Join screen in Present mode: a big QR code, the short web address and a 6-digit code, a link to paste in the
    Teams, Zoom or Meet chat, and who has joined (tap a name to remove it). The live lesson carries on when the
    screen closes; End live lesson stops it on every pupil's device. */
-import { $, esc, icon, toast, copyOut } from '../core.js?v=cfc5dfc4';
-import { sfx } from '../fx/audio.js?v=cfc5dfc4';
-import { Live, startLive, endLive, setLock, kick, onLive, joinShort, pupilsIn } from './session.js?v=cfc5dfc4';
-import { qrSVG } from './qr.js?v=cfc5dfc4';
+import { $, esc, icon, toast, copyOut } from '../core.js?v=b8e2dc0e';
+import { sfx } from '../fx/audio.js?v=b8e2dc0e';
+import { Live, startLive, endLive, setLock, kick, onLive, joinShort, pupilsIn } from './session.js?v=b8e2dc0e';
+import { qrSVG } from './qr.js?v=b8e2dc0e';
 
 let el = null, unsub = null, keyH = null, shownLink = '';
 const spaced = (c) => String(c || '').replace(/^(\d{3})(\d{3})$/, '$1 $2');

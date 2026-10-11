@@ -1,8 +1,8 @@
 /* lkie.like prompts: the master prompt for a lesson pack, the worksheet writer, the slide editor and the unit planner.
    Each system prompt sets the rules; each request carries the facts (year, subject, topic, the allowed curriculum
    codes) and the exact JSON shape to return. */
-import { HOUSE_WORDS, ages, whereText } from '../core.js?v=cfc5dfc4';
-import { FRAMEWORKS, SUBJECT_BY_ID, yearsLabel } from './curriculum.js?v=cfc5dfc4';
+import { HOUSE_WORDS, ages, whereText } from '../core.js?v=b8e2dc0e';
+import { FRAMEWORKS, SUBJECT_BY_ID, yearsLabel } from './curriculum.js?v=b8e2dc0e';
 
 /* ---------------- shared rules ---------------- */
 const LANG_RULES = {
@@ -22,7 +22,7 @@ export const PACK_SYSTEM = [
   '1. One clear learning objective written "To …", matched to the curriculum statements you are given, and 2 to 4 success criteria written "I can …".',
   '2. Lesson shape, in this order: title; recap (retrieval of earlier learning); hook (curiosity or a real-life problem); key words; concept (explicit teaching in small steps); guided practice (a worked example: I do, then we do); check (one hinge question with four options whose wrong answers are common misconceptions); independent task in three levels (support, core, stretch); talk (a partner discussion); plenary (pull the learning together); exit ticket (3 quick questions). A 60-minute lesson may add a second concept or guided slide. 10 to 15 slides in total.',
   '3. Slides are for pupils, so they are short and visual: at most 3 bullet points on a slide, at most 12 words per bullet, one idea per slide, no paragraphs. What the teacher says goes in "say"; extra detail goes in the teacher notes.',
-  '4. Visuals: every slide has "visual", one sentence describing a simple picture or diagram that explains the idea. Where a diagram makes the idea clearer, also give "diagram" in one of the formats listed; the site draws it exactly, so every number in it must be right. Most slides also have "media": an image to search for and YouTube search terms for a short, child-safe clip.',
+  '4. Visuals: every slide has "visual", one sentence describing a simple picture or diagram that explains the idea. Where a diagram makes the idea clearer, also give "diagram" in one of the formats listed; the site draws it exactly, so every number in it must be right. Most slides also have "media": "wiki" is the exact title of a real English Wikipedia article whose main picture would show the idea to children (for example "Volcano", "Roman Britain", "Water cycle"; leave it empty if you are not sure the article exists), "image" is search words for a picture, and "video" is YouTube search terms for a short, child-safe clip.',
   '5. Pupils respond at least every 5 minutes. "respond" is how they answer on that slide: chat, vote, show, talk, react or none.',
   '6. Accuracy: every fact, number and answer is correct. Work out every calculation before you write it. Never invent quotes, dates, statistics or sources.',
   '7. Words pupils see match the year group: short sentences, everyday words, key words taught explicitly.',
@@ -54,11 +54,11 @@ export const PACK_SCHEMA = '{\n' +
   ' "codes": ["codes from the list, 0 to 3"],\n' +
   ' "vocab": [{"word": "key word", "meaning": "child-friendly meaning, at most 15 words", "example": "a short sentence using it"}],\n' +
   ' "slides": [\n' +
-  '  {"layout": "title", "title": "…", "say": "…", "visual": "…", "media": {"image": "…", "video": "…"}, "respond": "none", "minutes": 1},\n' +
+  '  {"layout": "title", "title": "…", "say": "…", "visual": "…", "media": {"wiki": "Wikipedia article title", "image": "…", "video": "…"}, "respond": "none", "minutes": 1},\n' +
   '  {"layout": "recap", "title": "…", "questions": [{"q": "…", "a": "…"}], "say": "…", "visual": "…", "respond": "chat", "minutes": 4},\n' +
-  '  {"layout": "hook", "title": "…", "prompt": "the hook question or problem", "detail": "one short follow-up line", "say": "…", "visual": "…", "media": {"image": "…", "video": "…"}, "respond": "talk", "minutes": 3},\n' +
+  '  {"layout": "hook", "title": "…", "prompt": "the hook question or problem", "detail": "one short follow-up line", "say": "…", "visual": "…", "media": {"wiki": "Wikipedia article title", "image": "…", "video": "…"}, "respond": "talk", "minutes": 3},\n' +
   '  {"layout": "vocab", "title": "Key words", "words": ["the key words shown on this slide"], "say": "…", "visual": "…", "respond": "none", "minutes": 3},\n' +
-  '  {"layout": "concept", "title": "…", "points": ["at most 3 points, at most 12 words each"], "example": "one concrete example", "diagram": {"type": "numberline", "from": 40, "to": 50, "step": 1, "label": 5, "marks": [47], "highlight": [45]}, "say": "…", "visual": "…", "media": {"image": "…", "video": "…"}, "respond": "react", "minutes": 5},\n' +
+  '  {"layout": "concept", "title": "…", "points": ["at most 3 points, at most 12 words each"], "example": "one concrete example", "diagram": {"type": "numberline", "from": 40, "to": 50, "step": 1, "label": 5, "marks": [47], "highlight": [45]}, "say": "…", "visual": "…", "media": {"wiki": "Wikipedia article title", "image": "…", "video": "…"}, "respond": "react", "minutes": 5},\n' +
   '  {"layout": "guided", "title": "…", "problem": "the worked example", "steps": ["2 to 4 short steps"], "answer": "…", "say": "…", "visual": "…", "respond": "show", "minutes": 5},\n' +
   '  {"layout": "check", "title": "…", "question": "…", "options": ["…", "…", "…", "…"], "answer": 1, "why": "why it is right, naming the mistake behind one wrong option", "say": "…", "visual": "…", "respond": "vote", "minutes": 2},\n' +
   '  {"layout": "independent", "title": "…", "support": ["1 to 3 tasks"], "core": ["1 to 3 tasks"], "stretch": ["1 to 3 tasks"], "answers": "the answers, briefly", "say": "…", "visual": "…", "respond": "show", "minutes": 10},\n' +
@@ -172,7 +172,7 @@ export function editRequest(c) {
     lesson: { title: p.title, objective: p.objective, year: p.input.year, subject: p.input.subjectName, keyWords: p.vocab.map((v) => v.word), length: p.input.minutes + ' minutes' },
     slideNumber: c.index + 1, ofSlides: p.slides.length,
     before: before ? { layout: before.layout, title: before.title } : null,
-    slide: s,
+    slide: Object.fromEntries(Object.entries(s).filter(([k]) => !['pic', 'video', 'look', 'fs'].includes(k))),
     after: after ? { layout: after.layout, title: after.title } : null
   };
   return [

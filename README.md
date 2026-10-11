@@ -21,7 +21,7 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 | Part | What it does |
 |---|---|
 | **Slide Studio** | About 12 two-way slides with answers, a lesson plan, Adapt, unit planning and a PowerPoint download. |
-| **lkie.like** | One topic in, a whole lesson out, for every KS2 subject including Bahasa Melayu and Mandarin. A 3-step wizard (year and subject, topic with a curriculum match, length) makes a pack: 10 to 15 slides (recap, hook, key words, concept, worked example, check point, three-level task, talk, plenary, exit ticket) with exact diagrams drawn from the numbers (number lines, fraction bars, place value, timelines, cycles, bar charts, tables, word cards), picture and video ideas, key words, activities, teacher notes, a 2-minute spoken briefing, and a worksheet in three tiers (Scaffolded 6, Standard 8, Stretch 8) with nine question types that pupils can try on screen. Tap a slide and say what to change (“Make this simpler”, “Add a football analogy”); Undo is always there. A unit planner sequences up to 25 lessons with recaps and assessments, checks the plan, and steers recaps to lessons where the class mood was low. Packs open instantly from this device the second time. PowerPoint (with the diagrams and notes) and an editable Word worksheet. Calm slide style for readers who find colour busy. |
+| **lkie.like** | One topic in, a whole lesson out, for every KS2 subject including Bahasa Melayu and Mandarin. A 3-step wizard (year and subject, topic with a curriculum match, length) makes a pack: 10 to 15 slides (recap, hook, key words, concept, worked example, check point, three-level task, talk, plenary, exit ticket) with exact diagrams drawn from the numbers (number lines, fraction bars, place value, timelines, cycles, bar charts, tables, word cards), real pictures from Wikipedia on up to 5 slides, key words, activities, teacher notes, a 2-minute spoken briefing, and a worksheet in three tiers (Scaffolded 6, Standard 8, Stretch 8) with nine question types that pupils can try on screen. Tap a slide to change it six ways: in plain English (“Make this simpler”, “Add a football analogy”), by editing the words, with a picture, with a YouTube video, with a background, or with a bigger or smaller text size; Undo is always there. A unit planner sequences up to 25 lessons with recaps and assessments, checks the plan, and steers recaps to lessons where the class mood was low. Packs open instantly from this device the second time. PowerPoint (with the diagrams, pictures, backgrounds and notes) and an editable Word worksheet. Ten backgrounds, including Calm for readers who find colour busy. |
 | **Maths Reasoning** | “Which one doesn’t belong?” then an Open Middle puzzle the class tries live. The board checks every answer. |
 | **Story Spark** | A mystery scene revealed line by line, with see/think/wonder, a word bank and a model paragraph. |
 | **Reading Ladder** | One text at three reading levels, tap-to-define words, and VIPERS questions. |
@@ -43,6 +43,22 @@ PINs are stored only as salted PBKDF2 checks. Five wrong tries lock that name fo
 - **Join** (J): a live lesson on pupils' own devices (below). The button then shows how many have joined;
 - **Class moments:** every "how pupils respond" pill on a screen (Use a reaction, Hold your work up to the camera, Vote, Type it in the chat, Talk, Think…) is a button. It opens the moment with the instruction, a timer (+30s, pause) and the answers: tap to count hands and reactions, a 3-2-1 countdown for the chat waterfall and for "hold it up", vote bars with the right answer on Reveal. In a live lesson the answers come from pupils' devices;
 - **Class feedback** (C): five faces, keys 1–5 to count, and "best bit". In a live lesson pupils tap a face on their own device and it counts here.
+
+## Pictures, videos and backgrounds (lkie.like)
+
+- **Pictures by themselves.** A new pack gets a free Wikipedia picture on up to 5 slides without a diagram (title, hook, new learning, talk, plenary). The engine names the Wikipedia article for each one; the site checks every title, description and file name against a strict word list before anything shows. Check them before you present. **Pictures > Add pictures for me** does the same for older packs; **Remove all pictures** takes them off (Undo brings them back).
+- **Find a picture** (under each slide, or the slide's **Picture** tab): search Wikipedia's free pictures inside the site. Each picture shows who made it and its licence, on the slide and in the PowerPoint notes.
+- **Quality of your choice:** Standard (960 pixels wide), Sharp (1,280), Full HD (1,920) or the Original file. **Fill the space** or **Show all of it**.
+- **Your own picture:** **Upload your own**, or paste a picture. It is made smaller in the browser and kept in this browser only; it is never uploaded.
+- **A video:** **Find a video on YouTube** opens short, child-friendly results in a new tab; paste the link (and a start time if you like). In Present the video plays inside the slide (YouTube's privacy-enhanced player); the next slide stops it; resizing or full screen keeps it playing. In the PowerPoint it is its picture with a link.
+- **Backgrounds:** Bright, Calm, Lined paper, Ocean, Forest, Sunset, Chalkboard, Night sky, Space, any colour, or a picture (light or dark). **Background** sets one for every slide; a slide's own **Background** tab sets just that slide. Dark backgrounds turn the words white; boxes stay light and diagrams sit on a white card, so everything stays readable.
+- **Edit text:** every part of the slide as plain boxes (questions and answers, options with the right one ticked, steps, tasks, what you say, minutes, how pupils answer). The title slide edits the lesson title, objective, success criteria and big question.
+- **Text size:** Smaller, Normal, Bigger or Biggest, for one slide or every slide. If the words would not fit, the slide shrinks them a little by itself.
+- An AI change keeps the slide's picture, video, background and size.
+
+## Your lessons on the dashboard
+
+The home page shows **Your lessons**: every lkie.like pack and Slide Studio lesson made on this device, each with its topic, year and subject, and a picture of the topic (the pack's title picture, or the best Wikipedia picture for the topic). **Keep on dashboard** (in lkie.like and Slide Studio, or the pin on the card) keeps a lesson at the front. Tap a card to open the lesson.
 
 ## Live lessons: pupils join with a QR code
 
@@ -124,10 +140,12 @@ The numbers are in `index.html` (`"limits"` in the config). These rules live on 
 2. **Admin.** Rabinder signs in with her password (handed over privately; it is not stored in this repository). Only a salted PBKDF2 check and an encrypted key are in `index.html`. She then sets up a passkey on each device.
 3. **Teachers.** Enrol each one on the dashboard and send them their personal link privately. Tell them their PIN yourself.
 4. **Inbox and school relay (once).** Teachers’ activity reaches the dashboard through a small Google Apps Script web app (`inbox/Code.gs`), which is also the school relay for live lessons. In Apps Script: New project, paste `Code.gs`, then Deploy > New deployment > Web app, *Execute as: Me*, *Who has access: Anyone*. Put the web app address (it ends in `/exec`) in `index.html` as `"inbox"` in the config. The script only ever stores locked data: it cannot read it. If an older copy is already deployed, paste the new file over it and choose Deploy > Manage deployments > Edit > New version.
+5. **YouTube search inside the site (optional).** Without it, **Find a video on YouTube** opens YouTube in a new tab and the teacher pastes the link. To search from inside the slide editor: in Google Cloud Console create an API key for *YouTube Data API v3*, restrict it to that API and to the website `https://greenengine6.github.io/*`, then add `"youtubeKey": "…"` to the config in `index.html`. Searches use SafeSearch strict and embeddable videos only.
 
 ## Privacy and protection
 
 - The site is hidden from search engines. The page’s security policy only allows requests to the engine API, Google Fonts, the Apps Script inbox, the live-lesson relay (ntfy.sh), Wikipedia and Wikimedia (pictures), and YouTube's privacy-enhanced player (videos a teacher adds).
+- Picture searches send only the search words to Wikipedia. Teachers' own pictures stay in their browser. Videos play from youtube-nocookie.com.
 - It blocks right-click, text selection and copying (except the site’s own Copy buttons), dragging, printing, and the save, view-source and developer-tools shortcuts.
 - It blanks the page when a screenshot shortcut is pressed, and pauses while developer tools are open.
 - These are deterrents. No website can stop a phone camera or someone reading published code.
@@ -168,6 +186,9 @@ assets/js/moments.js     class moments: reactions, votes, answers, mini whiteboa
 assets/js/presentkit.js  Present-mode tools: Draw, Join, timer
 assets/js/draw.js        pen, highlighter and rubber strokes (slides and pupils' whiteboards)
 assets/css/live.css      Join screen, class moments, drawing tray
+assets/js/pics.js        pictures (Wikipedia search and credits, quality, own uploads) and YouTube links
+assets/js/lkie/looks.js  lkie.like backgrounds, on screen and in the PowerPoint
+assets/js/shelf.js       Your lessons on the home page (covers, Keep on dashboard)
 assets/js/crypto.js, idb.js, settings.js, theme.js, slides.js, engines/, fx/
 ```
 
@@ -177,6 +198,7 @@ assets/js/crypto.js, idb.js, settings.js, theme.js, slides.js, engines/, fx/
 - Voice glow: written for this site, after the idea of Libraries.dev's Voice (voice-glow).
 - Other visual effects are vanilla re-implementations (no libraries), inspired by CardSwap and Ribbons (React Bits), MagnificationDock and Interactive Waves.
 - PowerPoint export: [PptxGenJS](https://github.com/gitbrent/PptxGenJS) 4.0.1, MIT licence (`assets/PPTXGENJS-LICENSE.txt`).
+- Pictures: from [Wikipedia](https://en.wikipedia.org) and [Wikimedia Commons](https://commons.wikimedia.org), each shown with its author and licence.
 - QR codes: [QR Code generator library](https://www.nayuki.io/page/qr-code-generator-library) by Project Nayuki, MIT licence, compiled from its TypeScript source (`assets/vendor/qrcodegen-3c6d0b3/`).
 - lkie.like curriculum map: statutory statements from the National Curriculum in England (2014) and the Relationships and Health Education guidance, lightly shortened (Crown copyright, Open Government Licence v3.0); RE after the RE Council's national framework (2013); Bahasa Melayu after the KSSR skill areas (Malaysia), paraphrased. The objective codes are this site's own.
 - Slide fonts: TeX Gyre Adventor and Schola, GUST Font Licence. Interface fonts: Plus Jakarta Sans, DM Sans and JetBrains Mono from Google Fonts.
