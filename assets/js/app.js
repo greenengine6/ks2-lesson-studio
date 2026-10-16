@@ -1,26 +1,28 @@
 /* KS2 Lesson Engine: start-up, routing, header, dock, landing page and the Connect dialog. */
-import './security.js?v=f99d8766';
-import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=f99d8766';
-import { Dock } from './fx/dock.js?v=f99d8766';
-import { CardSwap } from './fx/cardswap.js?v=f99d8766';
-import { Symphony } from './fx/symphony.js?v=f99d8766';
-import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=f99d8766';
-import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=f99d8766';
-import { initSlides, examplePreview, fitSlide, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=f99d8766';
-import { initSettings } from './settings.js?v=f99d8766';
-import { initChat } from './chat.js?v=f99d8766';
-import { track } from './track.js?v=f99d8766';
-import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=f99d8766';
-import { initFeedback } from './feedback.js?v=f99d8766';
-import { renderAdmin } from './admin.js?v=f99d8766';
-import { initPlay } from './play.js?v=f99d8766';
-import { initSync } from './sync.js?v=f99d8766';
-import { sfx } from './fx/audio.js?v=f99d8766';
-import { landed } from './guard.js?v=f99d8766';
-import { initShelf, renderShelf } from './shelf.js?v=f99d8766';
-import { wireLiveChip } from './live/panel.js?v=f99d8766';
-import { initHow } from './howto.js?v=f99d8766';
-import { initFractions } from './fractions.js?v=f99d8766';
+import './security.js?v=ed35fd44';
+import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=ed35fd44';
+import { Dock } from './fx/dock.js?v=ed35fd44';
+import { CardSwap } from './fx/cardswap.js?v=ed35fd44';
+import { Symphony } from './fx/symphony.js?v=ed35fd44';
+import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=ed35fd44';
+import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=ed35fd44';
+import { initSlides, examplePreview, fitSlide, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=ed35fd44';
+import { initSettings } from './settings.js?v=ed35fd44';
+import { initChat } from './chat.js?v=ed35fd44';
+import { track } from './track.js?v=ed35fd44';
+import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=ed35fd44';
+import { initFeedback } from './feedback.js?v=ed35fd44';
+import { renderAdmin } from './admin.js?v=ed35fd44';
+import { initPlay } from './play.js?v=ed35fd44';
+import { initSync } from './sync.js?v=ed35fd44';
+import { sfx } from './fx/audio.js?v=ed35fd44';
+import { landed } from './guard.js?v=ed35fd44';
+import { initShelf, renderShelf } from './shelf.js?v=ed35fd44';
+import { wireLiveChip } from './live/panel.js?v=ed35fd44';
+import { initHow } from './howto.js?v=ed35fd44';
+import { initFractions } from './fractions.js?v=ed35fd44';
+import { voiceKey, setVoiceKey, testKey, KEY_RX, onWarn } from './fx/human.js?v=ed35fd44';
+import { Voice } from './fx/voice.js?v=ed35fd44';
 
 const PLAY = { id: 'play', name: 'Wonder Window', short: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'For the whole class: a live world map of cities and their food, festivals, the Seven Wonders, wild weather, the seasons, habitats from the rainforest to the poles, and space.', chips: ['17 windows', 'Quizzes and class votes', 'Shared screen'] };
 const SLIDES = { id: 'slides', name: 'Slide Studio', short: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
@@ -102,7 +104,7 @@ function startEarth() {
   if (earthTried) { runEarth(); return; }
   earthTried = true;
   const hero = $('#hero'), fail = () => { earth = null; hero.classList.add('earth-off'); const t = $('#hero-hint'); if (t) t.hidden = true; };
-  import('./fx/earth.js?v=f99d8766').then(async (m) => {
+  import('./fx/earth.js?v=ed35fd44').then(async (m) => {
     earth = new m.Earth($('#earth'), { onFail: fail });
     if (!(await earth.init())) return;
     earthTip();
@@ -130,7 +132,7 @@ const PAGES = ['home', 'slides', 'lkie', 'admin', 'play'];
 let lkie = null;
 function showLkie() {
   if (lkie) { lkie.mountLkie($('#view-lkie')); return; }
-  import('./lkie/lkie.js?v=f99d8766').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">lkie.like could not load. Check the connection and reload the page.</p></div>'; });
+  import('./lkie/lkie.js?v=ed35fd44').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">lkie.like could not load. Check the connection and reload the page.</p></div>'; });
 }
 function show(id) {
   if (!who.role) id = 'home';
@@ -196,6 +198,7 @@ function paintConn() {
   $('#k-form').hidden = on && !editing;
   $('#k-share').hidden = !on || viaLink();
   $('#k-intro').textContent = on ? 'Everything is ready. The key is saved in this browser only.' : 'Connect once on this device and every engine works. The key is saved in this browser only, never on the website.';
+  paintVoice();
 }
 function openConnect() {
   lastFocus = document.activeElement;
@@ -226,10 +229,43 @@ $('#k-form').addEventListener('submit', async (e) => {
 $('#k-share').addEventListener('click', () => {
   const key = store.get('ks2-lesson-studio.key.v1');
   if (!key) return;
-  const link = location.origin + location.pathname + '#key=' + key;
+  const vk = voiceKey();
+  const link = location.origin + location.pathname + '#key=' + key + (vk ? '&vkey=' + vk : '');
   copyOut('<a href="' + esc(link) + '">' + esc(link) + '</a>', link, 'Setup link copied. Send it privately, then delete the message once it has been opened.');
 });
 bus.on('key', paintConn);
+
+/* Symphony's human voice (fx/human.js): a voice key from platform.openai.com, tested with one word before it is saved. */
+let vEditing = false;
+function paintVoice() {
+  const on = !!voiceKey();
+  $('#kv-status').hidden = !on;
+  $('#kv-status-text').textContent = on ? 'Human voice on' + (Voice.human('en-GB') ? ': ' + Voice.name('en-GB') : '') : '';
+  $('#kv-form').hidden = on && !vEditing;
+}
+function vNotice(msg, err) { const n = $('#kv-notice'); n.textContent = msg; n.className = 'notice' + (err ? ' err' : ''); n.hidden = !msg; }
+$('#kv-change').addEventListener('click', () => { vEditing = true; paintVoice(); $('#kv-key').focus(); });
+$('#kv-forget').addEventListener('click', () => { setVoiceKey(''); vEditing = false; vNotice('', false); paintVoice(); toast('Symphony will use this device’s own voice.'); });
+$('#kv-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const v = str($('#kv-key').value);
+  if (/^sk-ant-/.test(v)) { vNotice('That is the engine key. The voice key comes from platform.openai.com and starts with sk- (often sk-proj-).', true); return; }
+  if (!KEY_RX.test(v)) { vNotice('That does not look like a voice key. It starts with sk-.', true); return; }
+  const btn = $('#kv-save');
+  btn.disabled = true; btn.textContent = 'Testing her voice…';
+  const err = await testKey(v);
+  btn.disabled = false; btn.textContent = 'Save and test';
+  if (err) {
+    vNotice(err === 'bad_key' ? 'The voice service turned that key down. Check that it was copied in full.' : err === 'no_credit' ? 'The key works, but the account has no credit yet. Add a little at platform.openai.com, then try again.' :
+      err === 'busy' ? 'The voice service is busy. Try again in a minute.' : err === 'network' ? 'No internet connection just now. Try again in a moment.' : 'The voice service did not answer. Try again in a minute.', true);
+    return;
+  }
+  setVoiceKey(v); $('#kv-key').value = ''; vEditing = false; vNotice('', false); paintVoice();
+  toast('Symphony’s human voice is on. Copy fresh personal links so your teachers get it too.');
+  Voice.unlock();
+  Voice.say('Hi! It’s me, Symphony. This is my real voice now.', { lang: 'en-GB', style: 'chat' });
+});
+onWarn(() => toast('Symphony’s voice key is not working, so she is using this device’s voice. Check it in Connect.'));
 /* No engine key on this device yet. Teachers get it from their personal link, so only the admin is offered Connect. */
 bus.on('need-key', () => { if (isAdmin()) openConnect(); });
 document.addEventListener('keydown', (e) => {

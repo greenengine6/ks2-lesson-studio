@@ -1,15 +1,23 @@
 /* Our class: pupils' first names, kept on this device only (never sent to the engine or to Rabinder's reports).
    Symphony uses them to pick someone fairly: nobody is picked twice until everyone has had a turn. The picker shows
    a short shuffle, lands on one name, and Symphony says it. */
-import { $, esc, icon, store, bus } from './core.js?v=f99d8766';
-import { cleanName } from './live/relay.js?v=f99d8766';
-import { Voice } from './fx/voice.js?v=f99d8766';
-import { settings } from './settings.js?v=f99d8766';
-import { sfx } from './fx/audio.js?v=f99d8766';
+import { $, esc, icon, store, bus } from './core.js?v=ed35fd44';
+import { cleanName } from './live/relay.js?v=ed35fd44';
+import { Voice } from './fx/voice.js?v=ed35fd44';
+import { settings } from './settings.js?v=ed35fd44';
+import { sfx } from './fx/audio.js?v=ed35fd44';
 
 const KEY = 'ks2-engine.pupils.v1', BAG = 'ks2-engine.pupils.bag.v1', MAX = 60;
 const norm = (n) => String(n || '').toLowerCase().replace(/\s+/g, ' ').trim();
 export function pupils() { const v = store.getJSON(KEY, []); return Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x).slice(0, MAX) : []; }
+/* Whether some text names a pupil on the class list: Symphony's human voice service never hears those names. */
+const esc_rx = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+export function mentionsPupil(text) {
+  const t = String(text || '');
+  if (!t) return false;
+  return pupils().some((n) => n && new RegExp('(^|[^\\p{L}])' + esc_rx(n) + '(?![\\p{L}])', 'iu').test(t));
+}
+Voice.setPrivate(mentionsPupil);
 function save(list) { store.setJSON(KEY, list.slice(0, MAX)); try { sessionStorage.removeItem(BAG); } catch (e) { /* ignore */ } bus.emit('pupils', list.length); }
 /* "Aisyah, Wei Jie and Priya" or one name on each line → clean first names (no full names, nothing rude). */
 export function namesIn(text) {
@@ -72,7 +80,7 @@ export function showPick(lang) {
   const spin = () => {
     if (k < steps) { el.textContent = list[Math.floor(Math.random() * list.length)]; k++; sfx('tap'); setTimeout(spin, 60 + k * 14); return; }
     el.textContent = name; box.classList.add('landed'); sfx('success');
-    if (settings.voice) Voice.say(ms ? 'Giliran ' + name + '!' : name + ', your turn!', { lang: ms ? 'ms' : 'en-GB' });
+    if (settings.voice) Voice.say(ms ? 'Giliran ' + name + '!' : name + ', your turn!', { lang: ms ? 'ms' : 'en-GB', private: true });   // names stay on the device voice
     hideT = setTimeout(hidePick, 9000);
   };
   spin();

@@ -1,6 +1,7 @@
 /* KS2 Lesson Engine: shared helpers, Claude connection, copying and small UI pieces. */
-import { sfx } from './fx/audio.js?v=f99d8766';
-import { fracNorm, fracHTML, fracText } from './fractions.js?v=f99d8766';
+import { sfx } from './fx/audio.js?v=ed35fd44';
+import { fracNorm, fracHTML, fracText } from './fractions.js?v=ed35fd44';
+import { setVoiceKey } from './fx/human.js?v=ed35fd44';
 
 export const $ = (s, r) => (r || document).querySelector(s);
 export const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -153,7 +154,9 @@ export const conn = { joinedNow: false, keyFromLink: false };
   const h = location.hash || '';
   const k = /(?:^#|&)key=(sk-ant-[A-Za-z0-9_-]{20,})(?:&|$)/.exec(h);
   const j = /(?:^#|&)join=([A-Za-z0-9_-]{16,128})(?:&|$)/.exec(h);
-  if (!k && !j) return;
+  const vk = /(?:^#|&)vkey=(sk-[A-Za-z0-9_-]{20,})(?:&|$)/.exec(h);
+  if (vk && !/^sk-ant-/.test(vk[1])) setVoiceKey(vk[1]);                                     // Symphony's human voice
+  if (!k && !j) { if (vk) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; } } return; }
   if (k) { memKey = k[1]; memAccess = ''; store.set(KEY_STORE, memKey); store.set(ACCESS_STORE, ''); conn.keyFromLink = true; }
   else { memAccess = j[1]; store.set(ACCESS_STORE, memAccess); conn.joinedNow = true; }
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; }
@@ -178,7 +181,7 @@ export async function askClaude(prompt, o) {
       headers: link && !o.key
         ? { 'content-type': 'application/json', 'x-access-code': memAccess }
         : { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify(Object.assign({ model: o.model || CONFIG.mainModel, max_tokens: o.maxTokens || 4000, stream: true, messages: o.messages || [{ role: 'user', content: prompt }] }, o.system ? { system: o.system } : {}))
+      body: JSON.stringify(Object.assign({ model: o.model || CONFIG.mainModel, max_tokens: o.maxTokens || 4000, stream: true, messages: o.messages || [{ role: 'user', content: prompt }] }, o.system ? { system: o.system } : {}, o.tools && o.tools.length ? { tools: o.tools } : {}))
     });
   } catch (e) { throw new AiError(e && e.name === 'AbortError' ? 'cancelled' : 'network'); }
   if (!res.ok) {
@@ -194,11 +197,17 @@ export async function askClaude(prompt, o) {
     if (res.status === 429) throw new AiError('rate_limited', msg);
     if (res.status === 529 || res.status === 503) throw new AiError('overloaded', msg);
     if (/credit balance|billing/i.test(msg)) throw new AiError('no_credit', msg);
+    // the school's engine account has web search switched off, or limits the websites it may search: ask without it
+    if (o.tools && o.tools.length && res.status === 400 && /web[ _-]?search|allowed_domains|domain/i.test(msg)) throw new AiError('no_search', msg);
     if (/model/i.test(msg) && (res.status === 404 || res.status === 400)) throw new AiError('model', msg);
     throw new AiError('upstream', msg || 'HTTP ' + res.status);
   }
+  /* The answer arrives as a stream of events. Text is handed to onText as it grows. With tools (Symphony's web
+     search) the answer also holds the searches and their results: onTool hears each one, onCite each source the
+     text cites, and every block is rebuilt exactly as sent (blocks), so a paused turn can be handed back to finish. */
   const reader = res.body.getReader(), dec = new TextDecoder();
-  let buf = '', text = '', stop = '';
+  let buf = '', text = '', stop = '', prev = '';
+  const blocks = [], usage = {};
   try {
     for (;;) {
       const { value, done } = await reader.read();
@@ -211,8 +220,39 @@ export async function askClaude(prompt, o) {
         if (!data) continue;
         let ev;
         try { ev = JSON.parse(data); } catch (e) { continue; }
-        if (ev.type === 'content_block_delta' && ev.delta && ev.delta.type === 'text_delta') { text += ev.delta.text; if (o.onText) o.onText(text); }
-        else if (ev.type === 'message_delta' && ev.delta && ev.delta.stop_reason) stop = ev.delta.stop_reason;
+        const d = ev.delta || {};
+        if (ev.type === 'content_block_delta' && d.type === 'text_delta') {
+          text += d.text;
+          const b = blocks[ev.index]; if (b && b.type === 'text') b.text = (b.text || '') + d.text;
+          if (o.onText) o.onText(text);
+        } else if (ev.type === 'content_block_start' && ev.content_block) {
+          const b = JSON.parse(JSON.stringify(ev.content_block));
+          blocks[ev.index] = b;
+          if (b.type === 'text') {
+            if (text && prev && prev !== 'text' && !/\s$/.test(text)) { text += ' '; if (o.onText) o.onText(text); }   // text after a search
+            if (b.text) { text += b.text; if (o.onText) o.onText(text); }
+          } else if (b.type === 'server_tool_use' || b.type === 'tool_use') {
+            b._json = '';
+            if (o.onTool) o.onTool({ phase: 'start', name: b.name, id: b.id });
+          } else if (/_tool_result$/.test(b.type) && o.onTool) {
+            const c = b.content;
+            o.onTool({ phase: 'result', type: b.type, id: b.tool_use_id, results: Array.isArray(c) ? c.map((r) => ({ url: r.url, title: r.title })) : [], error: !Array.isArray(c) && c && c.error_code ? c.error_code : '' });
+          }
+          prev = b.type;
+        } else if (ev.type === 'content_block_delta' && d.type === 'input_json_delta') {
+          const b = blocks[ev.index]; if (b && '_json' in b) b._json += d.partial_json || '';
+        } else if (ev.type === 'content_block_delta' && d.type === 'citations_delta' && d.citation) {
+          const b = blocks[ev.index]; if (b) (b.citations = Array.isArray(b.citations) ? b.citations : []).push(d.citation);
+          if (o.onCite) o.onCite(d.citation);
+        } else if (ev.type === 'content_block_stop') {
+          const b = blocks[ev.index];
+          if (b && '_json' in b) {
+            try { b.input = b._json ? JSON.parse(b._json) : (b.input || {}); } catch (e) { b.input = b.input || {}; }
+            delete b._json;
+            if (o.onTool) o.onTool({ phase: 'query', name: b.name, id: b.id, input: b.input });
+          }
+        } else if (ev.type === 'message_start' && ev.message && ev.message.usage) Object.assign(usage, ev.message.usage);
+        else if (ev.type === 'message_delta') { if (d.stop_reason) stop = d.stop_reason; if (ev.usage) Object.assign(usage, ev.usage); }
         else if (ev.type === 'error') throw new AiError(ev.error && ev.error.type === 'overloaded_error' ? 'overloaded' : 'upstream', ev.error && ev.error.message);
       }
     }
@@ -220,8 +260,8 @@ export async function askClaude(prompt, o) {
     if (e instanceof AiError) throw e;
     throw new AiError(e && e.name === 'AbortError' ? 'cancelled' : 'network');
   }
-  if (!text.trim()) throw new AiError('empty');
-  return { text, stop };
+  if (!text.trim() && stop !== 'pause_turn') throw new AiError('empty');
+  return { text, stop, blocks: blocks.filter(Boolean), usage };
 }
 export function parseJSON(text) {
   let t = String(text || '').trim();

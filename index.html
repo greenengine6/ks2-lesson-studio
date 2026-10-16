@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://upload.wikimedia.org https://i.ytimg.com; media-src 'self' blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self' https://api.anthropic.com https://script.google.com https://script.googleusercontent.com https://ntfy.sh https://en.wikipedia.org https://simple.wikipedia.org https://upload.wikimedia.org https://i.ytimg.com https://www.googleapis.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://upload.wikimedia.org https://i.ytimg.com; media-src 'self' blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self' https://api.anthropic.com https://api.openai.com https://script.google.com https://script.googleusercontent.com https://ntfy.sh https://en.wikipedia.org https://simple.wikipedia.org https://upload.wikimedia.org https://i.ytimg.com https://www.googleapis.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>KS2 Lesson Engine</title>
 <meta name="description" content="Ten online-lesson engines and a slide studio for Key Stage 2: two-way class screens, teacher notes and slides, made in about a minute.">
 <meta name="robots" content="noindex, nofollow">
@@ -21,55 +21,55 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=JetBrains+Mono:wght@500;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap">
-<link rel="stylesheet" href="assets/css/app.css?v=f99d8766">
-<link rel="stylesheet" href="assets/css/board.css?v=f99d8766">
-<link rel="stylesheet" href="assets/css/slides.css?v=f99d8766">
-<link rel="stylesheet" href="assets/css/lumen.css?v=f99d8766">
-<link rel="stylesheet" href="assets/css/chat.css?v=f99d8766">
-<link rel="stylesheet" href="assets/css/people.css?v=f99d8766">
-<link rel="stylesheet" href="assets/css/play.css?v=f99d8766">
-<link rel="stylesheet" href="assets/css/lkie.css?v=f99d8766">
-<link rel="stylesheet" href="assets/css/live.css?v=f99d8766">
-<script src="assets/js/theme.js?v=f99d8766"></script>
-<link rel="modulepreload" href="assets/js/app.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/security.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/core.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/slides.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/slides-example.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/settings.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/chat.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/people.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/crypto.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/idb.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/track.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/feedback.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/admin.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/report.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/play.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/sync.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/fx/dock.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/fx/cardswap.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/fx/symphony.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/fx/waves.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/fx/ribbons.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/fx/sound.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/fx/voice.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/fx/particles.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/registry.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/shared.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/prompt.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/widgets.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/maths.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/story.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/reading.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/science.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/journey.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/code.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/steps.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/escape.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/brainbreak.js?v=f99d8766">
-<link rel="modulepreload" href="assets/js/engines/debate.js?v=f99d8766">
-<script type="application/json" id="config">{"mainModel": "claude-sonnet-5-5", "quickModel": "claude-haiku-5-5", "limits": {"rest": 5, "hour": 15, "day": 40, "editGap": 8, "editHour": 40, "chatGap": 3, "chatTen": 20, "chatDay": 150}, "admin": {"name": "Rabinder Kaur", "iter": 400000, "salt": "9m8DAyZLstgOdjN48kJsHQ", "check": "_1XJXZO3aEhYQbN8qVhHoQUSexIYU2wxPA-jddQ_Plo", "pub": "BDySIQy1KVdnMX9f2Selpt8E8IHPlnpnL0Rssq8jumx1fFJx01fw6D-xuIszATP6wr48ooqH_qzhAMHyGsVX7jo", "key": "FCnshmCVWYNgK-yr3ei2Htz1jtFCXkyMuPLqBp9WfqH0lwODJzo10mp9EgSLC9TUBh7SyPBraHE7dHIFJoPW3Us8NaJYSo1BGrxMyw3oqL2-5csUuaW-H0_J6Rwxi6oKfnrmrdyYuTThV_6o6dduosyNuqyhV5-MsyBb2qycPlRZMDaF_tdL499-AeO8qapwiIlW5cjhroVR-w", "iv": "ykf7_pbMiGoTr8UN"}}</script>
+<link rel="stylesheet" href="assets/css/app.css?v=ed35fd44">
+<link rel="stylesheet" href="assets/css/board.css?v=ed35fd44">
+<link rel="stylesheet" href="assets/css/slides.css?v=ed35fd44">
+<link rel="stylesheet" href="assets/css/lumen.css?v=ed35fd44">
+<link rel="stylesheet" href="assets/css/chat.css?v=ed35fd44">
+<link rel="stylesheet" href="assets/css/people.css?v=ed35fd44">
+<link rel="stylesheet" href="assets/css/play.css?v=ed35fd44">
+<link rel="stylesheet" href="assets/css/lkie.css?v=ed35fd44">
+<link rel="stylesheet" href="assets/css/live.css?v=ed35fd44">
+<script src="assets/js/theme.js?v=ed35fd44"></script>
+<link rel="modulepreload" href="assets/js/app.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/security.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/core.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/slides.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/slides-example.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/settings.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/chat.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/people.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/crypto.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/idb.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/track.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/feedback.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/admin.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/report.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/play.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/sync.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/fx/dock.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/fx/cardswap.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/fx/symphony.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/fx/waves.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/fx/ribbons.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/fx/sound.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/fx/voice.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/fx/particles.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/registry.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/shared.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/prompt.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/widgets.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/maths.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/story.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/reading.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/science.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/journey.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/code.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/steps.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/escape.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/brainbreak.js?v=ed35fd44">
+<link rel="modulepreload" href="assets/js/engines/debate.js?v=ed35fd44">
+<script type="application/json" id="config">{"mainModel": "claude-sonnet-5-5", "quickModel": "claude-haiku-5-5", "symModel": "claude-sonnet-5-5", "limits": {"rest": 5, "hour": 15, "day": 40, "editGap": 8, "editHour": 40, "chatGap": 3, "chatTen": 20, "chatDay": 150}, "admin": {"name": "Rabinder Kaur", "iter": 400000, "salt": "9m8DAyZLstgOdjN48kJsHQ", "check": "_1XJXZO3aEhYQbN8qVhHoQUSexIYU2wxPA-jddQ_Plo", "pub": "BDySIQy1KVdnMX9f2Selpt8E8IHPlnpnL0Rssq8jumx1fFJx01fw6D-xuIszATP6wr48ooqH_qzhAMHyGsVX7jo", "key": "FCnshmCVWYNgK-yr3ei2Htz1jtFCXkyMuPLqBp9WfqH0lwODJzo10mp9EgSLC9TUBh7SyPBraHE7dHIFJoPW3Us8NaJYSo1BGrxMyw3oqL2-5csUuaW-H0_J6Rwxi6oKfnrmrdyYuTThV_6o6dduosyNuqyhV5-MsyBb2qycPlRZMDaF_tdL499-AeO8qapwiIlW5cjhroVR-w", "iv": "ykf7_pbMiGoTr8UN"}}</script>
 </head>
 <body>
 <a class="sr" href="#main">Skip to content</a>
@@ -313,6 +313,19 @@
       <ol class="steps-mini"><li>Sign in at console.anthropic.com and add credit.</li><li>Under Limits, set a monthly spend limit.</li><li>Under API keys, create a key and copy it.</li><li>Paste it above and press Save and test.</li></ol></details>
     <button type="button" class="btn" id="k-share" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>Copy a one-tap setup link for another device</button>
     <p class="fine">A setup link connects a device in one tap and then removes itself from the address bar. Anyone who has the link can use the key, so send it privately and delete the message afterwards.</p>
+    <section class="kvoice" aria-labelledby="kv-h">
+      <h3 id="kv-h"><i><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></i>Symphony’s human voice <small>optional</small></h3>
+      <p id="kv-intro">Add a voice key and Symphony speaks with a natural human voice, on this device and on every device you set up with a personal link. Without it she uses this device’s own voice.</p>
+      <div class="kstat" id="kv-status" hidden><span class="st" aria-hidden="true"></span><span id="kv-status-text">Human voice on</span>
+        <span style="margin-left:auto;display:flex;gap:12px"><button type="button" class="linkbtn" id="kv-change">Change key</button><button type="button" class="linkbtn" id="kv-forget">Remove</button></span></div>
+      <form id="kv-form" class="form" novalidate>
+        <label class="fld"><span>Voice key (OpenAI)</span><input type="password" id="kv-key" autocomplete="off" spellcheck="false" autocapitalize="off" placeholder="sk-…"></label>
+        <button type="submit" class="btn" id="kv-save">Save and test</button>
+        <div class="notice" id="kv-notice" hidden role="status"></div>
+      </form>
+      <details class="more"><summary>Getting a voice key (for the person who manages it)</summary>
+        <ol class="steps-mini"><li>Sign in at platform.openai.com and add a little credit. Her voice costs about 1.5 US cents for each minute she speaks, and each sentence is kept on the device, so repeats are free.</li><li>Set a monthly budget under Limits.</li><li>Under API keys, create a secret key and copy it.</li><li>Paste it above and press Save and test. Then copy fresh personal links for your teachers from the dashboard, so their devices get her voice too.</li></ol></details>
+    </section>
   </div>
 </div>
 
@@ -323,7 +336,7 @@
     <div class="fb-text" id="fb-text" tabindex="0"></div>
     <button type="button" class="btn" id="fb-close">Done</button></div>
 </div>
-<script type="module" src="assets/js/app.js?v=f99d8766"></script>
+<script type="module" src="assets/js/app.js?v=ed35fd44"></script>
 <script defer src="assets/pptxgen.bundle.js"></script>
 </body>
 </html>

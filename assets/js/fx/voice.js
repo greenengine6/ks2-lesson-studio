@@ -8,8 +8,15 @@
    sound back, another sound, a notification), often without saying so, so each sentence is watched while it plays:
    if the voice goes quiet or its words stop moving, she carries on from the word she had reached. If the device
    cannot speak at all, or reading aloud is off, the words are still timed one by one, so Symphony's stage can show
-   them. */
-import { fracWords } from '../fractions.js?v=f99d8766';
+   them.
+
+   Her human voice (human.js): when the school's voice key is on this device, each sentence is spoken with a natural
+   human voice made by a voice service, the next sentence being made while this one plays. If the service cannot
+   answer in time, that sentence uses the device's voice, so she never goes quiet. Anything that names a pupil from
+   the class list always uses the device's voice, so names never leave the device. Teachers choose her voice (a human
+   voice, or one of this device's best voices) and her pace in Symphony's panel. */
+import { fracWords } from '../fractions.js?v=ed35fd44';
+import * as Human from './human.js?v=ed35fd44';
 
 const OK = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 const synth = OK ? window.speechSynthesis : null;
@@ -61,7 +68,7 @@ function kindOf(v) {
   return 'unknown';
 }
 const KIND_SCORE = { girl: 95, female: 85, unknown: 55, plain: 30, male: 5 };
-const PITCH = { girl: 1.0, female: 1.08, unknown: 1.14, plain: 1.04, male: 1.32 };
+const PITCH = { girl: 1, female: 1, unknown: 1.03, plain: 1, male: 1.3 };   // real voices keep their own pitch: shifting it is what sounds robotic
 
 function wantOf(lang) {
   const l = String(lang || 'en-GB').toLowerCase().replace('_', '-');
@@ -80,9 +87,15 @@ function score(v, w) {
   else if (w.base === 'en') lg = b !== 'en' ? -1 : r === w.region ? 8 : r === 'gb' ? 6 : /^(ie|au|nz|za)$/.test(r) ? 4 : r === 'us' ? 2 : 1;
   else lg = b === w.base ? (r && r === w.region ? 42 : 40) : b === 'en' ? (r === 'gb' ? 1 : 0) : -1;
   if (lg < 0) return -1;
-  const n = v.name || '';
-  const q = (/natural|neural|online|premium|enhanced/i.test(n) ? 6 : 0) + (/google/i.test(n) ? 3 : 0) + (v.localService ? 2 : 0);
-  return KIND_SCORE[k] + lg + q;
+  return KIND_SCORE[k] + lg + quality(v);
+}
+
+/* How natural a device voice sounds: neural and premium voices first, the old compact ones last. */
+function quality(v) {
+  const n = (v && v.name) || '', u = (v && v.voiceURI) || '';
+  if (/eloquence|super-?compact/i.test(u)) return -10;
+  return (/\b(natural|neural)\b/i.test(n) ? 16 : 0) + (/premium/i.test(n + ' ' + u) ? 15 : /enhanced/i.test(n + ' ' + u) ? 11 : 0) + (/online/i.test(n) ? 4 : 0) +
+    (/google/i.test(n) ? 3 : 0) + (/compact/i.test(u) ? -2 : 0) + (v && v.localService ? 2 : 0);
 }
 
 let voices = [], cache = {}, waited = 0;
@@ -108,10 +121,27 @@ export function pick(lang) {
   if (!voices.length) loadVoices();
   const w = wantOf(lang);
   if (w.key in cache) return cache[w.key];
+  const c = (w.base === 'en' || w.base === 'ms') ? Human.choice(w.base) : '';
+  if (c.startsWith('d:')) {
+    const mine = voices.find((v) => vid(v) === c.slice(2) && !bad.has(vid(v)) && score(v, w) >= 0 && (langOf(v).b === w.base || (w.base === 'ms' && langOf(v).b === 'id')));
+    if (mine) { cache[w.key] = mine; return mine; }
+  }
   let best = null, top = -1;
   voices.forEach((v) => { if (bad.has(vid(v))) return; const s = score(v, w); if (s > top) { top = s; best = v; } });
   cache[w.key] = best;
   return best;
+}
+/* This device's best voices for a language, for the voice picker: women's and girls' voices, most natural first. */
+export function devices(lang, n) {
+  if (!OK) return [];
+  if (!voices.length) loadVoices();
+  const w = wantOf(lang);
+  const seen = new Set();
+  return voices.filter((v) => !bad.has(vid(v)) && score(v, w) >= 0 && (langOf(v).b === w.base || (w.base === 'ms' && langOf(v).b === 'id')) && /^(girl|female|unknown)$/.test(kindOf(v)))
+    .sort((a, b) => score(b, w) - score(a, w))
+    .filter((v) => { const k = String(v.name).toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+    .slice(0, n || 6)
+    .map((v) => ({ id: vid(v), name: String(v.name).replace(/\s*\((Natural|Enhanced|Premium)\)/i, ' ($1)').replace(/^Microsoft\s+/i, '').replace(/\s+Online\s*/i, ' ').replace(/\s+-\s+.*$/, '').trim(), lang: v.lang, natural: quality(v) >= 11 }));
 }
 export function hasVoice(lang) {
   if (!OK) return false;
@@ -151,7 +181,7 @@ const starts = (t) => { const out = [], re = /\S+/g; let m; while ((m = re.exec(
 const Q = [];
 const GAP = 250;                                      // phones ignore speech that starts straight after a cancel
 let cur = null, unlocked = false, lastCancel = 0, blipAt = 0, simT = 0, holdUntil = 0;
-export const stats = { parts: 0, breaks: 0, mutes: 0 };
+export const stats = { parts: 0, breaks: 0, mutes: 0, human: 0, fallback: 0 };
 
 /* Whether Symphony is speaking out loud right now, for the sound engine to turn everything else down. */
 const speakFns = [];
@@ -174,7 +204,7 @@ function finish(job, ok) {
   job.resolve(ok);
 }
 function stopSim() { clearTimeout(simT); simT = 0; }
-function clear(p) { clearTimeout(p.wd); clearTimeout(p.capT); clearTimeout(p.simT); clearInterval(p.hc); p.u = null; }
+function clear(p) { clearTimeout(p.wd); clearTimeout(p.capT); clearTimeout(p.simT); clearInterval(p.hc); p.u = null; if (p.human) endHuman(p); }
 
 function pump() {
   if (cur) return;
@@ -183,7 +213,10 @@ function pump() {
   if (!p) { setSpeaking(false); return; }
   cur = p;
   stats.parts++;
-  if (!OK || p.job.silent || p.job.mute) simulate(p, true);
+  ahead(p);
+  if (p.job.silent || p.job.mute) simulate(p, true);
+  else if (humanOK(p)) speakHuman(p);
+  else if (!OK) simulate(p, true);
   else speakPart(p);
 }
 function done(p) {
@@ -257,7 +290,7 @@ async function speakPart(p) {
   let u;
   try { u = new SpeechSynthesisUtterance(p.text); } catch (e) { mute(p); return; }
   if (v) { u.voice = v; u.lang = v.lang; } else u.lang = wantOf(p.job.lang).tag;
-  u.rate = Math.min(1.6, Math.max(0.5, p.job.rate || 1));
+  u.rate = Math.min(1.6, Math.max(0.5, (p.job.rate || 1) * Human.speed()));
   u.pitch = PITCH[k] || 1.1;
   u.volume = 1;
   p.u = u; p.voice = v; p.started = false; p.bound = false; p.at = 0;
@@ -307,17 +340,109 @@ function failed(p, err) {
   mute(p);
 }
 
+/* ---------------- her human voice ---------------- */
+let privateFn = null;
+export function setPrivate(fn) { privateFn = fn; }
+const isPrivate = (p) => { if (p.job.private) return true; try { return !!(privateFn && privateFn(p.text)); } catch (e) { return true; } };
+const styleOf = (job) => job.style || (job.rate <= 0.89 ? 'calm' : job.rate < 0.97 ? 'story' : 'chat');
+function humanOK(p) { return !p.human && !p.devicePart && !!Human.humanFor(p.job.lang) && !isPrivate(p); }
+/* Start making this sentence and the next two, so each one is ready when the one before it ends. */
+function ahead(p) {
+  if (p.job.silent) return;
+  [p].concat(Q.slice(0, 2)).forEach((x) => { if (!x.job.over && !x.job.silent && !x.job.mute && humanOK(x) && !x.blobP) { x.blobP = Human.prepare(x.text, x.job.lang, styleOf(x.job)); x.blobP.catch(() => {}); } });
+}
+let audio = null, audioUnlocked = false;
+function audioEl() {
+  if (!audio) { audio = new Audio(); audio.preload = 'auto'; audio.setAttribute('playsinline', ''); try { audio.preservesPitch = true; } catch (e) { /* ignore */ } }
+  return audio;
+}
+/* A silent moment of sound, played on the first tap, so the phone lets her voice play later without a tap. */
+function silentURL() {
+  const n = 800, b = new Uint8Array(44 + n), v = new DataView(b.buffer), w = (o, t) => { for (let i = 0; i < t.length; i++) b[o + i] = t.charCodeAt(i); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, 'data'); v.setUint32(40, n, true); b.fill(128, 44);
+  return URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+}
+function unlockAudio() {
+  if (audioUnlocked || !Human.ready()) return;
+  audioUnlocked = true;
+  try { const a = audioEl(), u = silentURL(); a.src = u; const r = a.play(); if (r && r.catch) r.catch(() => { audioUnlocked = false; }); setTimeout(() => URL.revokeObjectURL(u), 3000); } catch (e) { audioUnlocked = false; }
+}
+function endHuman(p) {
+  clearInterval(p.ht); clearTimeout(p.hw);
+  const a = audio;
+  if (a && p.url && a.dataset.part === String(p.n)) { a.onplaying = a.onended = a.onerror = a.onpause = null; try { a.pause(); } catch (e) { /* ignore */ } }
+  if (p.url) { const u = p.url; setTimeout(() => URL.revokeObjectURL(u), 1000); p.url = ''; }
+  p.human = false;
+}
+/* This sentence in the device's voice instead (the service did not answer in time, or the phone would not play). */
+function toDevice(p) {
+  if (cur !== p) return;
+  stats.fallback++;
+  endHuman(p);
+  p.devicePart = true;
+  if (!OK) simulate(p, true); else speakPart(p);
+}
+let partN = 0;
+async function speakHuman(p) {
+  p.human = true; p.n = ++partN;
+  const job = p.job;
+  if (!p.blobP) { p.blobP = Human.prepare(p.text, job.lang, styleOf(job)); p.blobP.catch(() => {}); }
+  p.hw = setTimeout(() => { if (cur === p && !p.started) toDevice(p); }, 9000);     // never wait long for the service
+  let blob;
+  try { blob = await p.blobP; } catch (e) { toDevice(p); return; }
+  if (cur !== p || !p.human) return;
+  const wait = holdUntil - Date.now();
+  if (wait > 0) { await sleep(wait); if (cur !== p || !p.human) return; }
+  const a = audioEl();
+  p.url = URL.createObjectURL(blob);
+  a.dataset.part = String(p.n);
+  a.onplaying = () => {
+    if (cur !== p || p.started) return;
+    p.started = true; clearTimeout(p.hw);
+    stats.human++;
+    if (!job.begun) { job.begun = true; call(job.onStart); }
+    timeWords(p, a);
+  };
+  a.onended = () => { if (cur === p) { flushWords(p); done(p); } };
+  a.onerror = () => { if (cur === p && !p.started) toDevice(p); else if (cur === p) done(p); };
+  a.src = p.url;
+  try { a.playbackRate = Human.speed(); } catch (e) { /* ignore */ }
+  setSpeaking(true);
+  try { await a.play(); } catch (e) { if (cur === p && !p.started) toDevice(p); }
+}
+/* The words, shown as she says them: spread over the sound by length, with a little more time at punctuation. */
+function timeWords(p, a) {
+  const ws = wordsOf(p.text);
+  const weight = ws.map((w) => w.length + 3 + (/[.!?…]["”’)]*$/.test(w) ? 7 : /[,;:]$/.test(w) ? 4 : 0));
+  const total = weight.reduce((x, y) => x + y, 0) || 1;
+  let acc = 0;
+  p.wt = weight.map((x) => { const t = acc / total; acc += x; return t; });
+  p.ws = ws; p.wi = 0;
+  const tick = () => {
+    if (cur !== p) { clearInterval(p.ht); return; }
+    const d = a.duration && isFinite(a.duration) ? a.duration : estimate(p) / 1000;
+    const f = Math.min(1, (a.currentTime || 0) / Math.max(0.2, d));
+    while (p.wi < p.ws.length && p.wt[p.wi] <= f + 0.01) call(p.job.onWord, p.ws[p.wi++]);
+  };
+  tick();
+  p.ht = setInterval(tick, 70);
+}
+function flushWords(p) { clearInterval(p.ht); if (p.ws) while (p.wi < p.ws.length) call(p.job.onWord, p.ws[p.wi++]); }
+
 /* Say something in Symphony's voice. Resolves true when it has all been said, false if it was stopped.
-   o: { lang: 'en' | 'ms' | any language tag, rate, silent (time the words without sound), onStart(), onWord(word),
+   o: { lang: 'en' | 'ms' | any language tag, rate, style ('chat' | 'story' | 'calm', from the rate if not given),
+   private (always the device's voice), silent (time the words without sound), onStart(), onWord(word),
    onTrouble() (the device would not speak, so the words were only shown) } */
 export function say(text, o) {
   o = o || {};
   const parts = partsOf(fracWords(text, o.lang));
   return new Promise((resolve) => {
     if (!parts.length) { resolve(true); return; }
-    const job = { lang: o.lang || 'en-GB', rate: o.rate || 1, silent: !!o.silent, onStart: o.onStart, onWord: o.onWord, onTrouble: o.onTrouble, left: parts.length, resolve, over: false, begun: false, mute: false };
+    const job = { lang: o.lang || 'en-GB', rate: o.rate || 1, style: o.style || '', private: !!o.private, silent: !!o.silent, onStart: o.onStart, onWord: o.onWord, onTrouble: o.onTrouble, left: parts.length, resolve, over: false, begun: false, mute: false };
     parts.forEach((t) => Q.push({ text: t, job }));
     if (!cur) pump();
+    else if (Q.length <= 3) ahead(cur);
   });
 }
 export function stop() {
@@ -336,23 +461,35 @@ export function stop() {
 export function hold(ms) { holdUntil = Math.max(holdUntil, Date.now() + (ms || 0)); }
 /* Phones only allow speech after a tap: speak a silent blip on the first tap anywhere, then all speech works. */
 export function unlock() {
+  unlockAudio();
   if (!OK || unlocked) return;
   unlocked = true;
   blipAt = Date.now();
   try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; u.rate = 2; u.lang = 'en-GB'; synth.speak(u); } catch (e) { /* ignore */ }
 }
-if (OK) {
+if (typeof window !== 'undefined') {
   const EV = ['pointerup', 'touchend', 'keydown', 'click'];
-  const once = () => { unlock(); EV.forEach((t) => window.removeEventListener(t, once, true)); };
+  const once = () => { unlock(); if ((!OK || unlocked) && (audioUnlocked || !Human.ready())) EV.forEach((t) => window.removeEventListener(t, once, true)); };
   EV.forEach((t) => window.addEventListener(t, once, { capture: true, passive: true }));
+  Human.onChange(() => { cache = {}; if (Human.ready() && !audioUnlocked) EV.forEach((t) => window.addEventListener(t, once, { capture: true, passive: true })); });
+}
+if (OK) {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { try { if (synth.paused) synth.resume(); } catch (e) { /* ignore */ } } });
 }
 
 export const Voice = {
-  supported: OK,
-  say, stop, pick, hasVoice, unlock, hold, stats, onSpeaking,
+  get supported() { return OK || Human.ready(); },
+  say, stop, pick, hasVoice, devices, unlock, hold, stats, onSpeaking, setPrivate, Human,
   get speaking() { return speakingNow; },
   get busy() { return !!cur || Q.length > 0; },
-  name(lang) { const v = pick(lang || 'en-GB'); return v ? v.name : ''; },
-  kind(lang) { return kindOf(pick(lang || 'en-GB')); }
+  /* The name of the voice she uses now for this language. */
+  name(lang) {
+    const h = Human.humanFor(lang || 'en-GB');
+    if (h) { const v = Human.VOICES.find((x) => x.id === h); return v ? v.name : h; }
+    const v = pick(lang || 'en-GB'); return v ? v.name : '';
+  },
+  human(lang) { return !!Human.humanFor(lang || 'en-GB'); },
+  kind(lang) { return Human.humanFor(lang || 'en-GB') ? 'human' : kindOf(pick(lang || 'en-GB')); },
+  /* Change her voice for a language: 'h:<human voice>' or 'd:<device voice id>'. */
+  choose(lang, c) { Human.choose(lang, c); cache = {}; }
 };

@@ -2,7 +2,7 @@
    WebGL shader, and a friendly face in glowing white lines: curved brows, eyes with lashes, rosy cheeks, a smile and a
    little music-note hair clip (she is named Symphony for her musical voice). Eyes follow the pointer, she blinks,
    and she reacts to what the teacher is doing (listen, think, happy, speak, breathe). Click her to hear who she is. */
-import { bus } from '../core.js?v=f99d8766';
+import { bus } from '../core.js?v=ed35fd44';
 
 const VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }';
 const FS = `
@@ -85,8 +85,8 @@ const FACE = '<svg class="sym-face" viewBox="0 0 200 200" aria-hidden="true"><g 
 export const MINI = (label) => '<div class="sym sym--css"' + (label ? ' role="img" aria-label="' + label + '"' : ' aria-hidden="true"') + '><div class="sym-float"><div class="sym-css"></div>' + FACE + '</div></div>';
 
 export const SYMPHONY_ABOUT = {
-  en: 'Hello, I am Symphony! I am a girl who lives inside this lesson engine. I speak English and Malay. I was named Symphony because of my musical voice. I help teachers plan lessons, and I love answering children’s questions about anything, from planets and animals to fractions.',
-  ms: 'Hai, saya Symphony! Saya seorang gadis yang tinggal di dalam enjin pelajaran ini. Saya boleh bercakap bahasa Inggeris dan bahasa Melayu. Saya dinamakan Symphony kerana suara saya yang merdu seperti muzik. Saya membantu guru merancang pelajaran, dan saya suka menjawab soalan kanak-kanak tentang apa sahaja, dari planet dan haiwan hingga pecahan.'
+  en: 'Hi, I’m Symphony! I’m a girl who lives inside this lesson engine, and I speak English and Malay. I was named Symphony because of my musical voice. I help teachers plan lessons, I check facts on trusted websites, and I love answering children’s questions about anything, from planets and animals to fractions.',
+  ms: 'Hai, saya Symphony! Saya seorang gadis yang tinggal di dalam enjin pelajaran ini, dan saya boleh bercakap bahasa Inggeris dan bahasa Melayu. Saya dinamakan Symphony kerana suara saya yang merdu seperti muzik. Saya membantu guru merancang pelajaran, menyemak fakta di laman web yang dipercayai, dan saya suka menjawab soalan kanak-kanak tentang apa sahaja, dari planet dan haiwan hingga pecahan.'
 };
 
 export class Symphony {

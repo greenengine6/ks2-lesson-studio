@@ -1,8 +1,8 @@
 /* Engine 1: Maths reasoning. "Which one doesn't belong?" grid + an Open Middle puzzle the class can try live.
    The Open Middle board checks answers itself and finds the best answer by trying every possibility. */
-import { esc, str, arr, strs, num, clamp, icon } from '../core.js?v=f99d8766';
-import { B, respond } from './shared.js?v=f99d8766';
-import { buildPrompt } from './prompt.js?v=f99d8766';
+import { esc, str, arr, strs, num, clamp, icon } from '../core.js?v=ed35fd44';
+import { B, respond } from './shared.js?v=ed35fd44';
+import { buildPrompt } from './prompt.js?v=ed35fd44';
 
 /* ---------------- visuals for the grid ---------------- */
 function poly(n, cx, cy, r, rot) {

@@ -6,8 +6,8 @@
    description and file name), and the teacher sees it on the slide before presenting.
    What leaves the browser: picture search words go to Wikipedia; video search words go to YouTube only if the school
    has added a YouTube key. */
-import { store, CONFIG } from './core.js?v=f99d8766';
-import { kvGet, kvSet, kvDel } from './idb.js?v=f99d8766';
+import { store, CONFIG } from './core.js?v=ed35fd44';
+import { kvGet, kvSet, kvDel } from './idb.js?v=ed35fd44';
 
 const API = 'https://en.wikipedia.org/w/api.php';
 const CACHE = 'ks2-engine.pics.v1';

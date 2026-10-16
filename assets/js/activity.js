@@ -12,8 +12,8 @@
      school relay does not answer within 2.5 seconds, teaching goes ahead: this rule never stops a lesson.
    - A live lesson can be moved: "End it there and start here" ends the one on the other screen (it notices
      within half a minute) and starts a new one here. */
-import { store, bus, CONFIG } from './core.js?v=f99d8766';
-import { who } from './people.js?v=f99d8766';
+import { store, bus, CONFIG } from './core.js?v=ed35fd44';
+import { who } from './people.js?v=ed35fd44';
 
 const KEY = 'ks2-engine.activity.v1', DEV_KEY = 'ks2-engine.device.v1';
 const TAB = Math.random().toString(36).slice(2, 10);

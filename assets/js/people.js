@@ -3,9 +3,10 @@
    one-tap link once on their device). Rabinder has the only login: "Hello Admin", her name pre-filled, her
    password on a new device, then a passkey (Face ID, fingerprint or the screen lock) on each of her devices.
    Pupils never sign in. */
-import { $, $$, esc, el, icon, store, bus, CONFIG, setKey, toast } from './core.js?v=f99d8766';
-import { cryptoOK, b64u, unb64u, utf8, unutf8, random, pbkdf2, sha256, sameBytes, aesKey, aesDecrypt, importAdminPrivate, passkeyOK, platformPasskey, createPasskey, checkPasskey, idbGet, idbSet, idbDel } from './crypto.js?v=f99d8766';
-import { sfx } from './fx/audio.js?v=f99d8766';
+import { $, $$, esc, el, icon, store, bus, CONFIG, setKey, toast } from './core.js?v=ed35fd44';
+import { voiceKey, setVoiceKey, KEY_RX } from './fx/human.js?v=ed35fd44';
+import { cryptoOK, b64u, unb64u, utf8, unutf8, random, pbkdf2, sha256, sameBytes, aesKey, aesDecrypt, importAdminPrivate, passkeyOK, platformPasskey, createPasskey, checkPasskey, idbGet, idbSet, idbDel } from './crypto.js?v=ed35fd44';
+import { sfx } from './fx/audio.js?v=ed35fd44';
 
 const ME_KEY = 'ks2-engine.me.v1', ROSTER_KEY = 'ks2-engine.roster.v1', PASS_KEY = 'ks2-engine.passkey.v1', SES_KEY = 'ks2-engine.session.v1', LOCK_KEY = 'ks2-engine.pinlock.v1';
 const PIN_ITER = 150000, ADMIN_IDLE = 30 * 60 * 1000;
@@ -47,6 +48,7 @@ const enrolled = (function readLink() {
       if (!first) first = p;
     });
     if (first && d.k && /^sk-ant-[A-Za-z0-9_-]{20,}$/.test(d.k)) setKey(d.k);
+    if (first && d.vk && KEY_RX.test(d.vk) && !/^sk-ant-/.test(d.vk)) setVoiceKey(d.vk);           // Symphony's human voice
   } catch (e) { first = null; }
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; }
   return first;
@@ -74,7 +76,8 @@ export function linkFor(people) {
   const key = store.get('ks2-lesson-studio.key.v1');
   const base = location.origin + location.pathname;
   const strip = (p) => ({ id: p.id, n: p.n, s: p.s, h: p.h });
-  const body = people.length === 1 ? Object.assign({ v: 1 }, strip(people[0]), key ? { k: key } : {}) : Object.assign({ v: 1, list: people.map(strip) }, key ? { k: key } : {});
+  const vk = voiceKey(), keys = Object.assign(key ? { k: key } : {}, vk ? { vk } : {});
+  const body = people.length === 1 ? Object.assign({ v: 1 }, strip(people[0]), keys) : Object.assign({ v: 1, list: people.map(strip) }, keys);
   return base + '#' + (people.length === 1 ? 't' : 'c') + '=' + b64u(utf8(JSON.stringify(body)));
 }
 
@@ -138,7 +141,7 @@ function teacherForm() {
     '<p class="hg-links"><button type="button" class="hg-admin" data-admin-signin>' + icon('key') + 'Admin sign-in</button></p>' +
     '<div class="hg-priv" role="note" aria-label="Privacy"><p class="hg-priv-h">' + icon('lock') + 'Privacy</p>' +
       '<p>A simple home-made site for Rabinder’s teachers, run not for profit: no adverts, no trackers, no cookies, nothing sold. Pupils never sign in, and no pupil names are kept. ' +
-      'The only thing recorded is teachers’ lesson activity for Rabinder’s reports, locked so only she can open it. Topics you type go to the AI engine only to write your lesson.</p></div>';
+      'The only thing recorded is teachers’ lesson activity for Rabinder’s reports, locked so only she can open it. Topics you type go to the AI engine only to write your lesson, and Symphony may check facts on trusted education websites.</p></div>';
   const down = $('[data-to-gate]');
   if (down) down.addEventListener('click', () => host.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }));
   host.addEventListener('click', (e) => {

@@ -1,10 +1,10 @@
 /* How it works: every rule on the site in one place, in plain words. It opens from the header's "How it works",
    the home page's How it works section, the "?" next to Online / In class, and the Join screen. The numbers come
    from the same settings the rules themselves use (guard.js), so they are always right. */
-import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=f99d8766';
-import { LIMITS } from './guard.js?v=f99d8766';
-import { ENGINES } from './engines/registry.js?v=f99d8766';
-import { RESPOND } from './engines/shared.js?v=f99d8766';
+import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=ed35fd44';
+import { LIMITS } from './guard.js?v=ed35fd44';
+import { ENGINES } from './engines/registry.js?v=ed35fd44';
+import { RESPOND } from './engines/shared.js?v=ed35fd44';
 
 const SCRIPT = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/;
 const schoolOn = () => SCRIPT.test(String(CONFIG.inbox || ''));
@@ -98,6 +98,9 @@ function body(id) {
       'Pupils’ names and answers stay on your screen. Nothing is saved, and nothing goes to Rabinder’s reports.'
     ]);
   if (id === 'sym') return '<p class="howm-lede">Symphony is the site’s helper, at the bottom right of every page.</p>' + li([
+    b('She knows the KS2 curriculum') + ' for every subject, how good primary lessons are taught, and which engine fits an idea. She answers with the site’s main engine.',
+    b('She checks facts') + ' on trusted education websites around the world (BBC Bitesize and Newsround, NASA, National Geographic Kids, Britannica, museums, gov.uk and more), only about teaching and school subjects. The pages she used show under her answer as Sources.',
+    b('Her voice:') + ' with the school’s voice key (added once in Connect) she speaks with a natural human voice; otherwise with the best voice this device has. Choose her voice and pace with the voice button in her panel. Her human voice is AI-generated, and pupils’ names are always spoken by the device’s own voice.',
     b('Ask by voice or by typing.') + ' She can read her answers aloud, in English or Malay (the Symphony’s voice switch).',
     b('Hey Symphony') + ' (a switch): she listens only for her name and ignores everything else. Patient listening waits until you have finished speaking.',
     b('She knows the screen:') + ' “show me Tokyo”, “open the rainforest”, “go to Slide Studio”, and your pupils’ names in Our class.',
@@ -113,7 +116,7 @@ function body(id) {
   if (id === 'privacy') return '<p class="howm-lede">What stays in this browser, and what leaves it.</p>' + li([
     b('Stays here:') + ' the engine key and your saved lessons.',
     b('Leaves, and why:') + ' the request the engine needs when you press a Make button; your activity for Rabinder’s reports, locked so only she can open it; live-lesson messages, locked end to end; and picture searches, which go to Wikipedia. Videos play from YouTube’s privacy-enhanced player.',
-    b('Speaking to Symphony') + ' uses your browser’s own speech service.',
+    b('Speaking to Symphony') + ' uses your browser’s own speech service. Her answers come from the engine, which may search trusted education websites for her. With her human voice on, what she says aloud goes to a voice service (OpenAI) to be spoken; pupils’ names never do.',
     b('Protection:') + ' copying the site’s content and printing are blocked; lessons leave through the site’s own buttons (PowerPoint, Word and Copy). These are deterrents, and screen sharing always keeps working.'
   ]);
   return '';

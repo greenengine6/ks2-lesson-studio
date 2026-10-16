@@ -1,7 +1,7 @@
 /* Ambient soundscapes made live with the Web Audio API (no audio files), plus read-aloud in Symphony's voice.
    Scenes: rain, ocean, wind, river, forest, birds, night, city, market. Crossfades between scenes. */
-import { Voice } from './voice.js?v=f99d8766';
-import { Sound } from './audio.js?v=f99d8766';
+import { Voice } from './voice.js?v=ed35fd44';
+import { Sound } from './audio.js?v=ed35fd44';
 
 let ctx = null;
 function ac() { ctx = Sound.ctx(); return ctx; }          // the site's one sound engine (audio.js): one switch, quiet while Symphony speaks
@@ -163,7 +163,7 @@ export const Ambient = {
 
 /* ---------------- read aloud: always Symphony's voice (see voice.js) ---------------- */
 export const Speech = {
-  supported: Voice.supported,
+  get supported() { return Voice.supported; },
   pick: (lang) => Voice.pick(lang),
   hasVoice: (lang) => Voice.hasVoice(lang),
   speak: (text, o) => Voice.say(text, { lang: (o && o.lang) || 'en-GB', rate: (o && o.rate) || 0.95 }),
