@@ -1,8 +1,8 @@
 /* lkie.like backgrounds: ready-made looks, any colour, or a picture. A pack has one, and any slide can have its own.
    Dark looks turn the free text white; boxes stay light with dark text and diagrams sit on a white card, so every
    slide stays readable. The same looks are painted into the PowerPoint download. */
-import { esc } from '../core.js?v=a3c4a34d';
-import { picURL, pictureData, safePic } from '../pics.js?v=a3c4a34d';
+import { esc } from '../core.js?v=f99d8766';
+import { picURL, pictureData, safePic } from '../pics.js?v=f99d8766';
 
 export const LOOKS = [
   { id: 'bright', name: 'Bright', bg: '#FFFFFF', sw: 'linear-gradient(90deg,#E35D5B 0 14%,#F28C38 0 31%,#F2C14E 0 42%,#4FA36B 0 58%,#2D9C9C 0 70%,#3E7CC7 0 87%,#8466C4 0) top/100% 22% no-repeat,#FFFFFF' },

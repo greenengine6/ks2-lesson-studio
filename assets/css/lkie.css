@@ -2,7 +2,7 @@
    the live build, the slide editor, diagrams, the Calm slide style, the three-tier worksheet and the unit planner. */
 .lk-brand{font-family:var(--f-mono)!important;letter-spacing:-.05em}
 .lk-brand span{color:var(--heart)}
-#egrid [data-go="lkie"] h3{font-family:var(--f-mono);letter-spacing:-.04em}
+#egrid [data-go="lkie"] h3,#egrid [data-go="lkie"] .eshort{font-family:var(--f-mono);letter-spacing:-.04em}
 .ss.lk .rail .card{min-width:0}
 
 /* ---------- the 3-step wizard ---------- */

@@ -214,7 +214,20 @@ button.hero-hint{border:0;background:none;padding:0}
 .ecard .go{position:absolute;top:24px;right:24px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--muted);box-shadow:var(--ex-sm);transition:color .3s,transform .5s var(--ease)}
 .ecard:hover .go{color:var(--c);transform:rotate(-45deg)}
 .ecard.wide{grid-column:span 2}
-@media (max-width:640px){.ecard.wide{grid-column:auto}}
+.eshort{display:none}
+/* Phones: a 3-column grid of icon tiles (icon + one-word label); Wonder Window is one full-width tile at the end. */
+@media (max-width:640px){
+  .ecard.wide{grid-column:auto}
+  .egrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  .ecard{gap:9px;justify-items:center;text-align:center;padding:16px 6px 13px;border-radius:22px}
+  .ecard h3,.ecard p,.ecard .etags,.ecard .go{display:none}
+  .eshort{display:block;font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(13px * var(--m,1)));letter-spacing:-.01em;line-height:1.15;color:var(--fg)}
+  .ewell{width:56px;height:56px;border-radius:18px}
+  .ewell .i{width:26px;height:26px}
+  .ecard[data-go="play"]{grid-column:1 / -1;grid-template-columns:auto minmax(0,1fr) auto;grid-auto-flow:column;align-items:center;justify-items:start;text-align:left;gap:14px;padding:12px 14px 12px 12px}
+  .ecard[data-go="play"] .eshort{font-size:max(9px,calc(16px * var(--m,1)))}
+  .ecard[data-go="play"] .go{display:grid;position:static;width:36px;height:36px}
+}
 .show{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:48px;align-items:center}
 .show ul{list-style:none;margin:28px 0 0;padding:0;display:grid;gap:16px}
 .show li{display:flex;gap:14px;align-items:flex-start;font-size:max(9px,calc(16px * var(--m,1)));line-height:1.5}

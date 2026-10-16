@@ -9,7 +9,7 @@
    if the voice goes quiet or its words stop moving, she carries on from the word she had reached. If the device
    cannot speak at all, or reading aloud is off, the words are still timed one by one, so Symphony's stage can show
    them. */
-import { fracWords } from '../fractions.js?v=a3c4a34d';
+import { fracWords } from '../fractions.js?v=f99d8766';
 
 const OK = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 const synth = OK ? window.speechSynthesis : null;

@@ -1,7 +1,7 @@
 /* What is on the screen right now, in a few lines, so Symphony can answer about it ("explain this slide", "give me a
    question about this", "what are we learning?"). Only what the class can already see is used: answers that are
    still hidden stay hidden (the browser leaves hidden text out of what is read here). */
-import { $, $$, bus } from './core.js?v=a3c4a34d';
+import { $, $$, bus } from './core.js?v=f99d8766';
 
 const shown = (el) => !!el && !el.hidden && !el.closest('[hidden]');
 const squash = (t, n) => String(t || '').replace(/\s+/g, ' ').trim().slice(0, n);

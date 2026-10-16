@@ -1,11 +1,11 @@
 /* lkie.like drawing: slides (with diagrams drawn exactly from the numbers), key words, activities, the worksheet in
    three tiers, and the teacher notes. Everything is plain HTML and SVG, so it works offline and on old laptops. */
-import { esc, icon, normAnswer } from '../core.js?v=a3c4a34d';
-import { fractify } from '../fractions.js?v=a3c4a34d';
-import { TIERS, totalMinutes, sheetBalance } from './model.js?v=a3c4a34d';
-import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=a3c4a34d';
-import { picURL, creditText, ytThumb, safePic, safeVideo } from '../pics.js?v=a3c4a34d';
-import { lookInfo, lookFor } from './looks.js?v=a3c4a34d';
+import { esc, icon, normAnswer } from '../core.js?v=f99d8766';
+import { fractify } from '../fractions.js?v=f99d8766';
+import { TIERS, totalMinutes, sheetBalance } from './model.js?v=f99d8766';
+import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=f99d8766';
+import { picURL, creditText, ytThumb, safePic, safeVideo } from '../pics.js?v=f99d8766';
+import { lookInfo, lookFor } from './looks.js?v=f99d8766';
 
 /* ---------------- slide kinds ---------------- */
 export const KIND = {

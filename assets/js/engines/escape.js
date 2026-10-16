@@ -1,11 +1,11 @@
 /* Engine 8: Escape Room. A story mission where every lock is a card in a CardSwap stack. The class works out
    each code, the teacher types the answer in, and a correct code drops the card away to reveal the next lock. */
-import { esc, str, arr, strs, num, clamp, icon, normAnswer } from '../core.js?v=a3c4a34d';
-import { B, chime } from './shared.js?v=a3c4a34d';
-import { buildPrompt } from './prompt.js?v=a3c4a34d';
-import { CardSwap } from '../fx/cardswap.js?v=a3c4a34d';
-import { confetti } from '../fx/particles.js?v=a3c4a34d';
-import { sfx } from '../fx/audio.js?v=a3c4a34d';
+import { esc, str, arr, strs, num, clamp, icon, normAnswer } from '../core.js?v=f99d8766';
+import { B, chime } from './shared.js?v=f99d8766';
+import { buildPrompt } from './prompt.js?v=f99d8766';
+import { CardSwap } from '../fx/cardswap.js?v=f99d8766';
+import { confetti } from '../fx/particles.js?v=f99d8766';
+import { sfx } from '../fx/audio.js?v=f99d8766';
 
 const EXAMPLE = {
   title: 'Escape from Space Station Orion',

@@ -1,10 +1,10 @@
 /* How it works: every rule on the site in one place, in plain words. It opens from the header's "How it works",
    the home page's How it works section, the "?" next to Online / In class, and the Join screen. The numbers come
    from the same settings the rules themselves use (guard.js), so they are always right. */
-import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=a3c4a34d';
-import { LIMITS } from './guard.js?v=a3c4a34d';
-import { ENGINES } from './engines/registry.js?v=a3c4a34d';
-import { RESPOND } from './engines/shared.js?v=a3c4a34d';
+import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=f99d8766';
+import { LIMITS } from './guard.js?v=f99d8766';
+import { ENGINES } from './engines/registry.js?v=f99d8766';
+import { RESPOND } from './engines/shared.js?v=f99d8766';
 
 const SCRIPT = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/;
 const schoolOn = () => SCRIPT.test(String(CONFIG.inbox || ''));
