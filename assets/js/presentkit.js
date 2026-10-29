@@ -8,12 +8,13 @@
      "how pupils respond" pill) by itself, with a count on the pill of how many have answered.
    - A timer, for screens that have none of their own.
    Each present screen calls kit.paint() after it draws a slide, and kit.close() when it closes. */
-import { $, $$, icon } from './core.js?v=ed35fd44';
-import { sfx } from './fx/audio.js?v=ed35fd44';
-import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=ed35fd44';
-import { Live, onLive, pupilsIn, setBoard, boardQuestion, answersFor } from './live/session.js?v=ed35fd44';
-import { openJoin, closeJoin } from './live/panel.js?v=ed35fd44';
-import { closeMoment, infoOf, liveSpec, MOMENTS } from './moments.js?v=ed35fd44';
+import { $, $$, icon } from './core.js?v=73f756c9';
+import { sfx } from './fx/audio.js?v=73f756c9';
+import { timesUp } from './fx/timesup.js?v=73f756c9';
+import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=73f756c9';
+import { Live, onLive, pupilsIn, setBoard, boardQuestion, answersFor } from './live/session.js?v=73f756c9';
+import { openJoin, closeJoin } from './live/panel.js?v=73f756c9';
+import { closeMoment, infoOf, liveSpec, MOMENTS } from './moments.js?v=73f756c9';
 
 const TRAY_COLOURS = [1, 2, 3, 0, 4, 6];          // red, blue, green, black, yellow, white
 const kits = [];
@@ -140,7 +141,7 @@ export function presentKit(o) {
     k.timer.id = setInterval(() => {
       const x = k.timer; if (!x) return;
       x.left -= 1;
-      if (x.left <= 0) { clearInterval(x.id); t.textContent = 'Time’s up'; t.className = 'kit-timer done'; sfx('chime'); k.timer = null; return; }
+      if (x.left <= 0) { clearInterval(x.id); t.textContent = 'Time’s up'; t.className = 'kit-timer done'; timesUp(); k.timer = null; return; }
       t.textContent = fmt(x.left); t.classList.toggle('low', x.left <= 10);
     }, 1000);
   }
@@ -151,6 +152,7 @@ export function presentKit(o) {
       const a = kb.dataset.kit;
       if (a === 'draw') k.setDraw(!k.draw);
       else if (a === 'join') openJoin(root, o.title());
+      else if (a === 'tools') import('./tools/tools.js?v=73f756c9').then((m) => { if (m && m.openToolDock) m.openToolDock(root); }).catch(() => { /* class tools not on this version yet */ });
       else if (a === 'timer') { const m = $('[data-kit-menu]', root); if (m) { m.hidden = !m.hidden; kb.setAttribute('aria-expanded', String(!m.hidden)); } }
       else if (a === 'min') { const m = $('[data-kit-menu]', root); if (m) m.hidden = true; const v = Number(kb.dataset.min); if (v) startTimer(v); else stopTimer(); }
       return;
@@ -185,5 +187,6 @@ export function kitButtons(withTimer) {
   return '<button type="button" class="pbtn" data-kit="draw" aria-pressed="false" title="Draw on the slide (D)">' + icon('pen') + '<span>Draw</span></button>' +
     (withTimer ? '<div style="position:relative"><button type="button" class="pbtn" data-kit="timer" aria-expanded="false" title="Timer">' + icon('clock') + '<span>Timer</span></button>' +
       '<div class="pr-menu" data-kit-menu hidden>' + [1, 2, 3, 5, 10].map((m) => '<button type="button" class="pbtn" data-kit="min" data-min="' + m + '">' + m + (m === 1 ? ' min' : '') + '</button>').join('') + '<button type="button" class="pbtn" data-kit="min" data-min="0">Stop</button></div></div>' : '') +
-    '<button type="button" class="pbtn kit-join" data-kit="join" title="Pupils join on their own device (J)">' + icon('qr') + '<span>Join</span></button>';
+    '<button type="button" class="pbtn kit-join" data-kit="join" title="Pupils join on their own device (J)">' + icon('qr') + '<span>Join</span></button>' +
+    '<button type="button" class="pbtn" data-kit="tools" title="Class tools: timer, pick a name, groups, signs, points">' + icon('vote') + '<span>Tools</span></button>';
 }

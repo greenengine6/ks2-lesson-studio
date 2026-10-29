@@ -15,8 +15,8 @@
    answer in time, that sentence uses the device's voice, so she never goes quiet. Anything that names a pupil from
    the class list always uses the device's voice, so names never leave the device. Teachers choose her voice (a human
    voice, or one of this device's best voices) and her pace in Symphony's panel. */
-import { fracWords } from '../fractions.js?v=ed35fd44';
-import * as Human from './human.js?v=ed35fd44';
+import { fracWords } from '../fractions.js?v=73f756c9';
+import * as Human from './human.js?v=73f756c9';
 
 const OK = typeof window !== 'undefined' && 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 const synth = OK ? window.speechSynthesis : null;

@@ -5,13 +5,15 @@
      typed answers and mini whiteboards wait face down until the teacher reveals them all at once.
    - Without a live lesson, the teacher taps to count hands, reactions or fingers, and the 3-2-1 countdown runs the
      chat waterfall and the "hold it up" moment. */
-import { $, $$, esc, icon, prefs, normAnswer } from './core.js?v=ed35fd44';
-import { sfx } from './fx/audio.js?v=ed35fd44';
-import { Live, onLive, setMoment, updateMoment, endMoment, answersFor, pupilsIn, nameOf } from './live/session.js?v=ed35fd44';
-import { openJoin } from './live/panel.js?v=ed35fd44';
-import { strokesSVG, unpackStrokes } from './draw.js?v=ed35fd44';
+import { $, $$, esc, icon, prefs, normAnswer } from './core.js?v=73f756c9';
+import { sfx } from './fx/audio.js?v=73f756c9';
+import { Live, onLive, setMoment, updateMoment, endMoment, answersFor, pupilsIn, nameOf } from './live/session.js?v=73f756c9';
+import { openJoin } from './live/panel.js?v=73f756c9';
+import { strokesSVG, unpackStrokes } from './draw.js?v=73f756c9';
+import { REACTIONS, reactSVG } from './live/shapes.js?v=73f756c9';
 
-export const REACTS = [['👍', 'Got it'], ['👌', 'Nearly'], ['👎', 'Not yet'], ['❤️', 'Love it'], ['😮', 'Wow'], ['👏', 'Clap']];
+/* Reactions: [id, label] (drawn by live/shapes.js reactSVG, the same pictures as on pupils' devices). */
+export const REACTS = REACTIONS.map((r) => [r[0], r[1]]);
 export const MOMENTS = {
   react: { name: 'Reactions', icon: 'thumb', secs: 20, live: true },
   vote: { name: 'Vote', icon: 'vote', secs: 30, live: true },
@@ -21,8 +23,11 @@ export const MOMENTS = {
   talk: { name: 'Talk time', icon: 'debate', secs: 60, live: true },
   think: { name: 'Think time', icon: 'bulb', secs: 30, live: true },
   listen: { name: 'Listen', icon: 'sound', secs: 60, live: false },
-  move: { name: 'Move', icon: 'bolt', secs: 30, live: false }
+  move: { name: 'Move', icon: 'bolt', secs: 30, live: false },
+  cloud: { name: 'Word cloud', icon: 'chat', secs: 60, live: true },
+  traffic: { name: 'Traffic light', icon: 'target', secs: 30, live: true }
 };
+export const TRAFFIC = [['Stuck', '#D9534A'], ['Nearly', '#E5A21A'], ['Got it', '#2E9E6B']];
 const READY = { talk: 'Pairs ready to share', think: 'Pupils with an idea', listen: '', move: '' };
 const fmt = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 export const presentRoot = () => document.fullscreenElement || $('.present:not([hidden])') || $('.spresent:not([hidden])') || null;
@@ -47,7 +52,10 @@ export function liveSpec(kind, o) {
   const def = MOMENTS[kind];
   if (!def) return null;
   const qs = qsOf(o);
-  return { kind, q: o.q || o.title || def.name, opts: kind === 'vote' ? optsOf(kind, o) : null, qs: qs.length ? qs.map((x) => x.q) : null, live: def.live };
+  // ans: what a right answer looks like, for marking in the class view. It stays on the teacher's screen.
+  const ans = kind === 'vote' && Number.isInteger(o.answer) ? { right: o.answer } : qs.length && qs.some((x) => x.a) ? { qs: qs.map((x) => String(x.a || '')) } : o.a ? { texts: [String(o.a)] } : null;
+  const opts = kind === 'vote' ? optsOf(kind, o) : kind === 'traffic' && Array.isArray(o.opts) && o.opts.length === 3 ? o.opts.slice(0, 3) : null;
+  return Object.assign({ kind, q: o.q || o.title || def.name, opts, qs: qs.length ? qs.map((x) => x.q) : null, live: def.live }, ans ? { ans } : {});
 }
 
 /* ---------------- opening and closing ---------------- */
@@ -66,7 +74,7 @@ export function openMoment(o) {
     '<h2 class="mo-q"></h2><p class="mo-say"></p><div class="mo-body"></div><div class="mo-fx" aria-hidden="true"></div>' +
     '<footer class="mo-foot"><div class="mo-timer" role="timer"><svg viewBox="0 0 36 36" aria-hidden="true"><circle class="trk" cx="18" cy="18" r="15.5"/><circle class="arc" cx="18" cy="18" r="15.5" pathLength="100"/></svg><b></b></div>' +
     '<button type="button" class="pbtn" data-mo="more" title="30 seconds more">+30s</button><button type="button" class="pbtn" data-mo="pause" aria-pressed="false">' + icon('pause') + '<span>Pause</span></button>' +
-    '<span class="mo-sp"></span><span class="mo-count" aria-live="polite"></span><button type="button" class="pbtn" data-mo="join">' + icon('qr') + '<span>Pupils join</span></button>' +
+    '<span class="mo-sp"></span><span class="mo-count" aria-live="polite"></span><button type="button" class="pbtn" data-mo="join">' + icon('qr') + '<span>Pupils join</span></button><button type="button" class="pbtn" data-mo="cv" hidden>' + icon('vote') + '<span>Class view</span></button>' +
     '<button type="button" class="pbtn" data-mo="undo" hidden>' + icon('refresh') + '<span>Undo</span></button><button type="button" class="btn" data-mo="reveal" hidden>' + icon('eye') + 'Reveal</button><button type="button" class="btn primary" data-mo="done">' + icon('check') + 'Done</button></footer></div>';
   host.appendChild(ov);
   M.el = ov;
@@ -100,7 +108,8 @@ function onLiveChange(what) {
   if (what === 'start') { goLive(); paint(); return; }
   if (what === 'end') { M.id = ''; paint(); return; }
   if (what && what.ans && what.ans === M.id) {
-    if (M.kind === 'react') float(REACTS[what.v] ? REACTS[what.v][0] : '👍');
+    if (M.kind === 'react') float(REACTS[what.v] ? what.v : 0);
+    if (M.kind === 'cloud') sfx('pop', 4);
     sfx('pop', 2);
     paint();
     return;
@@ -143,8 +152,9 @@ function paint() {
   M.count = box.size;
   $('.mo-live', el).innerHTML = Live.on ? '<i></i>Live · ' + joined + ' joined' : '';
   $('[data-mo="join"]', el).hidden = Live.on && joined > 0;
+  $('[data-mo="cv"]', el).hidden = !Live.on;
   $('[data-mo="join"] span', el).textContent = Live.on ? 'Show the join code' : 'Pupils join';
-  const canReveal = ['vote', 'chat', 'waterfall', 'show'].includes(M.kind) && (live() || M.kind === 'vote');
+  const canReveal = ['vote', 'chat', 'waterfall', 'show', 'cloud'].includes(M.kind) && (live() || M.kind === 'vote');
   $('[data-mo="reveal"]', el).hidden = !canReveal || M.revealed;
   $('[data-mo="undo"]', el).hidden = !M.log.length;
   $('.mo-count', el).textContent = live() ? box.size + ' of ' + joined + ' answered' : (['react', 'vote'].includes(M.kind) ? 'Tap to count each answer' : '');
@@ -153,12 +163,14 @@ function paint() {
   else if (M.kind === 'vote') body.innerHTML = voteHTML();
   else if (M.kind === 'chat' || M.kind === 'waterfall') body.innerHTML = live() ? wallHTML(box) : waterfallHTML();
   else if (M.kind === 'show') body.innerHTML = live() ? boardsHTML(box) : holdHTML();
+  else if (M.kind === 'cloud') body.innerHTML = cloudHTML(box);
+  else if (M.kind === 'traffic') body.innerHTML = trafficHTML();
   else body.innerHTML = timeHTML(box);
 }
 function reactHTML() {
   const lc = liveCounts(6);
-  const big = REACTS.slice(0, 3).map(([e, n], i) => '<button type="button" class="mo-rx" data-rx="' + i + '"><span class="mo-emo">' + e + '</span><b>' + (M.manual[i] + lc[i]) + '</b><small>' + n + '</small></button>').join('');
-  const fun = REACTS.slice(3).map(([e, n], j) => '<button type="button" class="mo-fun" data-rx="' + (j + 3) + '" aria-label="' + n + '"><span>' + e + '</span><b>' + (M.manual[j + 3] + lc[j + 3]) + '</b></button>').join('');
+  const big = REACTS.slice(0, 3).map(([e, n], i) => '<button type="button" class="mo-rx" data-rx="' + i + '"><span class="mo-emo">' + reactSVG(i, 'mo-rsvg') + '</span><b>' + (M.manual[i] + lc[i]) + '</b><small>' + n + '</small></button>').join('');
+  const fun = REACTS.slice(3).map(([e, n], j) => '<button type="button" class="mo-fun" data-rx="' + (j + 3) + '" aria-label="' + n + '" title="' + n + '"><span>' + reactSVG(j + 3, 'mo-rsvg') + '</span><b>' + (M.manual[j + 3] + lc[j + 3]) + '</b></button>').join('');
   return '<div class="mo-rxs">' + big + '</div><div class="mo-funs">' + fun + '</div>';
 }
 function voteHTML() {
@@ -213,6 +225,24 @@ function boardsHTML(box) {
     return '<li><button type="button" class="mo-tile' + (M.revealed ? ' open' : '') + '" data-zoom="' + esc(p.pid) + '"' + (M.revealed ? '' : ' disabled') + '>' + (M.revealed ? strokesSVG(unpackStrokes(a.v.d), a.v.a, p.name + '’s board') : '<span>' + icon('check') + 'Sent</span>') + '</button><b>' + esc(p.name) + '</b></li>';
   }).join('') + '</ul>';
 }
+/* A word cloud: one word from each pupil, bigger the more pupils chose it. Names never show. */
+const CLOUD_COLOURS = ['#4F46E5', '#C7356F', '#1F7A75', '#C2581A', '#8B44C2', '#2B76C6', '#2E7D4F', '#B42318'];
+function cloudHTML(box) {
+  if (!live()) return '<div class="mo-wf"><p class="mo-big">' + icon('chat') + '<span>' + (prefs.mode === 'online' ? 'Type one word in the chat.' : 'Think of one word. Get ready to say it.') + '</span></p><p class="fine">Start a live lesson so each pupil sends one word from their own device and the cloud builds here by itself.</p></div>';
+  const count = new Map();
+  box.forEach((a) => { const w = String(a.v || '').trim().toLowerCase(); if (w) count.set(w, (count.get(w) || 0) + 1); });
+  if (!count.size) return '<p class="mo-note">' + icon('chat') + '<span>Waiting for the first words…</span></p>';
+  const words = Array.from(count.entries()).sort((a, b) => b[1] - a[1]).slice(0, 40), max = words[0][1];
+  const hide = M.hideCloud && !M.revealed;
+  return '<div class="mo-cloud' + (hide ? ' hidden-words' : '') + '" aria-label="Word cloud">' + words.map(([w, n], i) => {
+    const size = 1 + (n / max) * 2.2;
+    return '<span style="--s:' + size.toFixed(2) + ';--c:' + CLOUD_COLOURS[i % CLOUD_COLOURS.length] + ';--r:' + (((i * 37) % 11) - 5) + 'deg" title="' + n + (n === 1 ? ' pupil' : ' pupils') + '">' + esc(w) + (n > 1 ? '<sup>' + n + '</sup>' : '') + '</span>';
+  }).join('') + '</div>';
+}
+function trafficHTML() {
+  const lc = liveCounts(3), labels = Array.isArray(M.o.opts) && M.o.opts.length === 3 ? M.o.opts : TRAFFIC.map((x) => x[0]);
+  return '<div class="mo-lights">' + TRAFFIC.map((t, i) => '<button type="button" class="mo-light" data-rx="' + i + '" style="--c:' + t[1] + '"><span class="mo-lamp"></span><b>' + (M.manual[i] + lc[i]) + '</b><small>' + esc(labels[i]) + '</small></button>').join('') + '</div>';
+}
 function timeHTML(box) {
   const say = { talk: prefs.mode === 'online' ? 'Unmute and share with your partner, or talk in your breakout room.' : 'Turn and talk to your partner.', think: 'Think quietly first. No hands up yet.', listen: 'Close your eyes and listen.', move: prefs.mode === 'online' ? 'Stand up if you can!' : 'Stand up behind your chair!' }[M.kind] || '';
   const n = live() ? box.size : 0;
@@ -220,10 +250,10 @@ function timeHTML(box) {
 }
 
 /* ---------------- floating reactions ---------------- */
-function float(e) {
+function float(i) {
   if (!M) return;
   const fx = $('.mo-fx', M.el), s = document.createElement('span');
-  s.textContent = e;
+  s.innerHTML = reactSVG(Number(i) || 0, 'mo-rsvg');
   s.style.left = (8 + Math.random() * 84) + '%';
   s.style.setProperty('--d', (2.2 + Math.random() * 1.2).toFixed(2) + 's');
   s.style.setProperty('--x', ((Math.random() - 0.5) * 120).toFixed(0) + 'px');
@@ -253,7 +283,7 @@ function countdown(after) {
 function onClick(e) {
   if (!M) return;
   const rx = e.target.closest('[data-rx]');
-  if (rx) { const i = Number(rx.dataset.rx); M.manual[i] += 1; M.log.push(i); float(REACTS[i][0]); sfx('pop', i % 5); paint(); return; }
+  if (rx) { const i = Number(rx.dataset.rx); M.manual[i] += 1; M.log.push(i); if (M.kind === 'react') float(i); sfx('pop', i % 5); paint(); return; }
   const v = e.target.closest('[data-vote]');
   if (v) { if (live() && !M.revealed) return; const i = Number(v.dataset.vote); M.manual[i] += 1; M.log.push(i); sfx('pop', i); paint(); return; }
   const z = e.target.closest('[data-zoom]');
@@ -268,6 +298,7 @@ function onClick(e) {
   else if (a === 'reveal') { M.revealed = true; sfx('success'); if (M.id) updateMoment({ rv: M.kind === 'vote' && Number.isInteger(M.o.answer) ? { right: M.o.answer } : { all: 1 } }); paint(); }
   else if (a === 'unzoom') { M.big = ''; paint(); }
   else if (a === 'join') openJoin(M.host === document.body ? (presentRoot() || document.body) : M.host, M.o.lesson || M.o.title || '');
+  else if (a === 'cv') import('./live/classview.js?v=73f756c9').then((m) => m.openClassView({ host: M ? (M.host === document.body ? (presentRoot() || document.body) : M.host) : document.body })).catch(() => {});
   else if (a === 'go') countdown(M.kind === 'show' ? (prefs.mode === 'online' ? 'Hold it up to the camera!' : 'Show me!') : 'Go! Press Enter!');
 }
 function onKey(e) {
@@ -278,7 +309,7 @@ function onKey(e) {
   else if (k === ' ') { e.preventDefault(); e.stopPropagation(); M.paused = !M.paused; paintTimer(); }
   else if ((k === 'r' || k === 'R') && !$('[data-mo="reveal"]', M.el).hidden) { e.preventDefault(); e.stopPropagation(); $('[data-mo="reveal"]', M.el).click(); }
   else if (/^[1-6]$/.test(k)) {
-    const i = Number(k) - 1, t = M.kind === 'react' ? $('[data-rx="' + i + '"]', M.el) : M.kind === 'vote' ? $('[data-vote="' + i + '"]', M.el) : null;
+    const i = Number(k) - 1, t = M.kind === 'react' || M.kind === 'traffic' ? $('[data-rx="' + i + '"]', M.el) : M.kind === 'vote' ? $('[data-vote="' + i + '"]', M.el) : null;
     if (t) { e.preventDefault(); e.stopPropagation(); t.click(); }
   } else if (['ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown'].includes(k)) e.stopPropagation();
 }

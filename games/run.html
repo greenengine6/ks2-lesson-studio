@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; frame-src 'none'; child-src 'none'; worker-src 'none'; manifest-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<title>Game</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101828;color:#F5F7FC;font:18px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#fff}
+.msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px}
+.msg b{display:block;font-size:22px;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div class="msg" id="msg"><div><b>Getting the game ready…</b></div></div>
+<script>
+/* The locked box for custom games (the KS2 Lesson Engine's game maker).
+   This page runs in a sandboxed frame without allow-same-origin, so it has no origin of its own: it cannot read the
+   site's storage, keys or anything else. Its security policy (above) blocks every network request, every font,
+   picture or script from anywhere, forms, workers and frames that load web addresses. The game itself runs in a
+   second sandboxed frame made from text (srcdoc), which keeps this policy. All that comes back is the score.
+   If the game tries to load another page, it is stopped. */
+(function () {
+  'use strict';
+  var frame = null, loads = 0;
+  var msg = document.getElementById('msg');
+  function say(title, text) {
+    msg.innerHTML = '';
+    var d = document.createElement('div'), b = document.createElement('b'), s = document.createElement('span');
+    b.textContent = title; s.textContent = text || '';
+    d.appendChild(b); d.appendChild(s); msg.appendChild(d);
+    msg.hidden = false;
+  }
+  function clear() { if (frame) { frame.remove(); frame = null; } }
+  function run(html) {
+    clear();
+    loads = 0;
+    frame = document.createElement('iframe');
+    frame.setAttribute('sandbox', 'allow-scripts');
+    frame.setAttribute('title', 'Game');
+    frame.setAttribute('referrerpolicy', 'no-referrer');
+    frame.addEventListener('load', function () {
+      loads += 1;
+      if (loads === 1) { msg.hidden = true; return; }
+      // a second load means the game tried to go somewhere else: stop it
+      clear();
+      say('This game tried to open another page, so it was stopped.', 'Ask Symphony to make it again.');
+      window.parent.postMessage({ type: 'kg-left' }, '*');
+    });
+    frame.srcdoc = html;
+    document.body.appendChild(frame);
+  }
+  window.addEventListener('message', function (e) {
+    var d = e.data;
+    if (!d || typeof d !== 'object') return;
+    if (e.source === window.parent) {
+      if (d.type === 'run' && typeof d.html === 'string' && d.html.length > 100 && d.html.length < 200000) run(d.html);
+      else if (d.type === 'stop') { clear(); say('Game stopped.'); }
+      return;
+    }
+    if (frame && e.source === frame.contentWindow && d.type === 'score') {
+      var s = Number(d.score);
+      if (!isFinite(s)) return;
+      window.parent.postMessage({ type: 'kg-score', score: Math.max(-1000000, Math.min(1000000, Math.round(s))), done: d.done === true }, '*');
+    }
+  });
+  window.parent.postMessage({ type: 'kg-ready' }, '*');
+})();
+</script>
+</body>
+</html>

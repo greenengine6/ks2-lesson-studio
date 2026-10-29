@@ -3,23 +3,24 @@
    the curriculum with checked codes. Slides change in plain English with undo; a unit planner sequences up to 25
    lessons with recaps and assessments; packs open instantly from this device; PowerPoint and Word downloads.
    Every engine button goes through the shared guard (guard.js). */
-import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=ed35fd44';
-import { track } from '../track.js?v=ed35fd44';
-import { sfx } from '../fx/audio.js?v=ed35fd44';
-import { Voice } from '../fx/voice.js?v=ed35fd44';
-import { evAll } from '../idb.js?v=ed35fd44';
-import { moodOf } from '../report.js?v=ed35fd44';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=ed35fd44';
-import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=ed35fd44';
-import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=ed35fd44';
-import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=ed35fd44';
-import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=ed35fd44';
-import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=ed35fd44';
-import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=ed35fd44';
-import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=ed35fd44';
-import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=ed35fd44';
-import EXAMPLE from './example.js?v=ed35fd44';
-import { presentKit, kitButtons } from '../presentkit.js?v=ed35fd44';
+import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=73f756c9';
+import { track } from '../track.js?v=73f756c9';
+import { sfx } from '../fx/audio.js?v=73f756c9';
+import { Voice } from '../fx/voice.js?v=73f756c9';
+import { evAll } from '../idb.js?v=73f756c9';
+import { moodOf } from '../report.js?v=73f756c9';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=73f756c9';
+import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=73f756c9';
+import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=73f756c9';
+import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=73f756c9';
+import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=73f756c9';
+import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=73f756c9';
+import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=73f756c9';
+import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=73f756c9';
+import { takeMaking } from '../library.js?v=73f756c9';
+import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=73f756c9';
+import EXAMPLE from './example.js?v=73f756c9';
+import { presentKit, kitButtons } from '../presentkit.js?v=73f756c9';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', UNITS = 'ks2-engine.lkie.units.v1', RULES = 'ks2-engine.lkie.rules.v1', THEME = 'ks2-engine.lkie.theme.v1', FORM = 'ks2-engine.lkie.form.v1';
 const YEARS = ['Year 3', 'Year 4', 'Year 5', 'Year 6'];
@@ -71,7 +72,7 @@ function writePacks(list) {
   memPacks = list;
   for (let l = list.slice(); l.length; l.pop()) { try { localStorage.setItem(PACKS, JSON.stringify(l)); return; } catch (e) { /* full: drop the oldest and try again */ } }
 }
-function savePack(p) { if (isExample(p)) return; writePacks([p].concat(loadPacks().filter((x) => x.id !== p.id)).slice(0, 15)); bus.emit('shelf'); if (S.view) renderRecent(); }
+function savePack(p) { if (isExample(p)) return; writePacks([p].concat(loadPacks().filter((x) => x.id !== p.id)).slice(0, 60)); bus.emit('shelf'); if (S.view) renderRecent(); }
 /* The teacher's own pictures live in this browser; a deleted pack takes its pictures with it (unless another pack uses them). */
 function uploadsIn(p) {
   const ids = [], add = (pic) => { if (pic && pic.up) ids.push(pic.up); };
@@ -124,7 +125,7 @@ function pageHTML() {
     '<div class="actions" id="lk-actions"><button type="button" class="btn primary" data-lk="present">' + icon('play') + 'Present</button><button type="button" class="btn" data-lk="ppt">' + icon('download') + '<span>PowerPoint</span></button>' +
     '<button type="button" class="btn" data-lk="word">' + icon('notes') + '<span>Worksheet (Word)</span></button><button type="button" class="btn" data-lk="brief">' + icon('volume') + '<span>Listen</span></button>' +
     '<button type="button" class="btn" data-lk="looks" aria-expanded="false" aria-controls="lk-drawer">' + icon('palette') + '<span>Background</span></button><button type="button" class="btn" data-lk="pics" aria-expanded="false" aria-controls="lk-drawer">' + icon('image') + '<span>Pictures</span></button>' +
-    '<button type="button" class="btn" data-lk="keep" aria-pressed="false">' + icon('pin') + '<span>Keep on dashboard</span></button></div>' +
+    '<button type="button" class="btn" data-lk="keep" aria-pressed="false">' + icon('pin') + '<span>Keep on Today</span></button></div>' +
     '<div class="lk-drawer" id="lk-drawer" hidden></div>' +
     '<div class="seg lk-tabs" role="tablist" aria-label="Pack views">' + [['slides', 'Slides'], ['vocab', 'Key words'], ['acts', 'Activities'], ['sheet', 'Worksheet'], ['notes', 'Teacher notes']].map(([k, l]) => '<button type="button" role="tab" data-lk-tab="' + k + '">' + l + '</button>').join('') + '</div>' +
     '<div id="lk-panel" role="tabpanel"></div>' +
@@ -489,7 +490,7 @@ function drawerHTML(p) {
     const n = p.slides.filter((s) => safePic(s.pic)).length, v = p.slides.filter((s) => safeVideo(s.video)).length;
     return head('image', 'Pictures and videos') + '<p class="lk-count">' + (n ? n + ' slide' + (n === 1 ? ' has' : 's have') + ' a picture' : 'No pictures yet') + (v ? ' · ' + v + ' video' + (v === 1 ? '' : 's') : '') + '.</p>' +
       '<div class="lk-row"><button type="button" class="btn small primary" data-lk="autopics"' + (S.auto ? ' disabled' : '') + '>' + icon('wand') + (S.auto ? 'Finding pictures…' : 'Add pictures for me') + '</button>' + (n ? '<button type="button" class="btn small" data-lk="nopics">' + icon('trash') + 'Remove all pictures</button>' : '') + '</div>' +
-      '<p class="fine">“Add pictures for me” picks a free Wikipedia picture for up to 5 slides without a diagram: the title, hook, new learning, talk and plenary. Check each one before you present. To choose your own, tap a slide, then Picture.</p>';
+      '<p class="fine">“Add pictures for me” picks a free Wikipedia picture for every slide without a diagram. Check each one before you present. To choose your own, tap a slide, then Picture.</p>';
   }
   return '';
 }
@@ -497,7 +498,7 @@ function paintActions(p, live) {
   const bar = $('#lk-actions', S.view), dr = $('#lk-drawer', S.view);
   if (!bar || !dr) return;
   const ex = isExample(p), keep = $('[data-lk="keep"]', bar), on = !ex && isPinned('lkie', p.id);
-  keep.hidden = ex || live; keep.setAttribute('aria-pressed', String(on)); $('span', keep).textContent = on ? 'On your dashboard' : 'Keep on dashboard';
+  keep.hidden = ex || live; keep.setAttribute('aria-pressed', String(on)); $('span', keep).textContent = on ? 'Kept on Today' : 'Keep on Today';
   $('[data-lk="looks"]', bar).setAttribute('aria-expanded', String(S.drawer === 'looks'));
   $('[data-lk="pics"]', bar).setAttribute('aria-expanded', String(S.drawer === 'pics'));
   const h = live ? '' : drawerHTML(p);
@@ -673,17 +674,20 @@ function saveText(form) {
 }
 /* Up to five pictures for a new pack, chosen from the engine's Wikipedia titles and search words. Slides with a
    diagram keep the diagram alone. The pack opens first; pictures appear one by one. */
-const AUTO = ['title', 'hook', 'concept', 'talk', 'plenary'];
+/* Every kind of slide gets a matching picture unless it has a diagram (exact teaching content) or a video. Busy slides
+   (questions, tiers, options) give the picture less room (lkie.css), so the words stay big. */
+const AUTO = ['title', 'recap', 'hook', 'vocab', 'concept', 'guided', 'check', 'independent', 'talk', 'plenary', 'exit'];
 async function autoPictures(p, manual) {
   if (!p || S.auto) return;
   const used = new Set(p.slides.map((s) => s.pic && s.pic.file).filter(Boolean));
-  const want = p.slides.filter((s) => AUTO.includes(s.layout) && !s.diagram && !s.pic && !s.video).slice(0, 5);
+  const want = p.slides.filter((s) => AUTO.includes(s.layout) && !s.diagram && !s.pic && !s.video && !s.noPic).slice(0, 16);
   if (!want.length) { if (manual) toast('The slides that suit a picture already have one, or a diagram.'); return; }
   S.auto = p.id; if (S.pack === p) paintActions(p, false);
   let n = 0;
   for (const s of want) {
     const m = s.media || {};
-    const pic = await findPicture({ wiki: m.wiki, terms: m.image, also: s.layout === 'title' ? p.input.topic : '', avoid: used }).catch(() => null);
+    const terms = m.image || (s.layout === 'title' ? '' : [s.title, p.input.topic].filter(Boolean).join(' '));
+    const pic = await findPicture({ wiki: m.wiki, terms, also: s.layout === 'title' || !m.wiki ? p.input.topic : '', avoid: used }).catch(() => null);
     const i = p.slides.indexOf(s);
     if (!pic || i < 0 || s.pic) continue;
     used.add(pic.file);
@@ -1085,7 +1089,7 @@ function wire() {
     else if (a === 'plook-find') { if (S.ptarget === 'pack') { S.ptarget = ''; S.pres = null; paintActions(S.pack, false); } else picSearch(S.pack.input.topic, 'pack'); }
     else if (a === 'autopics') autoPictures(S.pack, true);
     else if (a === 'nopics') { packOp({ slides: S.pack.slides.map((x) => { const n = clone(x); delete n.pic; return n; }) }); renderPack(); toast('All pictures removed. Undo brings them back.'); }
-    else if (a === 'keep' && !isExample(S.pack)) { const on = togglePin('lkie', S.pack.id); paintActions(S.pack, false); toast(on ? 'Kept on your dashboard, with a picture of the topic.' : 'Taken off your dashboard.'); }
+    else if (a === 'keep' && !isExample(S.pack)) { const on = togglePin('lkie', S.pack.id); paintActions(S.pack, false); toast(on ? 'Kept on Today, with a picture of the topic.' : 'Taken off Today.'); }
   });
   $('#lk-pack', v).addEventListener('change', (e) => {
     const t = e.target;
@@ -1122,6 +1126,22 @@ function wire() {
 }
 
 /* ---------------- start ---------------- */
+/* Today, the calendar or a subject page asked for a lesson on a topic: fill in the year, subject and topic, then wait
+   for the teacher's own press of Make (the engine guard only counts real presses). */
+function takePrefill() {
+  const m = takeMaking('slides');
+  if (!m || !S.view) return;
+  const year = YEARS.includes(m.year) ? m.year : '', subj = SUBJECT_BY_ID[m.subject] ? m.subject : '';
+  if (year) $$('#lk-year .pill', S.view).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === year)));
+  if (subj) $('#lk-subject', S.view).value = subj;
+  if (m.topic) $('#lk-topic', S.view).value = String(m.topic).slice(0, 160);
+  paintTry(); updateMatch(); saveForm();
+  notice(m.topic ? 'Ready to make “' + String(m.topic).slice(0, 80) + '”. Check the year and subject, then press Make my lesson pack.' : 'Type the topic, then press Make my lesson pack.');
+  requestAnimationFrame(() => {
+    const f = $('#lk-form', S.view); if (f) f.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    const go = m.topic ? $('#lk-go', S.view) : $('#lk-topic', S.view); if (go) go.focus({ preventScroll: true });
+  });
+}
 export function mountLkie(view) {
   if (S.view) { enterLkie(); return; }
   S.view = view;
@@ -1132,6 +1152,7 @@ export function mountLkie(view) {
   const units = loadUnits(); S.unit = units[0] || null; renderUnit();
   guardButtons();
   openFromShelf();
+  takePrefill();
   autoPictures(EX);
 }
 /* The dashboard asked for one of the saved packs. */
@@ -1141,5 +1162,5 @@ function openFromShelf() {
   openPack(p, 'saved');
   requestAnimationFrame(() => { const el = $('#lk-pack', S.view); if (el && window.matchMedia('(max-width: 1060px)').matches) el.scrollIntoView({ block: 'start' }); });
 }
-export function enterLkie() { repaint(); refit(); renderRecent(); openFromShelf(); if (S.pack) paintActions(S.pack, !!S.live); }
+export function enterLkie() { repaint(); refit(); renderRecent(); openFromShelf(); takePrefill(); if (S.pack) paintActions(S.pack, !!S.live); }
 export const lkiePresentInfo = () => (S.pr.open ? { eng: 'lkie', title: S.pack.title } : null);

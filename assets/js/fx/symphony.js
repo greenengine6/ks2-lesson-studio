@@ -2,7 +2,7 @@
    WebGL shader, and a friendly face in glowing white lines: curved brows, eyes with lashes, rosy cheeks, a smile and a
    little music-note hair clip (she is named Symphony for her musical voice). Eyes follow the pointer, she blinks,
    and she reacts to what the teacher is doing (listen, think, happy, speak, breathe). Click her to hear who she is. */
-import { bus } from '../core.js?v=ed35fd44';
+import { bus } from '../core.js?v=73f756c9';
 
 const VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }';
 const FS = `

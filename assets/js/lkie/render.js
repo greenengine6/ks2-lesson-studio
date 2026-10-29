@@ -1,11 +1,11 @@
 /* lkie.like drawing: slides (with diagrams drawn exactly from the numbers), key words, activities, the worksheet in
    three tiers, and the teacher notes. Everything is plain HTML and SVG, so it works offline and on old laptops. */
-import { esc, icon, normAnswer } from '../core.js?v=ed35fd44';
-import { fractify } from '../fractions.js?v=ed35fd44';
-import { TIERS, totalMinutes, sheetBalance } from './model.js?v=ed35fd44';
-import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=ed35fd44';
-import { picURL, creditText, ytThumb, safePic, safeVideo } from '../pics.js?v=ed35fd44';
-import { lookInfo, lookFor } from './looks.js?v=ed35fd44';
+import { esc, icon, normAnswer } from '../core.js?v=73f756c9';
+import { fractify } from '../fractions.js?v=73f756c9';
+import { TIERS, totalMinutes, sheetBalance } from './model.js?v=73f756c9';
+import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=73f756c9';
+import { picURL, creditText, ytThumb, safePic, safeVideo } from '../pics.js?v=73f756c9';
+import { lookInfo, lookFor } from './looks.js?v=73f756c9';
 
 /* ---------------- slide kinds ---------------- */
 export const KIND = {
@@ -180,7 +180,8 @@ function bodyHTML(p, s, rv, tone, present) {
   const vis = visHTML(s, tone, present), split = (inner) => (vis ? '<div class="lk-split">' + inner + vis + '</div>' : inner);
   switch (s.layout) {
     case 'title': {
-      const sc = p.successCriteria.length ? '<div class="t-sc"><span>Success criteria</span><ul>' + p.successCriteria.map((c) => '<li><i class="box"></i><span>' + esc(c) + '</span></li>').join('') + '</ul></div>' : '';
+      const crit = Array.isArray(p.successCriteria) ? p.successCriteria : [];
+      const sc = crit.length ? '<div class="t-sc"><span>Success criteria</span><ul>' + crit.map((c) => '<li><i class="box"></i><span>' + esc(c) + '</span></li>').join('') + '</ul></div>' : '';
       const t = '<div class="t-wrap"><p class="t-eyebrow">' + esc(p.input.year) + ' · ' + esc(p.input.subjectName) + '</p><h3 class="t-title">' + esc(p.title) + '</h3>' +
         (p.objective ? '<p class="t-obj"><b>We are learning to</b> ' + esc(learnText(p.objective)) + '</p>' : '') + sc + (p.bigQuestion ? '<p class="lk-bq">' + icon('spark') + '<span>' + esc(p.bigQuestion) + '</span></p>' : '') + '</div>';
       return vis ? '<div class="lk-split lk-tsplit">' + t + vis + '</div>' : t;

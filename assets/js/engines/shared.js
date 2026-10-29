@@ -1,12 +1,15 @@
 /* The engine framework: every engine is a small definition (fields, prompt, normaliser, class screens, notes).
    This file renders the engine page, talks to Claude, keeps saved activities, and runs Present mode. */
-import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=ed35fd44';
-import { Ribbons } from '../fx/ribbons.js?v=ed35fd44';
-import { sfx } from '../fx/audio.js?v=ed35fd44';
-import { Ambient, Speech } from '../fx/sound.js?v=ed35fd44';
-import { track } from '../track.js?v=ed35fd44';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=ed35fd44';
-import { presentKit } from '../presentkit.js?v=ed35fd44';
+import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=73f756c9';
+import { Ribbons } from '../fx/ribbons.js?v=73f756c9';
+import { sfx } from '../fx/audio.js?v=73f756c9';
+import { Ambient, Speech } from '../fx/sound.js?v=73f756c9';
+import { track } from '../track.js?v=73f756c9';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=73f756c9';
+import { presentKit } from '../presentkit.js?v=73f756c9';
+import { coverFor, picURL, creditText } from '../pics.js?v=73f756c9';
+import { timesUp } from '../fx/timesup.js?v=73f756c9';
+const ENG_OPEN = 'ks2-engine.eng.open';          // library.js: open this saved activity
 
 /* ---------------- how pupils respond (online or in class) ---------------- */
 export const RESPOND = {
@@ -83,7 +86,15 @@ function putSaved(id, item) {
   const all = loadSaved();
   const list = (Array.isArray(all[id]) ? all[id] : []).filter((x) => x && x.id !== item.id);
   list.unshift(item);
-  all[id] = list.slice(0, 8);
+  all[id] = list.slice(0, 25);
+  // if the browser's storage is full, drop the oldest activities (across all starters) until it fits
+  for (let tries = 0; tries < 40; tries++) {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(all)); return; } catch (e) { /* full */ }
+    let oldest = null;
+    Object.keys(all).forEach((k) => { const l = all[k]; if (Array.isArray(l) && l.length > 1) { const x = l[l.length - 1]; if (!oldest || (x.at || 0) < (oldest.x.at || 0)) oldest = { k, x }; } });
+    if (!oldest) break;
+    all[oldest.k] = all[oldest.k].slice(0, -1);
+  }
   store.setJSON(SAVE_KEY, all);
 }
 function dropSaved(id, itemId) { const all = loadSaved(); all[id] = (all[id] || []).filter((x) => x.id !== itemId); store.setJSON(SAVE_KEY, all); }
@@ -108,7 +119,10 @@ function say(html, state) {
 export function renderEngine(view, eng) {
   if (page && page.busy) page.busy.abort();
   const saved = savedFor(eng.id);
-  const startInput = Object.assign(defaults(eng), saved[0] ? saved[0].input : eng.example.input);
+  let ask = '';
+  try { ask = sessionStorage.getItem(ENG_OPEN) || ''; sessionStorage.removeItem(ENG_OPEN); } catch (e) { ask = ''; }      // My subjects asked for one of them
+  const asked = ask ? saved.find((x) => x.id === ask) : null;
+  const startInput = Object.assign(defaults(eng), asked ? asked.input : saved[0] ? saved[0].input : eng.example.input);
   view.style.setProperty('--c', 'var(--' + eng.color + ')');
   view.innerHTML = '<div class="wrap">' +
     '<header class="eng-head"><div class="eng-ico"><i>' + icon(eng.icon) + '</i></div><div><p class="kicker">' + esc(eng.kicker) + '</p><h1>' + esc(eng.name) + '</h1><p>' + esc(eng.about) + '</p>' +
@@ -133,7 +147,7 @@ export function renderEngine(view, eng) {
     idle: 'Takes about a minute. Saved in this browser only. After each one this button rests for ' + LIMITS.restMin + ' minutes.'
   });
   renderSavedList();
-  const first = saved[0] ? Object.assign({ example: false }, saved[0]) : exampleItem(eng);
+  const first = asked ? Object.assign({ example: false }, asked) : saved[0] ? Object.assign({ example: false }, saved[0]) : exampleItem(eng);
   showItem(first);
 }
 function exampleItem(eng) { return { id: 'example-' + eng.id, at: 0, input: eng.example.input, data: eng.normalize(eng.example.data, eng.example.input) || eng.example.data, example: true }; }
@@ -316,7 +330,27 @@ export function mountScreen(board, eng, item, i, o) {
   const ctx = Object.assign({ eng, item, data: item.data, state: liveState(item), mode: prefs.mode, present: false, still: false, index: i, count: screens.length,
     go: (j) => { if (o && o.go) o.go(j); else if (page && page.item === item) { page.screen = j; paintPreview(); } } }, o || {});
   try { s.render(board, ctx); } catch (e) { console.error(e); board.innerHTML = '<div class="b-pad b-center"><p>This screen could not be shown.</p></div>'; }
+  if (i === 0 && TOPIC_PIC.has(eng.id) && !ctx.still) topicPicture(board, eng, item);
   return ctx;
+}
+/* A real photo of the topic beside the first screen's title, where a photo helps (a reading text, a science case,
+   a news story). The other starters draw their own pictures, and Sound Journey keeps its place a surprise. */
+const TOPIC_PIC = new Set(['reading', 'science', 'debate']);
+function topicPicture(board, eng, item) {
+  let topic = '';
+  try { topic = eng.id === 'debate' ? eng.title(item.data) : str(item.input && item.input.topic) || eng.title(item.data); } catch (e) { topic = ''; }
+  if (!topic) return;
+  coverFor(topic).then((pic) => {
+    const src = pic ? picURL(pic, '500') : '';
+    const title = board.isConnected && board.querySelector('.b-title');
+    if (!src || !title || board.querySelector('.b-topic')) return;
+    const row = document.createElement('div');
+    row.className = 'b-trow';
+    title.parentNode.insertBefore(row, title);
+    row.appendChild(title);
+    const cr = creditText(pic, true);
+    row.insertAdjacentHTML('beforeend', '<figure class="b-topic"><img src="' + esc(src) + '" alt="' + esc(pic.alt || topic) + '" decoding="async">' + (cr ? '<figcaption>' + esc(cr) + '</figcaption>' : '') + '</figure>');
+  }).catch(() => { /* no picture: the screen is complete without it */ });
 }
 
 export function notesHTML(sections) {
@@ -417,7 +451,7 @@ function startTimer(min) {
   P.timer.id = setInterval(() => {
     const t = P.timer; if (!t) return;
     t.left -= 1;
-    if (t.left <= 0) { clearInterval(t.id); el.textContent = "Time's up"; el.className = 'pr-timer done'; chime(); P.timer = null; return; }
+    if (t.left <= 0) { clearInterval(t.id); el.textContent = "Time's up"; el.className = 'pr-timer done'; timesUp(); P.timer = null; return; }
     el.textContent = fmt(t.left);
     el.classList.toggle('low', t.left <= 10);
   }, 1000);

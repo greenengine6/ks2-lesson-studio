@@ -1,13 +1,14 @@
-/* The dashboard shelf on the home page: the lessons made on this device (lkie.like packs and Slide Studio lessons),
-   each with its topic and a picture of the topic. "Keep on dashboard" pins a lesson to the front of the shelf.
-   Covers: the lesson's own title picture, or the best Wikipedia picture for its topic. */
-import { $, esc, icon, store, bus } from './core.js?v=ed35fd44';
-import { who } from './people.js?v=ed35fd44';
-import { coverFor, picURL, safePic, hydrate } from './pics.js?v=ed35fd44';
+/* Kept on Today: the lessons a teacher keeps at hand (lkie.like packs and Slide Studio lessons, pinned with "Keep on
+   Today"), each with its topic and a picture of the topic, on the Today page. Covers: the lesson's own title picture,
+   or the best Wikipedia picture for its topic. The shelf draws wherever a page puts #shelf (data-only="pinned" shows
+   the kept ones only). */
+import { $, esc, icon, store, bus } from './core.js?v=73f756c9';
+import { who } from './people.js?v=73f756c9';
+import { coverFor, picURL, safePic, hydrate } from './pics.js?v=73f756c9';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', DECKS = 'ks2-lesson-studio.recent.v1', PINS = 'ks2-engine.shelf.pins.v1';
 export const OPEN_KEY = { lkie: 'ks2-engine.lkie.open', slides: 'ks2-engine.slides.open' };
-const KINDS = { lkie: { name: 'lkie.like', icon: 'pack', c: 'heart', hash: '#/lkie' }, slides: { name: 'Slide Studio', icon: 'slides', c: 'violet', hash: '#/slides' } };
+const KINDS = { lkie: { name: 'Lesson slides', icon: 'pack', c: 'heart', hash: '#/lkie' }, slides: { name: 'Two-way slides', icon: 'slides', c: 'violet', hash: '#/slides' } };
 const SHOW = 8;
 
 function pins() {
@@ -47,12 +48,13 @@ function cardHTML(it) {
     '<span class="sh-cover"><span class="sh-ph" aria-hidden="true">' + icon(K.icon) + '<b>' + esc(it.subject || K.name) + '</b></span>' + img + '</span>' +
     '<span class="sh-body"><span class="sh-kind">' + esc(K.name) + (it.year ? ' · ' + esc(it.year) : '') + (it.subject ? ' · ' + esc(it.subject) : '') + '</span><b class="sh-title">' + esc(it.title) + '</b>' +
     '<span class="sh-meta">' + it.n + ' slides' + (it.at ? ' · ' + day(it.at) : '') + '</span></span></button>' +
-    '<button type="button" class="sh-pin" data-sh-pin="' + esc(key) + '" aria-pressed="' + it.pin + '" aria-label="' + (it.pin ? 'Kept on the dashboard. Tap to unpin ' : 'Keep on the dashboard: ') + esc(it.title) + '" title="' + (it.pin ? 'Kept on the dashboard' : 'Keep on the dashboard') + '">' + icon('pin') + '</button></article>';
+    '<button type="button" class="sh-pin" data-sh-pin="' + esc(key) + '" aria-pressed="' + it.pin + '" aria-label="' + (it.pin ? 'Kept on Today. Tap to take off ' : 'Keep on Today: ') + esc(it.title) + '" title="' + (it.pin ? 'Kept on Today' : 'Keep on Today') + '">' + icon('pin') + '</button></article>';
 }
 export function renderShelf() {
   const sec = $('#shelf'), grid = $('#shelf-grid');
   if (!sec || !grid) return;
-  const list = who.role ? items() : [];
+  let list = who.role ? items() : [];
+  if (sec.dataset.only === 'pinned') list = list.filter((it) => it.pin);
   sec.hidden = !list.length;
   if (!list.length) { grid.innerHTML = ''; return; }
   const show = list.slice(0, SHOW), more = list.length - show.length;
@@ -70,9 +72,8 @@ export function renderShelf() {
   });
 }
 export function initShelf() {
-  const sec = $('#shelf');
-  if (!sec) return;
-  sec.addEventListener('click', (e) => {
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest || !e.target.closest('#shelf')) return;
     const o = e.target.closest('[data-sh-open]'), p = e.target.closest('[data-sh-pin]');
     if (p) { const [k, ...rest] = p.dataset.shPin.split(':'); togglePin(k, rest.join(':')); return; }
     if (o) {

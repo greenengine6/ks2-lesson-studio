@@ -5,11 +5,11 @@
    live lesson stops it on every pupil's device.
    The header's Live button (wireLiveChip) shows a live lesson that is still running when Present mode is closed,
    or one running on another screen, so it can always be found and ended. */
-import { $, esc, icon, toast, copyOut, bus } from '../core.js?v=ed35fd44';
-import { sfx } from '../fx/audio.js?v=ed35fd44';
-import { Live, startLive, endLive, setLock, kick, onLive, joinShort, pupilsIn, setAuto, reconnect } from './session.js?v=ed35fd44';
-import { blocker, endElsewhere } from '../activity.js?v=ed35fd44';
-import { qrSVG } from './qr.js?v=ed35fd44';
+import { $, esc, icon, toast, copyOut, bus } from '../core.js?v=73f756c9';
+import { sfx } from '../fx/audio.js?v=73f756c9';
+import { Live, startLive, endLive, setLock, kick, onLive, joinShort, pupilsIn, setAuto, reconnect, budget } from './session.js?v=73f756c9';
+import { blocker, endElsewhere } from '../activity.js?v=73f756c9';
+import { qrSVG } from './qr.js?v=73f756c9';
 
 let el = null, unsub = null, keyH = null, shownLink = '', host = null, title = '', offSince = 0;
 const spaced = (c) => String(c || '').replace(/^(\d{3})(\d{3})$/, '$1 $2');
@@ -57,6 +57,10 @@ function paint() {
   lockB.disabled = !on; $('[data-lp="copy"]', el).disabled = !on; $('[data-lp="end"]', el).disabled = !on;
   $('[data-lp="auto"]', el).setAttribute('aria-checked', String(Live.auto));
   $('.lp-relay', el).textContent = on ? relayText() : '';
+  const bg = budget(), bn = $('.lp-budget', el);
+  bn.hidden = !(on && bg.public && bg.total > 150);
+  if (!bn.hidden) bn.textContent = 'About ' + bg.total + ' messages so far in this lesson. If every pupil is on one school Wi-Fi, the free relay stops at about 250 a day for that network. The school relay has no such limit.';
+  $('[data-lp="cv"]', el).disabled = !on;
 }
 function begin(o) {
   sfx('send');
@@ -83,6 +87,7 @@ export function openJoin(where, t) {
     '<button type="button" class="btn" data-lp="lock" aria-pressed="false">' + icon('lock') + '<span>Lock joining</span></button>' +
     '<button type="button" class="btn" data-lp="retry" hidden>' + icon('refresh') + 'Reconnect</button>' +
     '<button type="button" class="btn lp-end" data-lp="end">' + icon('stop') + 'End live lesson</button></div>' +
+    '<p class="lp-cvrow"><button type="button" class="btn primary" data-lp="cv">' + icon('vote') + 'Open the class view</button></p><p class="fine lp-budget" hidden></p>' +
     '<label class="lp-auto"><button type="button" class="lsw teal" role="switch" aria-checked="true" data-lp="auto" aria-label="Slide questions go to pupils’ devices by themselves"><span class="lsw-handle"></span></button>' +
     '<span><b>Questions go to pupils’ devices by themselves</b><small>When a slide with a question is on the board. Off: only when you tap the slide’s pill.</small></span></label>' +
     '<p class="lp-n"></p><ul class="lp-who" aria-label="Pupils who have joined"></ul><p class="fine lp-relay"></p><p class="fine lp-help"><button type="button" class="linkbtn" data-how="live">How live lessons work</button></p></div></div>';
@@ -100,6 +105,7 @@ export function openJoin(where, t) {
     else if (a === 'retry') { reconnect(); toast('Reconnecting to pupils’ devices…'); }
     else if (a === 'take') { Live.blocked = null; begin({ takeOver: true }); toast('The live lesson on the other screen is ending. It is starting here.'); }
     else if (a === 'auto') { setAuto(!Live.auto); paint(); toast(Live.auto ? 'Each slide’s question now goes to pupils’ devices by itself.' : 'Questions go to pupils’ devices only when you tap the slide’s pill.'); }
+    else if (a === 'cv') { const h = host; closeJoin(); import('./classview.js?v=73f756c9').then((m) => m.openClassView({ host: h })).catch(() => toast('The class view could not open.')); }
   });
   keyH = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeJoin(); } };
   document.addEventListener('keydown', keyH, true);

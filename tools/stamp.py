@@ -18,7 +18,8 @@ def walk(sub, ext):
     return sorted(out)
 
 js, css = walk('assets/js', '.js'), walk('assets/css', '.css')
-pages = [os.path.join(ROOT, 'index.html'), os.path.join(ROOT, 'join', 'index.html')]
+pages = [p for p in (os.path.join(ROOT, 'index.html'), os.path.join(ROOT, 'join', 'index.html'), os.path.join(ROOT, 'homework', 'index.html'),
+                      os.path.join(ROOT, 'games', 'run.html')) if os.path.exists(p)]
 h = hashlib.sha256()
 for f in js + css + pages:
     h.update(os.path.relpath(f, ROOT).encode())

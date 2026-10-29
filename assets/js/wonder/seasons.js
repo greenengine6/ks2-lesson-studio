@@ -1,7 +1,7 @@
 /* Seasons: the Earth going round the Sun with its tilt always pointing the same way, and a close-up showing which
    half leans towards the Sun on the chosen day, with how long the day is in London, Kuala Lumpur and Sydney. */
-import { MONSOON } from './data.js?v=ed35fd44';
-import { TAU, clamp, layer, rnd, view, FONT, decOnDay, dayLength } from './util.js?v=ed35fd44';
+import { MONSOON } from './data.js?v=73f756c9';
+import { TAU, clamp, layer, rnd, view, FONT, decOnDay, dayLength } from './util.js?v=73f756c9';
 
 const RAD = Math.PI / 180, TILT = 23.44 * RAD;
 export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];

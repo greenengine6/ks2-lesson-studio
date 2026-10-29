@@ -6,8 +6,14 @@
 
 :root{
   color-scheme:light;
-  --bg:#E0E5EC; --surface:#E0E5EC; --well:#E0E5EC; --fg:#3D4852; --muted:#6B7280; --placeholder:#A0AEC0; --on-accent:#fff; --line:transparent;
-  --accent:#6C63FF; --accent-2:#8B84FF; --accent-3:#38B2AC; --heart:#F0476F;
+  /* --t is the Reading support text scale (1, 1.12 or 1.25, reading.js). --m scales the older sizes below, which were
+     written for a 16px page: 1.125 makes that 18px. New styles write real sizes: calc(18px * var(--t)). */
+  --t:1; --m:calc(1.125 * var(--t));
+  --bg:#E0E5EC; --surface:#E0E5EC; --well:#E0E5EC; --fg:#1F2937; --muted:#4B5563; --placeholder:#8A96A8; --on-accent:#fff; --line:transparent;
+  --accent:#5B52E6; --accent-2:#7C75F0; --accent-3:#2C9C96; --accent-ink:#4338CA; --heart:#F0476F;
+  /* subject colours (library.js subjectColor) */
+  --s-maths:#4F5BD5; --s-english:#C7356F; --s-science:#2E7D4F; --s-computing:#C2581A; --s-history:#9A6A00; --s-geography:#2B76C6; --s-art:#8B44C2; --s-dt:#4B6475;
+  --s-music:#A63E91; --s-pe:#0B7F99; --s-pshe:#D4566F; --s-re:#6B5B2E; --s-bm:#1F7A75; --s-mandarin:#B42020; --s-french:#3949AB; --s-spanish:#B7791F; --s-general:#5B52E6;
   --sd:rgb(163 177 198 / .6); --sd2:rgb(163 177 198 / .7); --sl:rgb(255 255 255 / .5); --sl2:rgb(255 255 255 / .6);
   --ex:9px 9px 16px var(--sd),-9px -9px 16px var(--sl);
   --ex-hover:12px 12px 20px var(--sd2),-12px -12px 20px var(--sl2);
@@ -16,8 +22,8 @@
   --in-deep:inset 10px 10px 20px var(--sd2),inset -10px -10px 20px var(--sl2);
   --in-sm:inset 3px 3px 6px var(--sd),inset -3px -3px 6px var(--sl);
   --r-xl:32px; --r:16px; --r-sm:12px;
-  --f-display:"Plus Jakarta Sans","Poppins","Segoe UI",system-ui,-apple-system,sans-serif;
-  --f-body:"DM Sans","Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-display:"Lexend","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-body:"Lexend","Segoe UI",system-ui,-apple-system,sans-serif;
   --f-kid:"Adventor","Century Gothic","Avenir Next","Plus Jakarta Sans",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --ease:cubic-bezier(.2,.7,.2,1);
@@ -428,7 +434,7 @@ details.more[open] summary{margin-bottom:10px}
   .show{grid-template-columns:minmax(0,1fr)}
   .cs-stage{height:420px}
 }
-@media (max-width:900px){
+@media (max-width:899px){
   .nav,.top-r .seg,.top-r .seg-q{display:none}
   .menu-btn{display:inline-flex}
   .top-r{margin-left:auto}
@@ -487,8 +493,8 @@ img,svg,canvas{-webkit-user-drag:none}
    and slides keep their own sizing, because they already shrink to fit and are what pupils see. Form fields stay at
    16px, the size that stops iPhones zooming in when you tap them. */
 @media (max-width:640px){
-  :root{--m:.75}
-  input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select{font-size:16px!important}
+  :root{--m:calc(1 * var(--t))}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select{font-size:max(16px,calc(17px * var(--t)))!important}
 }
 
 /* ---------- the dashboard shelf: your lessons, each with a picture of its topic ---------- */

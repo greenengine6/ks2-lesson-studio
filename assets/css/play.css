@@ -1,4 +1,7 @@
 /* Wonder Window: a full-screen play area for a class watching together. */
+/* The Wonder Window keeps the sizes it was drawn for (its captions sit over the scene), scaled only by Reading support. */
+.play{--m:var(--t,1)}
+@media (max-width:640px){ .play{--m:calc(.85 * var(--t,1))} }
 .play{position:fixed;inset:0;z-index:44;background:#03040B;color:#EEF1F8;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
 .play-cv{position:absolute;inset:0;display:block;width:100%;height:100%;cursor:crosshair}
 .play h1,.play h2,.play h3{color:inherit}

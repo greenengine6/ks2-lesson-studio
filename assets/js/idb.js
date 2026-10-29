@@ -35,6 +35,12 @@ const live = async () => !!(await open());
 
 export async function kvGet(k) { return (await live()) ? run('kv', 'readonly', (s) => s.get(k)) : mem.kv.get(k); }
 export async function kvSet(k, v) { if (await live()) return run('kv', 'readwrite', (s) => s.put(v, k)); mem.kv.set(k, v); return true; }
+/* Every key in "kv" that starts with prefix (for backups). */
+export async function kvKeys(prefix) {
+  const p = String(prefix || '');
+  if (await live()) { const all = (await run('kv', 'readonly', (s) => s.getAllKeys())) || []; return all.filter((k) => typeof k === 'string' && k.startsWith(p)); }
+  return Array.from(mem.kv.keys()).filter((k) => typeof k === 'string' && k.startsWith(p));
+}
 export async function kvDel(k) { if (await live()) return run('kv', 'readwrite', (s) => s.delete(k)); mem.kv.delete(k); return true; }
 
 export async function evPut(ev) { if (await live()) return run('events', 'readwrite', (s) => s.put(ev)); mem.events.set(ev.id, ev); return true; }

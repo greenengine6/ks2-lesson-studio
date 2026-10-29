@@ -1,7 +1,7 @@
 /* KS2 Lesson Engine: shared helpers, Claude connection, copying and small UI pieces. */
-import { sfx } from './fx/audio.js?v=ed35fd44';
-import { fracNorm, fracHTML, fracText } from './fractions.js?v=ed35fd44';
-import { setVoiceKey } from './fx/human.js?v=ed35fd44';
+import { sfx } from './fx/audio.js?v=73f756c9';
+import { fracNorm, fracHTML, fracText } from './fractions.js?v=73f756c9';
+import { setVoiceKey } from './fx/human.js?v=73f756c9';
 
 export const $ = (s, r) => (r || document).querySelector(s);
 export const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -95,7 +95,15 @@ export const I = {
   pin: '<path d="M14.5 3.5l6 6-2.3.8-3.9 3.9.4 3.6-1.6 1.6-3.4-3.4L5 20.7 3.3 19l4.7-4.7-3.4-3.4 1.6-1.6 3.6.4 3.9-3.9z"/>',
   undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
   upload: '<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
-  textsize: '<path d="M3 18 7.5 6 12 18M4.7 14h5.6"/><path d="M14 18l3-8 3 8M15 15.5h4"/>'
+  textsize: '<path d="M3 18 7.5 6 12 18M4.7 14h5.6"/><path d="M14 18l3-8 3 8M15 15.5h4"/>',
+  cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M7.5 14h2M11 14h2M14.5 14h2M7.5 17h2M11 17h2"/>',
+  folder: '<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2h7.5A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/>',
+  gear: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/><circle cx="12" cy="12" r="6.6"/>',
+  users: '<circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.3 3-5 6-5s5.4 1.7 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M15.8 14.6c2.6.2 4.5 1.7 5.2 4.9"/>',
+  sheet: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  game: '<path d="M6.5 8h11a4 4 0 0 1 3.9 4.9l-1 4.3a2.4 2.4 0 0 1-4.2.9L14.5 16h-5l-1.7 2.1a2.4 2.4 0 0 1-4.2-.9l-1-4.3A4 4 0 0 1 6.5 8z"/><path d="M8 11v3M6.5 12.5h3"/><circle cx="15.6" cy="11.6" r=".9" class="f"/><circle cx="17.6" cy="13.6" r=".9" class="f"/>',
+  quiz: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 0 1 4.8 1c0 1.7-2.4 2.2-2.4 3.6"/><circle cx="12" cy="17.2" r=".9" class="f"/>',
+  door: '<path d="M14 3.5H7a1.5 1.5 0 0 0-1.5 1.5v15h10V5A1.5 1.5 0 0 0 14 3.5z"/><path d="M15.5 6h2A1.5 1.5 0 0 1 19 7.5V20H5.5"/><circle cx="12.4" cy="12.4" r=".9" class="f"/>'
 };
 export const icon = (n, cls) => '<svg class="i' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (I[n] || '') + '</svg>';
 

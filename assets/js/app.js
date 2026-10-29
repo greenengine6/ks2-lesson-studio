@@ -1,40 +1,186 @@
-/* KS2 Lesson Engine: start-up, routing, header, dock, landing page and the Connect dialog. */
-import './security.js?v=ed35fd44';
-import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=ed35fd44';
-import { Dock } from './fx/dock.js?v=ed35fd44';
-import { CardSwap } from './fx/cardswap.js?v=ed35fd44';
-import { Symphony } from './fx/symphony.js?v=ed35fd44';
-import { ENGINES, ENGINE_BY_ID } from './engines/registry.js?v=ed35fd44';
-import { renderEngine, leaveEngine, wirePresent, setSymphony, exampleData, mountScreen, presentState } from './engines/shared.js?v=ed35fd44';
-import { initSlides, examplePreview, fitSlide, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=ed35fd44';
-import { initSettings } from './settings.js?v=ed35fd44';
-import { initChat } from './chat.js?v=ed35fd44';
-import { track } from './track.js?v=ed35fd44';
-import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=ed35fd44';
-import { initFeedback } from './feedback.js?v=ed35fd44';
-import { renderAdmin } from './admin.js?v=ed35fd44';
-import { initPlay } from './play.js?v=ed35fd44';
-import { initSync } from './sync.js?v=ed35fd44';
-import { sfx } from './fx/audio.js?v=ed35fd44';
-import { landed } from './guard.js?v=ed35fd44';
-import { initShelf, renderShelf } from './shelf.js?v=ed35fd44';
-import { wireLiveChip } from './live/panel.js?v=ed35fd44';
-import { initHow } from './howto.js?v=ed35fd44';
-import { initFractions } from './fractions.js?v=ed35fd44';
-import { voiceKey, setVoiceKey, testKey, KEY_RX, onWarn } from './fx/human.js?v=ed35fd44';
-import { Voice } from './fx/voice.js?v=ed35fd44';
+/* KS2 Lesson Engine: start-up, routing, the shell (a sidebar of places on laptops, five tabs on phones, a slim top
+   bar with one search for everything), the sign-in page's Earth, and the Connect dialog.
+   Pages load the first time they are opened (LAZY below); each exports mount(view, sub) and maybe leave(). */
+import './security.js?v=73f756c9';
+import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=73f756c9';
+import { Symphony } from './fx/symphony.js?v=73f756c9';
+import { ENGINE_BY_ID } from './engines/registry.js?v=73f756c9';
+import { renderEngine, leaveEngine, wirePresent, setSymphony, presentState } from './engines/shared.js?v=73f756c9';
+import { initSlides, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=73f756c9';
+import { initSettings } from './settings.js?v=73f756c9';
+import { initChat } from './chat.js?v=73f756c9';
+import { track } from './track.js?v=73f756c9';
+import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=73f756c9';
+import { initFeedback } from './feedback.js?v=73f756c9';
+import { renderAdmin } from './admin.js?v=73f756c9';
+import { initPlay } from './play.js?v=73f756c9';
+import { initSync } from './sync.js?v=73f756c9';
+import { sfx } from './fx/audio.js?v=73f756c9';
+import { landed } from './guard.js?v=73f756c9';
+import { initShelf } from './shelf.js?v=73f756c9';
+import { wireLiveChip } from './live/panel.js?v=73f756c9';
+import { Live, onLive, pupilsIn } from './live/session.js?v=73f756c9';
+import { initHow } from './howto.js?v=73f756c9';
+import { initFractions } from './fractions.js?v=73f756c9';
+import { voiceKey, setVoiceKey, testKey, KEY_RX, onWarn } from './fx/human.js?v=73f756c9';
+import { Voice } from './fx/voice.js?v=73f756c9';
+import { initReading } from './reading.js?v=73f756c9';
+import { search, subjectName, subjectColor, KINDS, openItem, counts, SUBJECT_LIST, onLibrary, soon } from './library.js?v=73f756c9';
 
-const PLAY = { id: 'play', name: 'Wonder Window', short: 'Wonder Window', color: 'cyan', icon: 'globe', tagline: 'For the whole class: a live world map of cities and their food, festivals, the Seven Wonders, wild weather, the seasons, habitats from the rainforest to the poles, and space.', chips: ['17 windows', 'Quizzes and class votes', 'Shared screen'] };
-const SLIDES = { id: 'slides', name: 'Slide Studio', short: 'Slide Studio', color: 'violet', icon: 'slides', tagline: 'Your lesson builder: a topic becomes two-way lesson slides with answers, a plan and a PowerPoint.', chips: ['Any subject', 'About 1 minute', 'PowerPoint download'] };
-const LKIE = { id: 'lkie', name: 'lkie.like', short: 'lkie.like', color: 'heart', icon: 'pack', tagline: 'One topic in, a whole lesson out: slides with exact diagrams, key words, activities and a worksheet in three tiers, for every KS2 subject.', chips: ['All KS2 subjects', 'Bahasa Melayu and Mandarin'] };
+/* ---------------- the places ---------------- */
+const NAV = [
+  { id: 'today', label: 'Today', icon: 'sun' },
+  { id: 'calendar', label: 'Calendar', icon: 'cal' },
+  { id: 'subjects', label: 'My subjects', icon: 'folder' },
+  { id: 'create', label: 'Create', icon: 'spark' },
+  { id: 'class', label: 'Classroom', icon: 'users' },
+  { id: 'tools', label: 'Class tools', icon: 'clock' },
+  { id: 'explore', label: 'Explore', icon: 'globe' }
+];
+const FOOT = [{ id: 'settings', label: 'Settings', icon: 'gear' }, { id: 'help', label: 'Help', icon: 'info' }];
+const TABS = [{ id: 'today', label: 'Today', icon: 'sun' }, { id: 'calendar', label: 'Calendar', icon: 'cal' }, { id: 'subjects', label: 'Subjects', icon: 'folder' }, { id: 'create', label: 'Create', icon: 'spark' }];
+const CREATE_SUB = [['lkie', 'Lesson slides'], ['worksheet', 'Worksheet'], ['quiz', 'Quiz'], ['game', 'Game'], ['create/starters', 'Lesson starters'], ['slides', 'Two-way slides']];
+const LAZY = {
+  today: () => import('./today.js?v=73f756c9'),
+  calendar: () => import('./calendar.js?v=73f756c9'),
+  subjects: () => import('./subjects.js?v=73f756c9'),
+  create: () => import('./create.js?v=73f756c9'),
+  class: () => import('./live/class.js?v=73f756c9'),
+  tools: () => import('./tools/tools.js?v=73f756c9'),
+  explore: () => import('./explore.js?v=73f756c9'),
+  settings: () => import('./settingspage.js?v=73f756c9'),
+  help: () => import('./help.js?v=73f756c9'),
+  worksheet: () => import('./worksheet/maker.js?v=73f756c9'),
+  quiz: () => import('./quiz/maker.js?v=73f756c9'),
+  game: () => import('./games/maker.js?v=73f756c9')
+};
+const TITLES = { today: 'Today', calendar: 'Calendar', subjects: 'My subjects', create: 'Create', class: 'Classroom', tools: 'Class tools', explore: 'Explore', settings: 'Settings', help: 'Help',
+  worksheet: 'Worksheet maker', quiz: 'Quiz maker', game: 'Game maker', slides: 'Slide Studio', lkie: 'Lesson slides', admin: 'Dashboard', play: 'Wonder Window' };
+/* Which place in the menu each page belongs to. */
+function sectionOf(id) {
+  if (['lkie', 'slides', 'worksheet', 'quiz', 'game', 'create'].includes(id) || ENGINE_BY_ID[id]) return 'create';
+  if (id === 'play') return 'explore';
+  return id;
+}
+const OLD = ['home', 'slides', 'lkie', 'admin', 'play'];
+
+/* ---------------- the sidebar, the phone tabs and the More sheet ---------------- */
+function navLink(n, cur) {
+  return '<a class="side-a" href="#/' + n.id + '" data-nav="' + n.id + '"' + (cur === n.id ? ' aria-current="page"' : '') + '>' + icon(n.icon) + '<span>' + esc(n.label) + '</span>' + (soon(n.id) ? '<small class="side-soon">Soon</small>' : '') + '</a>';
+}
+function subLinks(sec, id, sub) {
+  if (sec === 'create') {
+    return '<div class="side-sub">' + CREATE_SUB.map(([h, l]) => {
+      const on = h === id || (h === 'create/starters' && id === 'create' && sub === 'starters') || (h === 'create/starters' && ENGINE_BY_ID[id]);
+      return '<a href="#/' + h + '"' + (on ? ' aria-current="page"' : '') + '>' + esc(l) + '</a>';
+    }).join('') + '</div>';
+  }
+  if (sec === 'subjects') {
+    const c = counts(), list = SUBJECT_LIST.filter((s) => c[s.id]).sort((a, b) => c[b.id] - c[a.id]).slice(0, 8);
+    if (!list.length) return '';
+    return '<div class="side-sub">' + list.map((s) => '<a href="#/subjects/' + s.id + '" style="--c:' + subjectColor(s.id) + '"' + (id === 'subjects' && sub === s.id ? ' aria-current="page"' : '') + '><span class="dot" aria-hidden="true"></span>' + esc(s.short) + '</a>').join('') + '</div>';
+  }
+  if (sec === 'explore') return '<div class="side-sub"><a href="#/play"' + (id === 'play' ? ' aria-current="page"' : '') + '>Wonder Window</a></div>';
+  return '';
+}
+function paintNav() {
+  const id = current, sub = currentSub, sec = sectionOf(id);
+  $('#side-nav').innerHTML = NAV.map((n) => navLink(n, sec) + (sec === n.id ? subLinks(sec, id, sub) : '')).join('');
+  $('#side-foot').innerHTML = (isAdmin() ? navLink({ id: 'admin', label: 'Dashboard', icon: 'layers' }, sec) : '') + FOOT.map((n) => navLink(n, sec)).join('') + startBtn();
+  $('#tabs').innerHTML = TABS.map((t) => '<a class="tab" href="#/' + t.id + '"' + (sec === t.id ? ' aria-current="page"' : '') + '>' + icon(t.icon) + '<span>' + esc(t.label) + '</span></a>').join('') +
+    '<button type="button" class="tab" id="tab-more" aria-expanded="' + String(!$('#mnav').hidden) + '" aria-controls="mnav">' + icon('menu') + '<span>More</span></button>';
+  const more = [{ id: 'class', label: 'Classroom', icon: 'users' }, { id: 'tools', label: 'Class tools', icon: 'clock' }, { id: 'explore', label: 'Explore', icon: 'globe' }].concat(FOOT);
+  $('#mnav-links').innerHTML = more.map((n) => '<a href="#/' + n.id + '"' + (sec === n.id ? ' aria-current="page"' : '') + '>' + icon(n.icon) + esc(n.label) + (soon(n.id) ? '<small class="side-soon">Soon</small>' : '') + '</a>').join('');
+  // on a short screen the menu scrolls: keep the page she is on in view, and fade the edge when there is more below
+  const nav = $('#side-nav'), on = $$('[aria-current="page"]', nav).pop();
+  if (on && nav.scrollHeight > nav.clientHeight + 2) {
+    const r = on.getBoundingClientRect(), b = nav.getBoundingClientRect();
+    if (r.bottom > b.bottom || r.top < b.top) nav.scrollTop += r.top - b.top - (b.height - r.height) / 2;
+  }
+  navFade();
+}
+function navFade() {
+  const nav = $('#side-nav');
+  if (nav) nav.classList.toggle('fade-b', nav.scrollTop + nav.clientHeight < nav.scrollHeight - 4);
+}
+$('#side-nav').addEventListener('scroll', navFade, { passive: true });
+window.addEventListener('resize', navFade, { passive: true });
+function startBtn() {
+  if (soon('class')) return '';
+  if (Live.on) { const n = pupilsIn().length; return '<a class="side-start live" href="#/class"><i aria-hidden="true"></i><span>Class live · ' + n + '</span></a>'; }
+  return '<a class="side-start" href="#/class">' + icon('play') + '<span>Start class</span></a>';
+}
+onLive(() => { if (who.role) { const f = $('#side-foot'); if (f) { const b = $('.side-start', f); if (b) b.outerHTML = startBtn(); } } });
+const mnav = $('#mnav');
+function setMore(open) {
+  mnav.hidden = !open;
+  const b = $('#tab-more'); if (b) b.setAttribute('aria-expanded', String(open));
+}
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#tab-more')) { setMore(mnav.hidden); return; }
+  if (!mnav.hidden && (e.target.closest('#mnav a') || (!e.target.closest('#mnav') && !e.target.closest('#tab-more')))) setMore(false);
+});
+const menuBtn = $('#menu-btn');
+menuBtn.addEventListener('click', () => setMore(mnav.hidden));
+
+/* ---------------- one search for everything ---------------- */
+const PAGES_FIND = [
+  ['Today', '#/today', 'sun'], ['Calendar', '#/calendar', 'cal'], ['My subjects', '#/subjects', 'folder'], ['Create', '#/create', 'spark'], ['Lesson slides', '#/lkie', 'pack'],
+  ['Worksheet maker', '#/worksheet', 'sheet'], ['Quiz maker', '#/quiz', 'quiz'], ['Game maker', '#/game', 'game'], ['Lesson starters', '#/create/starters', 'spark'], ['Classroom: start a class', '#/class', 'users'],
+  ['Class tools', '#/tools', 'clock'], ['Timer', '#/tools/timer', 'clock'], ['Pick a name', '#/tools/names', 'users'], ['Groups', '#/tools/groups', 'users'], ['Noise meter', '#/tools/noise', 'volume'],
+  ['Work signs', '#/tools/signs', 'flag'], ['Class points', '#/tools/points', 'star'], ['Dice', '#/tools/dice', 'vote'], ['Wonder Window', '#/play', 'globe'], ['Explore', '#/explore', 'globe'],
+  ['Settings', '#/settings', 'gear'], ['Reading support', '#/settings/reading', 'type'], ['Help', '#/help', 'info'], ['Two-way slides (Slide Studio)', '#/slides', 'slides']
+];
+const ts = $('#top-search'), tq = $('#ts-q'), tl = $('#ts-list');
+let tsSel = -1;
+function tsItems() {
+  const q = str(tq.value).toLowerCase();
+  if (!q) return [];
+  const pages = PAGES_FIND.filter(([n]) => n.toLowerCase().includes(q)).slice(0, 4).map(([n, h, ic]) => ({ t: n, s: 'Page', h, ic, c: 'var(--accent)' }));
+  const items = search(q).slice(0, 8).map((it) => ({ t: it.title, s: it.long + ' · ' + subjectName(it.subject, true) + (it.year ? ' · ' + it.year : ''), key: it.key, ic: it.icon || KINDS[it.k].icon, c: subjectColor(it.subject) }));
+  return pages.concat(items);
+}
+function tsPaint() {
+  const list = tsItems(), q = str(tq.value);
+  tsSel = Math.min(tsSel, list.length - 1);
+  tl.hidden = !q;
+  tq.setAttribute('aria-expanded', String(!!q));
+  if (!q) { tl.innerHTML = ''; return; }
+  tl.innerHTML = list.length ? list.map((r, i) => '<button type="button" class="ts-it' + (i === tsSel ? ' on' : '') + '" role="option" data-i="' + i + '" style="--c:' + r.c + '"><span class="ts-k">' + icon(r.ic) + '</span><span class="ts-t"><b>' + esc(r.t) + '</b><small>' + esc(r.s) + '</small></span></button>').join('')
+    : '<p class="ts-none">Nothing found for “' + esc(q) + '”. Try a topic, a subject or a year.</p>';
+  tl._list = list;
+}
+function tsGo(r) {
+  if (!r) return;
+  tq.value = ''; tsPaint(); tq.blur(); ts.classList.remove('open');
+  if (r.key) openItem(r.key); else location.hash = r.h;
+}
+tq.addEventListener('input', () => { tsSel = 0; tsPaint(); });
+tq.addEventListener('keydown', (e) => {
+  const list = tl._list || [];
+  if (e.key === 'ArrowDown') { e.preventDefault(); tsSel = Math.min(list.length - 1, tsSel + 1); tsPaint(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); tsSel = Math.max(0, tsSel - 1); tsPaint(); }
+  else if (e.key === 'Enter') { e.preventDefault(); tsGo(list[Math.max(0, tsSel)]); }
+  else if (e.key === 'Escape') { e.stopPropagation(); tq.value = ''; tsPaint(); tq.blur(); ts.classList.remove('open'); }
+});
+tl.addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (b) tsGo((tl._list || [])[Number(b.dataset.i)]); });
+$('.ts-box', ts).addEventListener('click', () => { if (window.matchMedia('(max-width: 899px)').matches && !ts.classList.contains('open')) { ts.classList.add('open'); setTimeout(() => tq.focus(), 30); } });
+document.addEventListener('click', (e) => { if (!e.target.closest('#top-search')) { if (!tl.hidden) { tl.hidden = true; } ts.classList.remove('open'); } });
+document.addEventListener('keydown', (e) => {
+  if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || !who.role || presentState.open) return;
+  if (e.target && e.target.closest && e.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+  e.preventDefault(); tq.focus();
+});
+onLibrary(() => { if (!tl.hidden) tsPaint(); if (who.role && sectionOf(current) === 'subjects') paintNav(); });
 
 /* ---------------- header ---------------- */
 const top = $('#top');
 function paintHeader() {
-  const heroH = current === 'home' ? ($('#hero').offsetHeight || window.innerHeight) : 0;
-  const onHero = current === 'home' && window.scrollY < heroH - 80;
+  const gated = !who.role;
+  const heroH = gated ? ($('#hero').offsetHeight || window.innerHeight) : 0;
+  const onHero = gated && window.scrollY < heroH - 80;
   top.classList.toggle('on-hero', onHero);
-  top.classList.toggle('solid', !onHero && (current !== 'home' || window.scrollY > 40));
+  top.classList.toggle('solid', !onHero);
   top.classList.toggle('glass', onHero && window.scrollY > 40);           // dark glass, so text scrolling under it stays readable
   bus.emit('header', onHero);
 }
@@ -44,51 +190,17 @@ document.addEventListener('click', (e) => {
   const m = e.target.closest('[data-mode]');
   if (m) { prefs.mode = m.dataset.mode; paintMode(); toast(prefs.mode === 'online' ? 'Teaching online: prompts say “type in the chat”.' : 'Teaching in class: prompts say “show me on your whiteboard”.'); }
   if (e.target.closest('[data-connect]')) { e.preventDefault(); openConnect(); }
+  if (e.target.closest('[data-ask-symphony]')) { e.preventDefault(); bus.emit('symphony', {}); }
 });
 paintMode();
-const menuBtn = $('#menu-btn'), mnav = $('#mnav');
-menuBtn.addEventListener('click', () => { mnav.hidden = !mnav.hidden; menuBtn.setAttribute('aria-expanded', String(!mnav.hidden)); menuBtn.innerHTML = icon(mnav.hidden ? 'menu' : 'close'); });
-mnav.addEventListener('click', (e) => { if (e.target.closest('a')) { mnav.hidden = true; menuBtn.setAttribute('aria-expanded', 'false'); menuBtn.innerHTML = icon('menu'); } });
-
-/* ---------------- dock ---------------- */
-const go = (id) => { sfx('nav'); location.hash = id === 'home' ? '#/' : '#/' + id; };
-const dockItems = [{ id: 'home', label: 'Home', icon: icon('home'), color: 'violet', onClick: () => go('home') }, { sep: true },
-  { id: 'slides', label: 'Slide Studio', icon: icon('slides'), color: 'violet', onClick: () => go('slides') }, { id: 'lkie', label: 'lkie.like', icon: icon('pack'), color: 'heart', onClick: () => go('lkie') }, { id: 'play', label: 'Wonder Window', icon: icon('globe'), color: 'cyan', onClick: () => go('play') }]
-  .concat(ENGINES.map((e) => ({ id: e.id, label: e.name, icon: icon(e.icon), color: e.color, onClick: () => go(e.id) })));
-const dock = new Dock($('#dock'), dockItems, { base: 50, magnification: 80, distance: 200 });
-
-/* ---------------- landing ---------------- */
-/* On phones the cards become a 3-column grid of icon tiles with a one-word label (.eshort); Wonder Window is a
-   full-width tile at the end. The full cards stay on tablets and laptops (app.css, max-width 640px). */
-function engineCards() {
-  const card = (e, wide) => '<button type="button" class="ecard' + (wide ? ' wide' : '') + '" data-go="' + e.id + '" style="--c:var(--' + e.color + ')"><span class="ewell">' + icon(e.icon) + '</span>' +
-    '<h3>' + esc(e.name) + '</h3><span class="eshort">' + esc(e.short || e.name) + '</span><p>' + esc(e.tagline) + '</p><span class="etags">' + e.chips.slice(0, 2).map((c) => '<span class="chip">' + esc(c) + '</span>').join('') + '</span><span class="go" aria-hidden="true">' + icon('right') + '</span></button>';
-  $('#egrid').innerHTML = card(SLIDES, true) + card(LKIE, true) + ENGINES.map((e) => card(e)).join('') + card(PLAY, true);
-  $$('#egrid [data-go]').forEach((b) => b.addEventListener('click', () => go(b.dataset.go)));
-}
-let showcase = null;
-function buildShowcase() {
-  const picks = [['maths', 0, 'Live reasoning'], ['escape', 0, 'Crack the codes'], ['break', 0, 'Breathe with Symphony'], ['code', 0, 'Program the robot'], ['debate', 1, 'Live class vote']];
-  const root = $('#cs-root');
-  root.innerHTML = picks.map(([id, , cap]) => {
-    const e = id === 'slides' ? SLIDES : ENGINE_BY_ID[id];
-    return '<div class="cs-card" style="--c:var(--' + e.color + ')" data-go="' + id + '" role="link" tabindex="-1" aria-label="Open ' + esc(e.name) + '"><div class="cs-screen"></div><div class="cs-label">' + icon(e.icon) + esc(e.name) + '<span>' + esc(cap) + '</span></div></div>';
-  }).join('');
-  $$('.cs-card', root).forEach((card, k) => {
-    const [id, screen] = picks[k];
-    const host = $('.cs-screen', card);
-    if (id === 'slides') { host.innerHTML = examplePreview(1); host.style.cssText = 'display:grid;place-items:center;padding:14px;background:var(--bg)'; requestAnimationFrame(() => fitSlide(host.firstElementChild)); return; }
-    const eng = ENGINE_BY_ID[id];
-    const board = document.createElement('div');
-    host.appendChild(board);
-    mountScreen(board, eng, exampleData(eng), screen, { still: true, present: false, go: () => {} });
-    board.inert = true;
-  });
-  const rw = root.getBoundingClientRect().width || 470;
-  showcase = new CardSwap(root, { cardDistance: Math.round(Math.min(40, rw * 0.085)), verticalDistance: Math.round(Math.min(44, rw * 0.094)), delay: 4200, pauseOnHover: true, skewAmount: 4, easing: 'elastic', onCardClick: (i) => go(picks[i][0]) });
+function paintShell() {
+  const on = !!who.role;
+  document.body.classList.toggle('shell-on', on);
+  $('#side').hidden = !on; $('#tabs').hidden = !on; ts.hidden = !on;
+  if (on) paintNav();
 }
 
-/* ---------------- the Earth behind the landing page (fx/earth.js, loaded after the page is up) ---------------- */
+/* ---------------- the Earth behind the sign-in page (fx/earth.js, loaded after the page is up) ---------------- */
 let earth = null, earthTried = false;
 function earthTip() {
   const tip = $('#hero-hint');
@@ -104,7 +216,7 @@ function startEarth() {
   if (earthTried) { runEarth(); return; }
   earthTried = true;
   const hero = $('#hero'), fail = () => { earth = null; hero.classList.add('earth-off'); const t = $('#hero-hint'); if (t) t.hidden = true; };
-  import('./fx/earth.js?v=ed35fd44').then(async (m) => {
+  import('./fx/earth.js?v=73f756c9').then(async (m) => {
     earth = new m.Earth($('#earth'), { onFail: fail });
     if (!(await earth.init())) return;
     earthTip();
@@ -126,59 +238,98 @@ function runEarth() {
 }
 
 /* ---------------- routing ---------------- */
-let current = '';
-const PAGES = ['home', 'slides', 'lkie', 'admin', 'play'];
-/* lkie.like loads the first time it is opened, so the landing page stays light. */
+let current = '', currentSub = '';
+const mods = {};
+/* lkie.like loads the first time it is opened. */
 let lkie = null;
 function showLkie() {
   if (lkie) { lkie.mountLkie($('#view-lkie')); return; }
-  import('./lkie/lkie.js?v=ed35fd44').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">lkie.like could not load. Check the connection and reload the page.</p></div>'; });
+  import('./lkie/lkie.js?v=73f756c9').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">Lesson slides could not load. Check the connection and reload the page.</p></div>'; });
 }
-function show(id) {
-  if (!who.role) id = 'home';
+function viewFor(id) {
+  let v = document.getElementById('view-' + id);
+  if (!v) { v = document.createElement('div'); v.id = 'view-' + id; v.className = 'view'; v.dataset.page = id; $('#pages').appendChild(v); }
+  return v;
+}
+function mountLazy(id, sub) {
+  const v = viewFor(id);
+  if (mods[id]) { try { mods[id].mount(v, sub); } catch (e) { console.error(e); } return; }
+  if (!v.firstChild) v.innerHTML = '<div class="pg-loading" role="status">Opening…</div>';
+  LAZY[id]().then((m) => {
+    mods[id] = m;
+    if (current !== id) return;
+    const l = v.querySelector(':scope > .pg-loading'); if (l) l.remove();
+    try { m.mount(v, currentSub); } catch (e) { console.error(e); }
+  }).catch((e) => {
+    console.error(e);
+    if (current !== id) return;
+    v.innerHTML = '<div class="pg-missing" role="status">' + icon('spark') + '<b>' + (id === 'class' ? 'The Classroom is on its way' : 'This part is on its way') + '</b><p>' + (id === 'class' ? 'Live classes on pupils’ devices (a register, the lesson flow, quick checks, a live check of every pupil, homework and a summary) come in the next update. Until then, press Join while you present for a live lesson.' : 'It is being added to the site right now. Try again a little later.') + '</p><a class="btn" href="#/today">Back to Today</a></div>';
+  });
+}
+function show(id, sub) {
+  sub = sub || '';
+  if (!who.role) { id = 'home'; sub = ''; }
+  else if (id === 'home' || !id) id = 'today';
   if (id === 'admin' && !requireAdmin(() => { location.hash = '#/admin'; route(); })) {
-    id = current && current !== 'admin' ? current : 'home';
-    try { history.replaceState(null, '', id === 'home' ? location.pathname + location.search : '#/' + id); } catch (e) { /* ignore */ }
+    id = current && current !== 'admin' ? current : (who.role ? 'today' : 'home');
+    try { history.replaceState(null, '', '#/' + (id === 'home' ? '' : id)); } catch (e) { /* ignore */ }
   }
   let eng = ENGINE_BY_ID[id];
-  if (!PAGES.includes(id) && !eng) { id = 'home'; eng = null; }
+  if (!OLD.includes(id) && !eng && !LAZY[id]) { id = who.role ? 'today' : 'home'; eng = null; sub = ''; }
   const changed = id !== current;
+  const was = current;
   if (changed) landed();                // the tap that opened this page cannot also press a button on it (guard.js)
-  if (current && ENGINE_BY_ID[current] && changed) leaveEngine();
-  if (current === 'play' && changed) bus.emit('play', false);
-  current = id;
+  if (was && ENGINE_BY_ID[was] && changed) leaveEngine();
+  if (was === 'play' && changed) bus.emit('play', false);
+  if (changed && mods[was] && mods[was].leave) { try { mods[was].leave(); } catch (e) { console.error(e); } }
+  current = id; currentSub = sub;
   $('#view-home').hidden = id !== 'home';
   $('#view-slides').hidden = id !== 'slides';
   $('#view-engine').hidden = !eng;
   $('#view-admin').hidden = id !== 'admin';
   $('#view-play').hidden = id !== 'play';
   $('#view-lkie').hidden = id !== 'lkie';
-  if (id === 'lkie' && changed) showLkie();
+  $$('#pages > .view').forEach((v) => { v.hidden = v.dataset.page !== id; });
+  $('#pages').hidden = !LAZY[id];                     // the older pages (lessons, starters, Wonder Window) sit outside it
+  if (LAZY[id]) { viewFor(id).hidden = false; mountLazy(id, sub); }
+  // the same page asked again (search or My subjects opening another saved lesson): open what was asked for
+  const asked = (k) => { try { return !!sessionStorage.getItem(k); } catch (e) { return false; } };
+  if (id === 'lkie' && (changed || !lkie)) showLkie(); else if (id === 'lkie') lkie.enterLkie();
   if (id === 'admin') renderAdmin($('#view-admin'));
   if (id === 'play' && changed) bus.emit('play', true);
   if (changed && who.role) track('view', { page: id });
-  if (id === 'home') { startEarth(); if (showcase && !reduceMotion()) showcase.start(); if (changed) renderShelf(); }
-  else { if (earth) earth.stop(); if (showcase) showcase.stopTimer(); }
-  if (eng && changed) renderEngine($('#view-engine'), eng);
-  if (id === 'slides') { if (changed) enterSlides(); else refitSlides(); }
-  dock.setActive(id);
-  $$('.nav a, .mnav a').forEach((a) => { const on = a.getAttribute('href') === '#/' + (id === 'home' ? '' : id); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-  document.title = id === 'home' ? 'KS2 Lesson Engine' : (eng ? eng.name : ({ slides: 'Slide Studio', lkie: 'lkie.like', admin: 'Dashboard', play: 'Wonder Window' })[id]) + ' · KS2 Lesson Engine';
+  if (changed && was && who.role) sfx('nav');
+  if (id === 'home') startEarth(); else if (earth) earth.stop();
+  if (eng && (changed || asked('ks2-engine.eng.open'))) renderEngine($('#view-engine'), eng);
+  if (id === 'slides') { if (changed || asked('ks2-engine.slides.open')) enterSlides(); else refitSlides(); }
+  if (who.role) paintNav();
+  document.title = id === 'home' ? 'KS2 Lesson Engine' : (eng ? eng.name : TITLES[id] || 'KS2 Lesson Engine') + ' · KS2 Lesson Engine';
   if (changed) window.scrollTo({ top: 0, behavior: 'auto' });
   paintHeader();
 }
 function route() {
   const h = location.hash || '';
-  if (h.startsWith('#/')) { show(h.slice(2).split(/[?#/&]/)[0] || 'home'); return; }
+  if (h.startsWith('#/')) {
+    const m = /^#\/([\w-]*)(?:\/([^?#]*))?/.exec(h);
+    let sub = '';
+    try { sub = m && m[2] ? decodeURIComponent(m[2]) : ''; } catch (e) { sub = m && m[2] ? m[2] : ''; }
+    show((m && m[1]) || 'home', sub);
+    return;
+  }
   if (!h || h === '#') { show('home'); return; }
-  const target = document.getElementById(h.slice(1));
-  if (current !== 'home') show('home');
-  if (target) requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  // older links to the landing page's sections
+  if (h === '#engines') { location.replace('#/create/starters'); return; }
+  if (h === '#shelf') { location.replace('#/subjects'); return; }
+  show('home');
 }
 window.addEventListener('hashchange', route);
-bus.on('present', (on) => { $('#dock').hidden = on; if (on && earth) earth.stop(); if (!on) runEarth(); });
+bus.on('present', (on) => { if (on && earth) earth.stop(); if (!on) runEarth(); });
 bus.on('vmode', (on) => { if (on && earth) earth.stop(); if (!on) runEarth(); });
-bus.on('who', (w) => { if (!w || !w.role) { if (current && ENGINE_BY_ID[current]) leaveEngine(); show('home'); } else route(); paintHeader(); });
+bus.on('who', (w) => {
+  if (!w || !w.role) { if (current && ENGINE_BY_ID[current]) leaveEngine(); paintShell(); show('home'); } else { paintShell(); route(); }
+  paintHeader();
+  if (w && w.role === 'teacher') import('./calendar.js?v=73f756c9').then((m) => m.startReminders()).catch(() => { /* no calendar yet */ });
+});
 $('#pr-ticket').addEventListener('click', () => {
   const P = presentState; if (!P.open) return;
   const d = P.item.data;
@@ -272,13 +423,14 @@ document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (!$('#fallback').hidden) { $('#fallback').hidden = true; return; }
   if (!modal.hidden) { closeConnect(); return; }
-  if (!mnav.hidden) { menuBtn.click(); }
+  if (!mnav.hidden) setMore(false);
 });
 $('#fb-close').addEventListener('click', () => { $('#fallback').hidden = true; });
 
 /* ---------------- start ---------------- */
 const sym = new Symphony();
 setSymphony(sym);
+initReading();
 initSettings();
 initChat();
 initFeedback();
@@ -287,14 +439,15 @@ initSync();
 wirePresent();
 initSlides();
 initShelf();
-engineCards();
-buildShowcase();
 paintConn();
 initPeople();
 wireLiveChip();
 initHow();
 initFractions();
+paintShell();
 route();
+// a class timer that was running before a reload carries on, with its pill on every page (this tab only)
+try { const t = JSON.parse(sessionStorage.getItem('ks2-engine.tools.timer.v1') || 'null'); if (t && (t.running || t.done)) import('./tools/timer.js?v=73f756c9').catch(() => { /* no tools yet */ }); } catch (e) { /* no timer */ }
 if (conn.keyFromLink || conn.joinedNow) {
   testConnection().then(() => toast('This device is connected. Every engine is ready.'), (err) => {
     const code = err && err.code;

@@ -6,8 +6,8 @@
    description and file name), and the teacher sees it on the slide before presenting.
    What leaves the browser: picture search words go to Wikipedia; video search words go to YouTube only if the school
    has added a YouTube key. */
-import { store, CONFIG } from './core.js?v=ed35fd44';
-import { kvGet, kvSet, kvDel } from './idb.js?v=ed35fd44';
+import { store, CONFIG } from './core.js?v=73f756c9';
+import { kvGet, kvSet, kvDel } from './idb.js?v=73f756c9';
 
 const API = 'https://en.wikipedia.org/w/api.php';
 const CACHE = 'ks2-engine.pics.v1';
@@ -119,7 +119,7 @@ export async function findPicture(o) {
   }
   return null;
 }
-/* A cover for a saved lesson on the dashboard: the best Wikipedia picture for its topic. */
+/* A cover for a saved lesson (Kept on Today): the best Wikipedia picture for its topic. */
 export function coverFor(topic) {
   const q = clean(String(topic || '').replace(/^MOCK\s+/, ''));
   if (!q) return Promise.resolve(null);

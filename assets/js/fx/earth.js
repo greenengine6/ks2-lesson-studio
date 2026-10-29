@@ -18,7 +18,7 @@
 
    Earth textures: Solar System Scope (CC BY 4.0), based on NASA imagery, as resized and packed by three.js. */
 import * as THREE from '../../vendor/three-r185/three.module.min.js';
-import { Sound } from './audio.js?v=ed35fd44';
+import { Sound } from './audio.js?v=73f756c9';
 
 const RAD = Math.PI / 180;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));

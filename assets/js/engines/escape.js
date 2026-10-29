@@ -1,11 +1,12 @@
 /* Engine 8: Escape Room. A story mission where every lock is a card in a CardSwap stack. The class works out
    each code, the teacher types the answer in, and a correct code drops the card away to reveal the next lock. */
-import { esc, str, arr, strs, num, clamp, icon, normAnswer } from '../core.js?v=ed35fd44';
-import { B, chime } from './shared.js?v=ed35fd44';
-import { buildPrompt } from './prompt.js?v=ed35fd44';
-import { CardSwap } from '../fx/cardswap.js?v=ed35fd44';
-import { confetti } from '../fx/particles.js?v=ed35fd44';
-import { sfx } from '../fx/audio.js?v=ed35fd44';
+import { esc, str, arr, strs, num, clamp, icon, normAnswer } from '../core.js?v=73f756c9';
+import { timesUp } from '../fx/timesup.js?v=73f756c9';
+import { B, chime } from './shared.js?v=73f756c9';
+import { buildPrompt } from './prompt.js?v=73f756c9';
+import { CardSwap } from '../fx/cardswap.js?v=73f756c9';
+import { confetti } from '../fx/particles.js?v=73f756c9';
+import { sfx } from '../fx/audio.js?v=73f756c9';
 
 const EXAMPLE = {
   title: 'Escape from Space Station Orion',
@@ -112,7 +113,7 @@ const screens = (eng) => [
       let tid = 0;
       if (st.left > 0 && st.solved < d.rooms.length) tid = setInterval(() => {
         st.left--; clock.textContent = fmt(st.left); clock.classList.toggle('low', st.left <= 60);
-        if (st.left <= 0) { clearInterval(tid); clock.textContent = '0:00'; chime(); const m = front().querySelector('.lk-msg'); if (m) { m.className = 'lk-msg bad'; m.textContent = 'Out of oxygen! Keep going for glory.'; } }
+        if (st.left <= 0) { clearInterval(tid); clock.textContent = '0:00'; timesUp(); const m = front().querySelector('.lk-msg'); if (m) { m.className = 'lk-msg bad'; m.textContent = 'Out of oxygen! Keep going for glory.'; } }
       }, 1000);
       const front = () => swap.front().el;
       const paintSide = () => {

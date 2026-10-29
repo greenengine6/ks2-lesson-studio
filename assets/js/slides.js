@@ -1,14 +1,15 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
-import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=ed35fd44';
-import { track } from './track.js?v=ed35fd44';
-import { fractify, fracSlide } from './fractions.js?v=ed35fd44';
-import EXAMPLE_RAW from './slides-example.js?v=ed35fd44';
-import { Ribbons } from './fx/ribbons.js?v=ed35fd44';
-import { sfx } from './fx/audio.js?v=ed35fd44';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=ed35fd44';
-import { presentKit } from './presentkit.js?v=ed35fd44';
-import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=ed35fd44';
+import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=73f756c9';
+import { track } from './track.js?v=73f756c9';
+import { fractify, fracSlide } from './fractions.js?v=73f756c9';
+import EXAMPLE_RAW from './slides-example.js?v=73f756c9';
+import { Ribbons } from './fx/ribbons.js?v=73f756c9';
+import { sfx } from './fx/audio.js?v=73f756c9';
+import { timesUp } from './fx/timesup.js?v=73f756c9';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=73f756c9';
+import { presentKit } from './presentkit.js?v=73f756c9';
+import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=73f756c9';
 
 const I = {
   flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
@@ -201,12 +202,12 @@ function renderLesson() {
   $('#panel-plan').hidden = state.tab !== 'plan';
   renderSlides(); renderPlan(); renderRecent(); paintKeep();
 }
-/* Keep on dashboard: the lesson stays at the front of the home page's shelf, with a picture of its topic. */
+/* Keep on Today: the lesson stays on the Today page (Kept on Today), with a picture of its topic. */
 function paintKeep() {
   const b = $('#a-keep'), ex = state.deckId === 'example', on = !ex && isPinned('slides', state.deckId);
   if (!b) return;
   b.hidden = ex; b.setAttribute('aria-pressed', String(on));
-  $('span', b).textContent = on ? 'On your dashboard' : 'Keep on dashboard';
+  $('span', b).textContent = on ? 'Kept on Today' : 'Keep on Today';
 }
 function renderSlides() {
   const d = state.deck, grid = $('#sgrid');
@@ -235,8 +236,8 @@ function renderPlan() {
 
 /* ================= recent lessons (this browser) ================= */
 function loadRecent() { const v = store.getJSON(RECENT_KEY, []); return Array.isArray(v) ? v.filter((x) => x && x.id && x.deck) : []; }
-function saveRecent() { store.setJSON(RECENT_KEY, state.recent.slice(0, 12)); bus.emit('shelf'); }
-function addRecent(deck) { const id = 'l' + Date.now().toString(36); state.recent.unshift({ id, at: Date.now(), deck }); state.recent = state.recent.slice(0, 12); saveRecent(); return id; }
+function saveRecent() { store.setJSON(RECENT_KEY, state.recent.slice(0, 40)); bus.emit('shelf'); }
+function addRecent(deck) { const id = 'l' + Date.now().toString(36); state.recent.unshift({ id, at: Date.now(), deck }); state.recent = state.recent.slice(0, 40); saveRecent(); return id; }
 function renderRecent() {
   const items = state.recent.map((r) => ({ id: r.id, deck: r.deck, sub: r.deck.year + ' · ' + r.deck.subject + ' · ' + new Date(r.at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }));
   items.push({ id: 'example', deck: EXAMPLE, sub: 'Example · ' + EXAMPLE.year + ' · ' + EXAMPLE.subject });
@@ -651,7 +652,7 @@ function toggleTimer() {
   pr.timer.id = setInterval(() => {
     const t = state.pr.timer; if (!t) return;
     t.left -= 1;
-    if (t.left <= 0) { clearInterval(t.id); t.id = null; el.textContent = "Time's up"; el.classList.add('done'); tb.querySelector('span').textContent = 'Restart'; state.pr.timer = null; return; }
+    if (t.left <= 0) { clearInterval(t.id); t.id = null; el.textContent = "Time's up"; el.classList.add('done'); timesUp(); tb.querySelector('span').textContent = 'Restart'; state.pr.timer = null; return; }
     el.textContent = fmt(t.left);
   }, 1000);
 }
@@ -672,7 +673,7 @@ export function initSlides() {
   $('#a-ppt').addEventListener('click', exportPptx);
   $('#a-quiz').addEventListener('click', copyQuiz);
   $('#a-plan').addEventListener('click', copyPlan);
-  $('#a-keep').addEventListener('click', () => { if (state.deckId === 'example') return; const on = togglePin('slides', state.deckId); paintKeep(); toast(on ? 'Kept on your dashboard, with a picture of the topic.' : 'Taken off your dashboard.'); });
+  $('#a-keep').addEventListener('click', () => { if (state.deckId === 'example') return; const on = togglePin('slides', state.deckId); paintKeep(); toast(on ? 'Kept on Today, with a picture of the topic.' : 'Taken off Today.'); });
   kit = presentKit({ root: $('#spresent'), frame: () => $('#spr-frame'), key: () => (state.deckId || 'example') + ':' + state.pr.i, title: () => state.deck ? state.deck.title : '' });
   $('#spr-prev').addEventListener('click', () => go(-1));
   $('#spr-next').addEventListener('click', () => go(1));

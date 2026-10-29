@@ -89,6 +89,17 @@ export async function openUp(key, env) {
   try { return await unlock(key, p[2], p[3], p[4]); } catch (e) { return null; }
 }
 
+/* What the teacher sends to one pupil only ("On my way", praise, a sticker, a reply): locked with the key that pupil
+   and the teacher share (the same ECDH key the pupil uses for its answers), so no other pupil can open it. The
+   envelope names the pupil's random id, so each device only tries the ones meant for it. */
+export async function sealTo(key, pid, obj) { return 'P1.' + pid + '.' + await lock(key, obj); }
+export function toPid(env) { const p = String(env || '').split('.'); return p[0] === 'P1' && p.length === 5 && ID.test(p[1]) ? p[1] : ''; }
+export async function openTo(key, env) {
+  const p = String(env || '').split('.');
+  if (p[0] !== 'P1' || p.length !== 5) return null;
+  try { return await unlock(key, p[2], p[3], p[4]); } catch (e) { return null; }
+}
+
 /* ---------------- long messages travel in parts ---------------- */
 export function split(env) {
   if (env.length <= PART) return [env];

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://upload.wikimedia.org https://i.ytimg.com; media-src 'self' blob:; frame-src https://www.youtube-nocookie.com; connect-src 'self' https://api.anthropic.com https://api.openai.com https://script.google.com https://script.googleusercontent.com https://ntfy.sh https://en.wikipedia.org https://simple.wikipedia.org https://upload.wikimedia.org https://i.ytimg.com https://www.googleapis.com; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://upload.wikimedia.org https://i.ytimg.com; media-src 'self' blob:; frame-src 'self' https://www.youtube-nocookie.com; connect-src 'self' https://api.anthropic.com https://api.openai.com https://script.google.com https://script.googleusercontent.com https://ntfy.sh https://en.wikipedia.org https://simple.wikipedia.org https://upload.wikimedia.org https://i.ytimg.com https://www.googleapis.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>KS2 Lesson Engine</title>
 <meta name="description" content="Ten online-lesson engines and a slide studio for Key Stage 2: two-way class screens, teacher notes and slides, made in about a minute.">
 <meta name="robots" content="noindex, nofollow">
@@ -20,68 +20,80 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=JetBrains+Mono:wght@500;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap">
-<link rel="stylesheet" href="assets/css/app.css?v=ed35fd44">
-<link rel="stylesheet" href="assets/css/board.css?v=ed35fd44">
-<link rel="stylesheet" href="assets/css/slides.css?v=ed35fd44">
-<link rel="stylesheet" href="assets/css/lumen.css?v=ed35fd44">
-<link rel="stylesheet" href="assets/css/chat.css?v=ed35fd44">
-<link rel="stylesheet" href="assets/css/people.css?v=ed35fd44">
-<link rel="stylesheet" href="assets/css/play.css?v=ed35fd44">
-<link rel="stylesheet" href="assets/css/lkie.css?v=ed35fd44">
-<link rel="stylesheet" href="assets/css/live.css?v=ed35fd44">
-<script src="assets/js/theme.js?v=ed35fd44"></script>
-<link rel="modulepreload" href="assets/js/app.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/security.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/core.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/slides.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/slides-example.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/settings.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/chat.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/people.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/crypto.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/idb.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/track.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/feedback.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/admin.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/report.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/play.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/sync.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/fx/dock.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/fx/cardswap.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/fx/symphony.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/fx/waves.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/fx/ribbons.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/fx/sound.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/fx/voice.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/fx/particles.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/registry.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/shared.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/prompt.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/widgets.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/maths.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/story.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/reading.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/science.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/journey.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/code.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/steps.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/escape.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/brainbreak.js?v=ed35fd44">
-<link rel="modulepreload" href="assets/js/engines/debate.js?v=ed35fd44">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap">
+<link rel="stylesheet" href="assets/css/app.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/board.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/slides.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/lumen.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/chat.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/people.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/play.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/lkie.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/live.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/shell.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/tools.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/worksheet.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/games.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/quiz.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/calendar.css?v=73f756c9">
+<link rel="stylesheet" href="assets/css/class.css?v=73f756c9">
+<script src="assets/js/theme.js?v=73f756c9"></script>
+<link rel="modulepreload" href="assets/js/app.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/security.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/core.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/slides.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/slides-example.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/settings.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/chat.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/people.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/crypto.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/idb.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/track.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/feedback.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/admin.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/report.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/play.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/sync.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/fx/dock.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/fx/cardswap.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/fx/symphony.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/fx/waves.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/fx/ribbons.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/fx/sound.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/fx/voice.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/fx/particles.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/registry.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/shared.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/prompt.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/widgets.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/maths.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/story.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/reading.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/science.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/journey.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/code.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/steps.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/escape.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/brainbreak.js?v=73f756c9">
+<link rel="modulepreload" href="assets/js/engines/debate.js?v=73f756c9">
 <script type="application/json" id="config">{"mainModel": "claude-sonnet-5-5", "quickModel": "claude-haiku-5-5", "symModel": "claude-sonnet-5-5", "limits": {"rest": 5, "hour": 15, "day": 40, "editGap": 8, "editHour": 40, "chatGap": 3, "chatTen": 20, "chatDay": 150}, "admin": {"name": "Rabinder Kaur", "iter": 400000, "salt": "9m8DAyZLstgOdjN48kJsHQ", "check": "_1XJXZO3aEhYQbN8qVhHoQUSexIYU2wxPA-jddQ_Plo", "pub": "BDySIQy1KVdnMX9f2Selpt8E8IHPlnpnL0Rssq8jumx1fFJx01fw6D-xuIszATP6wr48ooqH_qzhAMHyGsVX7jo", "key": "FCnshmCVWYNgK-yr3ei2Htz1jtFCXkyMuPLqBp9WfqH0lwODJzo10mp9EgSLC9TUBh7SyPBraHE7dHIFJoPW3Us8NaJYSo1BGrxMyw3oqL2-5csUuaW-H0_J6Rwxi6oKfnrmrdyYuTThV_6o6dduosyNuqyhV5-MsyBb2qycPlRZMDaF_tdL499-AeO8qapwiIlW5cjhroVR-w", "iv": "ykf7_pbMiGoTr8UN"}}</script>
 </head>
 <body>
 <a class="sr" href="#main">Skip to content</a>
+<aside class="side" id="side" aria-label="Main menu" hidden>
+  <a class="brand side-brand" href="#/today" aria-label="KS2 Lesson Engine: Today"><span class="logo"><i><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8B84FF"/><stop offset="1" stop-color="#38B2AC"/></linearGradient></defs><path fill="url(#lg2)" d="M12 21.2C5.4 16.9 2.3 13.2 2.3 9.1 2.3 6.2 4.5 4 7.3 4c1.9 0 3.5 1 4.7 2.7C13.2 5 14.8 4 16.7 4c2.8 0 5 2.2 5 5.1 0 4.1-3.1 7.8-9.7 12.1z"/></svg></i></span><span class="brand-t"><b>KS2 Lesson Engine</b><span>Made with <span class="hrt">♥</span> by Rabinder Kaur</span></span></a>
+  <nav class="side-nav" id="side-nav" aria-label="Pages"></nav>
+  <div class="side-foot" id="side-foot"></div>
+</aside>
 <header class="top" id="top">
   <div class="top-in">
-    <a class="brand" href="#/" aria-label="KS2 Lesson Engine home"><span class="logo"><i><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8B84FF"/><stop offset="1" stop-color="#38B2AC"/></linearGradient></defs><path fill="url(#lg)" d="M12 21.2C5.4 16.9 2.3 13.2 2.3 9.1 2.3 6.2 4.5 4 7.3 4c1.9 0 3.5 1 4.7 2.7C13.2 5 14.8 4 16.7 4c2.8 0 5 2.2 5 5.1 0 4.1-3.1 7.8-9.7 12.1z"/></svg></i></span><span class="brand-t"><b>KS2 Lesson Engine</b><span>Made with <span class="hrt">♥</span> by Rabinder Kaur</span></span></a>
-    <nav class="nav" aria-label="Main"><a href="#engines">Engines</a><a href="#/slides">Slide Studio</a><a href="#how">How it works</a></nav>
-    <div class="top-r"><button type="button" class="btn icon snd" role="switch" aria-checked="true" data-switch="sound" aria-label="Sound effects"><svg class="i snd-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.6 7.6 0 0 1 0 11"/></svg><svg class="i snd-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button><span class="night-sw"><button type="button" class="lsw hdr amber" role="switch" aria-checked="false" data-switch="night" aria-label="Night mode"><span class="lsw-handle"></span><span class="lsw-tip">Night mode</span></button></span><div class="seg" role="group" aria-label="Where you are teaching"><button type="button" data-mode="online" aria-pressed="true">Online</button><button type="button" data-mode="class" aria-pressed="false">In class</button></div><button type="button" class="conn" data-connect><span class="st" aria-hidden="true"></span><span class="ctext">Connect</span></button>
+    <a class="brand top-brand" href="#/" aria-label="KS2 Lesson Engine home"><span class="logo"><i><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8B84FF"/><stop offset="1" stop-color="#38B2AC"/></linearGradient></defs><path fill="url(#lg)" d="M12 21.2C5.4 16.9 2.3 13.2 2.3 9.1 2.3 6.2 4.5 4 7.3 4c1.9 0 3.5 1 4.7 2.7C13.2 5 14.8 4 16.7 4c2.8 0 5 2.2 5 5.1 0 4.1-3.1 7.8-9.7 12.1z"/></svg></i></span><span class="brand-t"><b>KS2 Lesson Engine</b><span>Made with <span class="hrt">♥</span> by Rabinder Kaur</span></span></a>
+    <div class="top-search" id="top-search" role="search" hidden><label class="ts-box"><span class="sr">Search everything you have made</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20"/></svg><input type="search" id="ts-q" autocomplete="off" enterkeyhint="search" placeholder="Search lessons, worksheets, quizzes…" aria-controls="ts-list" aria-expanded="false"></label><div class="ts-list" id="ts-list" role="listbox" aria-label="Search results" hidden></div></div>
+    <div class="top-r"><div class="seg" role="group" aria-label="Where you are teaching"><button type="button" data-mode="online" aria-pressed="true">Online</button><button type="button" data-mode="class" aria-pressed="false">In class</button></div><button type="button" class="btn icon snd" role="switch" aria-checked="true" data-switch="sound" aria-label="Sound effects"><svg class="i snd-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18 6.5a7.6 7.6 0 0 1 0 11"/></svg><svg class="i snd-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button><button type="button" class="conn" data-connect><span class="st" aria-hidden="true"></span><span class="ctext">Connect</span></button>
       <button type="button" class="btn icon menu-btn" id="menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="mnav"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
   </div>
 </header>
-<nav class="mnav" id="mnav" hidden aria-label="Menu"><a href="#/">Home</a><a href="#engines">Engines</a><a href="#/slides">Slide Studio</a><a href="#/lkie">lkie.like</a><a href="#how">How it works</a><div class="seg" role="group" aria-label="Where you are teaching"><button type="button" data-mode="online" aria-pressed="true">Online</button><button type="button" data-mode="class" aria-pressed="false">In class</button></div><div class="lsw-row"><span>Sound<small>Effects and the space sound</small></span><button type="button" class="lsw teal" role="switch" aria-checked="true" data-switch="sound" aria-label="Sound effects"><span class="lsw-handle"></span></button></div><div class="lsw-row"><span>Night mode<small>Dark, calm screens</small></span><button type="button" class="lsw amber" role="switch" aria-checked="false" data-switch="night" aria-label="Night mode"><span class="lsw-handle"></span></button></div><div class="lsw-row"><span>Hey Symphony<small>She listens for her name</small></span><button type="button" class="lsw teal" role="switch" aria-checked="false" data-switch="wake" aria-label="Hey Symphony"><span class="lsw-handle"></span></button></div></nav>
+<nav class="mnav" id="mnav" hidden aria-label="More"><div class="mnav-links" id="mnav-links"></div><div class="seg" role="group" aria-label="Where you are teaching"><button type="button" data-mode="online" aria-pressed="true">Online</button><button type="button" data-mode="class" aria-pressed="false">In class</button></div><div class="lsw-row"><span>Sound<small>Little sounds and effects</small></span><button type="button" class="lsw teal" role="switch" aria-checked="true" data-switch="sound" aria-label="Sound effects"><span class="lsw-handle"></span></button></div><div class="lsw-row"><span>Night mode<small>Dark, calm screens</small></span><button type="button" class="lsw amber" role="switch" aria-checked="false" data-switch="night" aria-label="Night mode"><span class="lsw-handle"></span></button></div><div class="lsw-row"><span>Hey Symphony<small>She listens for her name</small></span><button type="button" class="lsw teal" role="switch" aria-checked="false" data-switch="wake" aria-label="Hey Symphony"><span class="lsw-handle"></span></button></div></nav>
 
 <main id="main">
 <div id="view-home">
@@ -93,77 +105,16 @@
       <p class="kicker"><span class="dot" aria-hidden="true"></span>Key Stage 2 · Years 3 to 6</p>
       <h1><span class="ks2">KS2</span> Lesson Engine</h1>
       <p class="made">Made with <svg class="heart" viewBox="0 0 24 24" width="1em" height="1em" role="img" aria-label="love"><path fill="currentColor" d="M12 21.2C5.4 16.9 2.3 13.2 2.3 9.1 2.3 6.2 4.5 4 7.3 4c1.9 0 3.5 1 4.7 2.7C13.2 5 14.8 4 16.7 4c2.8 0 5 2.2 5 5.1 0 4.1-3.1 7.8-9.7 12.1z"/></svg> by <b>Rabinder Kaur</b></p>
-      <p class="lede">Ten engines, Slide Studio and lkie.like turn one topic into a two-way lesson your class will love, in about a minute.</p>
+      <p class="lede">Lessons, worksheets, quizzes and games for Years 3 to 6, made in about a minute, with everything for the classroom in one calm place.</p>
       <button type="button" class="hg-down" data-to-gate><span>Sign in</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg></button>
       </div>
-      <div class="hero-cta"><a class="btn glow big" href="#engines"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></svg>Open the engines</a><a class="btn glass big" href="#/slides"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="2.2"/><path d="M8 20h8M12 16.5V20"/><path d="M7 9h6M7 12h4"/></svg>Make lesson slides</a></div>
       <form class="hero-gate" id="hero-gate" novalidate hidden aria-label="Sign in to teach"></form>
     </div>
     <button type="button" class="hero-hint" id="hero-hint" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 3.9 5.3 3.9 8.5s-1.3 6.1-3.9 8.5c-2.6-2.4-3.9-5.3-3.9-8.5s1.3-6.1 3.9-8.5z"/></svg><span></span></button>
   </section>
-
-  <section class="sec shelf" id="shelf" aria-labelledby="shelf-h" hidden>
-    <div class="sec-h"><p class="kicker" style="--c:var(--accent)">Your dashboard</p><h2 id="shelf-h">Your lessons</h2>
-      <p>Every lesson made on this device, with a picture of its topic. Tap the pin to keep a lesson at the front.</p></div>
-    <div class="shelf-grid" id="shelf-grid"></div>
-    <p class="fine sh-more" id="shelf-more"></p>
-  </section>
-
-  <section class="sec" id="engines" aria-labelledby="eng-h">
-    <div class="sec-h"><p class="kicker" style="--c:var(--accent)">Pick an engine</p><h2 id="eng-h">Type a topic. Get a lesson your class can join in.</h2>
-      <p>Every engine makes a class screen to share and teacher notes to keep. Each one comes with a finished example, so you can teach with it straight away.</p></div>
-    <div class="egrid" id="egrid"></div>
-  </section>
-
-  <section class="sec" id="show" aria-labelledby="show-h">
-    <div class="show">
-      <div><p class="kicker" style="--c:var(--accent)">What pupils see</p><h2 id="show-h" style="margin:14px 0 0;font-size:max(9px,calc(clamp(2rem,4vw,3rem) * var(--m,1)));font-weight:800;line-height:1.05;letter-spacing:-.035em">Two-way screens, not worksheets.</h2>
-        <ul>
-          <li style="--c:var(--indigo)"><i><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg></i><span><b>Pupils answer all the time.</b> Chat waterfalls, live votes, code locks and a robot to program.</span></li>
-          <li style="--c:var(--teal)"><i><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></i><span><b>Answers stay hidden</b> until you tap, so you can share your screen.</span></li>
-          <li style="--c:var(--pink)"><i><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg></i><span><b>A magic pointer</b> shows pupils on Teams or Zoom exactly where you are pointing.</span></li>
-          <li style="--c:var(--gold)"><i><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg></i><span><b>Teacher notes</b> with timings, answers and support ideas, ready to copy.</span></li>
-        </ul></div>
-      <div class="cs-stage"><div class="cs-root" id="cs-root"></div></div>
-    </div>
-  </section>
-
-  <section class="room tone-dark" id="room" aria-labelledby="room-h">
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
-      <linearGradient id="lc-grad" x1="0" x2="0" y1="-1" y2="0.8"><stop offset="0%" stop-color="#bbb"/><stop offset="100%" stop-color="#555"/></linearGradient>
-      <filter id="lc-inner"><feFlood flood-color="#fff2"/><feComposite operator="out" in2="SourceGraphic"/><feMorphology operator="dilate" radius="0.2"/><feGaussianBlur stdDeviation="0.75"/><feComposite operator="atop" in2="SourceGraphic"/></filter></defs></svg>
-    <div class="room-in">
-      <div class="sec-h"><p class="kicker">Make it yours</p><h2 id="room-h">Switch on what you need.</h2><p>Each switch lights up and remembers your choice on this device.</p></div>
-      <div class="lgrid">
-        <div class="lcell"><div class="lcard" data-tone="amber"><div class="lc-light"><div class="lc-slit"></div><div class="lc-lumen"><i class="lc-min"></i><i class="lc-mid"></i><i class="lc-hi"></i></div><div class="lc-dark"><i class="lc-sl"></i><i class="lc-ll"></i><i class="lc-slt"></i><i class="lc-srt"></i></div></div>
-          <div class="lc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#lc-grad)" filter="url(#lc-inner)" d="M20.6 14.7A8.7 8.7 0 0 1 9.3 3.4a8.7 8.7 0 1 0 11.3 11.3zM17.2 2.6l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8zM21 8.2l.5 1.1 1.1.5-1.1.5-.5 1.1-.5-1.1-1.1-.5 1.1-.5z"/></svg></div>
-          <div class="lc-bottom"><h4>Night mode</h4><p>Dark, calm screens for evening planning.</p><button type="button" class="lsw amber" role="switch" aria-checked="false" data-switch="night" aria-label="Night mode"><span class="lsw-handle"></span><span class="lsw-tip">Lights off</span></button></div></div></div>
-        <div class="lcell"><div class="lcard" data-tone="rose"><div class="lc-light"><div class="lc-slit"></div><div class="lc-lumen"><i class="lc-min"></i><i class="lc-mid"></i><i class="lc-hi"></i></div><div class="lc-dark"><i class="lc-sl"></i><i class="lc-ll"></i><i class="lc-slt"></i><i class="lc-srt"></i></div></div>
-          <div class="lc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#lc-grad)" filter="url(#lc-inner)" d="M9.6 17.9a3 3 0 1 1-1.6-2.65V5.4l11-2.3v12.2a3 3 0 1 1-1.6-2.65V7.1L9.6 8.6z"/></svg></div>
-          <div class="lc-bottom"><h4>Symphony’s voice</h4><p>She reads her answers aloud, in English or Malay.</p><button type="button" class="lsw rose" role="switch" aria-checked="true" data-switch="voice" aria-label="Symphony reads answers aloud"><span class="lsw-handle"></span><span class="lsw-tip">Let her speak</span></button></div></div></div>
-        <div class="lcell"><div class="lcard" data-tone="violet"><div class="lc-light"><div class="lc-slit"></div><div class="lc-lumen"><i class="lc-min"></i><i class="lc-mid"></i><i class="lc-hi"></i></div><div class="lc-dark"><i class="lc-sl"></i><i class="lc-ll"></i><i class="lc-slt"></i><i class="lc-srt"></i></div></div>
-          <div class="lc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#lc-grad)" filter="url(#lc-inner)" d="M4.6 2.8l14.2 6.9-6.3 2-2.7 6.5zM18.4 14.6l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z"/></svg></div>
-          <div class="lc-bottom"><h4>Magic pointer</h4><p>Glowing ribbons follow your mouse when you present.</p><button type="button" class="lsw violet" role="switch" aria-checked="false" data-switch="pointer" aria-label="Magic pointer when presenting"><span class="lsw-handle"></span><span class="lsw-tip">Ribbons on</span></button></div></div></div>
-        <div class="lcell"><div class="lcard" data-tone="teal"><div class="lc-light"><div class="lc-slit"></div><div class="lc-lumen"><i class="lc-min"></i><i class="lc-mid"></i><i class="lc-hi"></i></div><div class="lc-dark"><i class="lc-sl"></i><i class="lc-ll"></i><i class="lc-slt"></i><i class="lc-srt"></i></div></div>
-          <div class="lc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#lc-grad)" filter="url(#lc-inner)" d="M2.5 4.5h19v12.2h-19zM9 19h6v1.8H9zM12 7.4a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM8.4 15.4c.5-1.9 1.9-2.9 3.6-2.9s3.1 1 3.6 2.9z"/></svg></div>
-          <div class="lc-bottom"><h4>Teaching online</h4><p>Prompts say “type in the chat”. Off: classroom wording.</p><button type="button" class="lsw teal" role="switch" aria-checked="true" data-switch="online" aria-label="Teaching online"><span class="lsw-handle"></span><span class="lsw-tip">Online lessons</span></button></div></div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="sec" id="how" aria-labelledby="how-h">
-    <div class="sec-h"><p class="kicker" style="--c:var(--accent)">How it works</p><h2 id="how-h">Ready for your next online class.</h2></div>
-    <div class="how">
-      <div><b>1</b><h3>Pick an engine</h3><p>From the dock at the bottom of the screen, or the cards above.</p></div>
-      <div><b>2</b><h3>Fill in two or three boxes</h3><p>Year group, topic and one choice. Symphony writes it in about a minute.</p></div>
-      <div><b>3</b><h3>Press Present</h3><p>Share that window on Teams, Zoom or Meet. Tick “share sound” for Sound Journey and Brain Break.</p></div>
-    </div>
-    <p class="how-more"><button type="button" class="btn" data-how="safe"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/></svg>Every rule, in one place</button></p>
-  </section>
-  <footer class="foot"><p>Made with <span class="hrt">♥</span> by <b>Rabinder Kaur</b>, Head of Key Stage 2</p>
-    <p><button type="button" class="linkbtn" data-feedback>Give feedback</button> · <a class="linkbtn" href="#/play">Wonder Window</a></p>
-    <p>Your key and saved lessons stay in this browser. What leaves it: the request the engine sends when you press a button; your activity for Rabinder’s reports, locked so only she can open it; live-lesson messages, locked end to end; and picture searches, which go to Wikipedia. Videos play from YouTube’s privacy-enhanced player. Speaking to Symphony uses your browser’s own speech service; with Hey Symphony on, she listens only for her name and ignores everything else.</p></footer>
 </div>
+
+<div id="pages" class="pages"></div>
 
 <div id="view-engine" class="view" hidden></div>
 
@@ -242,7 +193,7 @@
             </div></details>
           <button type="button" class="btn" id="a-quiz"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"/></svg>Copy quiz</button>
           <button type="button" class="btn" id="a-plan"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 3h6v4H9zM8.5 11h7M8.5 15h5"/></svg>Copy plan</button>
-          <button type="button" class="btn" id="a-keep" aria-pressed="false" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 3.5l6 6-2.3.8-3.9 3.9.4 3.6-1.6 1.6-3.4-3.4L5 20.7 3.3 19l4.7-4.7-3.4-3.4 1.6-1.6 3.6.4 3.9-3.9z"/></svg><span>Keep on dashboard</span></button>
+          <button type="button" class="btn" id="a-keep" aria-pressed="false" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 3.5l6 6-2.3.8-3.9 3.9.4 3.6-1.6 1.6-3.4-3.4L5 20.7 3.3 19l4.7-4.7-3.4-3.4 1.6-1.6 3.6.4 3.9-3.9z"/></svg><span>Keep on Today</span></button>
         </div>
         <div class="seg" role="tablist" aria-label="Lesson views"><button type="button" role="tab" data-stab="slides" aria-selected="true">Slides</button><button type="button" role="tab" data-stab="plan" aria-selected="false">Lesson plan</button></div>
         <div id="panel-slides" role="tabpanel"><div class="sgrid" id="sgrid"></div></div>
@@ -253,7 +204,7 @@
 </div>
 </main>
 
-<nav class="dock" id="dock" aria-label="Tools"></nav>
+<nav class="tabs" id="tabs" aria-label="Main menu" hidden></nav>
 
 <div class="present" id="present" hidden role="dialog" aria-modal="true" aria-label="Presenting to the class">
   <div class="pr-top"><div class="pr-name" id="pr-name"></div><div class="pr-timer" id="pr-timer" hidden></div></div>
@@ -268,6 +219,7 @@
       <div class="pr-menu" id="pr-timer-menu" hidden><button type="button" class="pbtn" data-min="1">1 min</button><button type="button" class="pbtn" data-min="2">2</button><button type="button" class="pbtn" data-min="3">3</button><button type="button" class="pbtn" data-min="5">5</button><button type="button" class="pbtn" data-min="10">10</button><button type="button" class="pbtn" data-min="0">Stop</button></div></div>
     <button type="button" class="pbtn" data-kit="draw" aria-pressed="false" title="Draw on the screen (D)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.6L15.6 5a2.1 2.1 0 0 1 3 3L8.2 18.4z"/><path d="M13.5 7.2l3 3"/></svg><span>Draw</span></button>
     <button type="button" class="pbtn kit-join" data-kit="join" title="Pupils join on their own device (J)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h2.5v2.5H14zM18 18h2.5v2.5H18zM14 18.5v2M18 14h2.5"/></svg><span>Join</span></button>
+    <button type="button" class="pbtn" data-kit="tools" title="Class tools: timer, pick a name, groups, signs, points"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg><span>Tools</span></button>
     <button type="button" class="pbtn" id="pr-ticket" title="Class feedback (C)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.9 2 5.1 2 7 0"/><path d="M9 9.5v.5M15 9.5v.5"/></svg><span>Class feedback</span></button>
     <button type="button" class="pbtn" id="pr-notes-btn" aria-pressed="false" title="Teacher notes (N)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>Notes</span><i class="lsw mini amber" aria-hidden="true"><i class="lsw-handle"></i></i></button>
     <button type="button" class="pbtn" id="pr-full" aria-label="Full screen" title="Full screen (F)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -290,6 +242,7 @@
     <button type="button" class="pbtn" id="spr-pointer" aria-pressed="false" title="Magic pointer (P)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5 18.5 10l-6 1.8L10 18z"/><path d="M14.5 16.5c1.6 1.2 3.4 1.6 5.5 1.2"/></svg><span>Magic pointer</span><i class="lsw mini violet" aria-hidden="true"><i class="lsw-handle"></i></i></button>
     <button type="button" class="pbtn" data-kit="draw" aria-pressed="false" title="Draw on the slide (D)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.6L15.6 5a2.1 2.1 0 0 1 3 3L8.2 18.4z"/><path d="M13.5 7.2l3 3"/></svg><span>Draw</span></button>
     <button type="button" class="pbtn kit-join" data-kit="join" title="Pupils join on their own device (J)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h2.5v2.5H14zM18 18h2.5v2.5H18zM14 18.5v2M18 14h2.5"/></svg><span>Join</span></button>
+    <button type="button" class="pbtn" data-kit="tools" title="Class tools: timer, pick a name, groups, signs, points"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg><span>Tools</span></button>
     <button type="button" class="pbtn" id="spr-ticket" title="Class feedback (C)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.9 2 5.1 2 7 0"/><path d="M9 9.5v.5M15 9.5v.5"/></svg><span>Class feedback</span></button>
     <button type="button" class="pbtn" id="spr-notes-btn" aria-pressed="false" aria-label="Teacher notes"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>Notes</span></button>
     <span class="pr-sep"></span>
@@ -336,7 +289,7 @@
     <div class="fb-text" id="fb-text" tabindex="0"></div>
     <button type="button" class="btn" id="fb-close">Done</button></div>
 </div>
-<script type="module" src="assets/js/app.js?v=ed35fd44"></script>
+<script type="module" src="assets/js/app.js?v=73f756c9"></script>
 <script defer src="assets/pptxgen.bundle.js"></script>
 </body>
 </html>

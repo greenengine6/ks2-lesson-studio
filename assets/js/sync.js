@@ -8,11 +8,11 @@
 
    Rabinder's dashboard fetches the locked activity from the inbox, opens it on her device and adds it to her
    reports. Sending the same thing twice is harmless: every record has its own id. */
-import { bus, CONFIG } from './core.js?v=ed35fd44';
-import { evAll, evPutMany, kvGet, kvSet } from './idb.js?v=ed35fd44';
-import { seal, unseal, importAdminPublic, cryptoOK } from './crypto.js?v=ed35fd44';
-import { device } from './track.js?v=ed35fd44';
-import { ADMIN, adminKey } from './people.js?v=ed35fd44';
+import { bus, CONFIG } from './core.js?v=73f756c9';
+import { evAll, evPutMany, kvGet, kvSet } from './idb.js?v=73f756c9';
+import { seal, unseal, importAdminPublic, cryptoOK } from './crypto.js?v=73f756c9';
+import { device } from './track.js?v=73f756c9';
+import { ADMIN, adminKey } from './people.js?v=73f756c9';
 
 export const INBOX = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/.test(String(CONFIG.inbox || '')) ? CONFIG.inbox : '';
 export const inboxOn = () => !!(INBOX && ADMIN && ADMIN.pub && cryptoOK);
