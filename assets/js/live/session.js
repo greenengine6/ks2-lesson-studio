@@ -19,9 +19,9 @@
    hours, and everything the pupils sent is read again from the relay. Pupils' names and answers stay on this
    screen only; nothing is saved to the device or sent to Rabinder's reports.
    One live lesson at a time for each teacher (activity.js): starting one here ends one left running elsewhere. */
-import { CONFIG, bus, store, toast } from '../core.js?v=73f756c9';
-import * as R from './relay.js?v=73f756c9';
-import { hold, release, blocker, check, onLost } from '../activity.js?v=73f756c9';
+import { CONFIG, bus, store, toast } from '../core.js?v=de4f9a51';
+import * as R from './relay.js?v=de4f9a51';
+import { hold, release, blocker, check, onLost } from '../activity.js?v=de4f9a51';
 
 const SS = 'ks2-engine.live.v1', TTL = 4 * 3600e3, AUTO_KEY = 'ks2-engine.live-auto.v1';
 const LIVE_KINDS = new Set(['react', 'vote', 'chat', 'waterfall', 'show', 'talk', 'think', 'cloud', 'traffic']);
@@ -31,7 +31,9 @@ export const Live = {
   auto: store.get(AUTO_KEY) !== 'off', bk: '', bt: '', bm: null, autos: new Map(), send: 'idle', sentAt: 0, blocked: null,
   // tasks and the class
   tk: null, task: null, blobs: new Map(), eyes: false, tools: { timer: null, sign: null, groups: null, points: null }, hw: null, res: null,
-  help: new Map(), asks: [], expect: new Map(), sent: 0, recv: 0
+  help: new Map(), asks: [], expect: new Map(), sent: 0, recv: 0,
+  // the board's words and picture for devices, a pupil's answer or question shown big, devices locked, who left the page
+  bw: '', bp: '', sp: null, dl: false, away: new Map()
 };
 const L = Live;
 const subs = new Set();
@@ -57,7 +59,8 @@ function save() {
   if (!L.on) { try { sessionStorage.removeItem(SS); } catch (e) { /* private mode */ } return; }
   R.keepPair(L.pair).then((pair) => {
     const keep = { sid: L.sid, k: L.k, code: L.code, tr: L.tr, pair, at: L.at, title: L.title, locked: L.locked, kicked: Array.from(L.kicked), v: L.v,
-      tk: L.tk, task: L.task, eyes: L.eyes, tools: L.tools, hw: L.hw, res: L.res, sent: L.sent, recv: L.recv, blobs: Array.from(L.blobs.entries()).slice(-4) };
+      tk: L.tk, task: L.task, eyes: L.eyes, tools: L.tools, hw: L.hw, res: L.res, sent: L.sent, recv: L.recv, blobs: Array.from(L.blobs.entries()).slice(-4),
+      dl: L.dl, away: Array.from(L.away.entries()) };
     try { sessionStorage.setItem(SS, JSON.stringify(keep)); }
     catch (e) { try { keep.blobs = []; sessionStorage.setItem(SS, JSON.stringify(keep)); } catch (er) { /* full or private */ } }
   });
@@ -94,6 +97,7 @@ export function startLive(title, o) {
 function resetClass() {
   L.tk = null; L.task = null; L.blobs = new Map(); L.eyes = false; L.tools = { timer: null, sign: null, groups: null, points: null }; L.hw = null; L.res = null;
   L.help = new Map(); L.asks = []; L.expect = new Map(); L.sent = 0; L.recv = 0;
+  L.bw = ''; L.bp = ''; L.sp = null; L.dl = false; L.away = new Map();
 }
 async function resume() {
   let s = null;
@@ -104,6 +108,7 @@ async function resume() {
     L.kicked = new Set(Array.isArray(s.kicked) ? s.kicked : []);
     resetClass();
     L.tk = s.tk || null; L.task = s.task || null; L.eyes = !!s.eyes; L.hw = s.hw || null; L.res = s.res || null;
+    L.dl = !!s.dl; try { L.away = new Map(Array.isArray(s.away) ? s.away : []); } catch (e) { L.away = new Map(); }
     if (s.tools && typeof s.tools === 'object') L.tools = Object.assign(L.tools, s.tools);
     L.sent = Number(s.sent) || 0; L.recv = Number(s.recv) || 0;
     if (Array.isArray(s.blobs)) s.blobs.forEach((b) => { if (Array.isArray(b) && b[0] && b[1]) L.blobs.set(b[0], b[1]); });
@@ -200,6 +205,10 @@ async function push() {
     const tools = toolsNow(); if (tools) st.tools = tools;
     if (L.hw) st.hw = L.hw;
     if (L.res) st.res = L.res;
+    if (L.bw) st.bw = L.bw;
+    if (L.bp) st.bp = L.bp;
+    if (L.sp) st.sp = L.sp;
+    if (L.dl) st.dl = 1;
     await post(chan('t'), await R.sealAll(L.key, st));
     if (L.err) { L.err = ''; changed('status'); }
     L.sentAt = Date.now(); sendState('sent');
@@ -335,6 +344,19 @@ function take(m, pub) {
     changed({ help: pid, on });
     return;
   }
+  if (m.t === 'away') {
+    // a locked device left the class page (on) or came back (off, with how long it was away). n and tot are the
+    // device's own running count and total, so a pair it skipped (one pair every 10 seconds at most) still counts.
+    const on = !!m.on, a = L.away.get(pid) || { on: false, at: 0, n: 0, tot: 0, ms: 0, back: 0 };
+    const n = Math.round(Number(m.n)), tot = Math.round(Number(m.tot)), ms = Math.round(Number(m.ms));
+    if (Number.isFinite(n) && n >= 0 && n < 10000) a.n = Math.max(a.n, n);
+    if (Number.isFinite(tot) && tot >= 0 && tot < 864e5) a.tot = Math.max(a.tot, tot);
+    if (on) { if (!a.on) a.at = Date.now(); a.on = true; }
+    else { a.on = false; a.back = Date.now(); if (Number.isFinite(ms) && ms >= 0 && ms < 864e5) a.ms = ms; }
+    L.away.set(pid, a);
+    save(); changed({ away: pid, on });
+    return;
+  }
   if (m.t === 'ask') {
     const id = String(m.id || ''), t = R.cleanText(m.text, 200);
     if (!/^[A-Za-z0-9_-]{4,12}$/.test(id) || !t || L.asks.some((a) => a.id === id)) return;
@@ -393,13 +415,16 @@ function slideMoment(key, m) {
 }
 const boardMoment = () => (L.auto && L.bm && LIVE_KINDS.has(L.bm.kind) ? slideMoment(L.bk, L.bm) : null);
 /* Present screens call this (through the present kit) each time they draw a slide.
-   s: { key, title, moment: { kind, q, opts, qs, ans } or null } (ans, the expected answers, stays on this screen) */
+   s: { key, title, words, pic, moment: { kind, q, opts, qs, ans } or null } (ans, the expected answers, stays on this
+   screen; words are only what pupils can see on the board; pic only a free Wikimedia picture) */
+const WIKI_PIC = /^https:\/\/upload\.wikimedia\.org\/[^\s"'<>]{4,380}$/;
 export function setBoard(s) {
   if (!L.on || !s) return;
   const key = String(s.key || ''), title = R.cleanText(s.title, 120), m = s.moment && s.moment.kind ? s.moment : null;
-  const same = key === L.bk && title === L.bt && (m ? sigOf(m) : '') === (L.bm ? sigOf(L.bm) : '');
+  const words = R.cleanText(s.words, 800), pic = WIKI_PIC.test(String(s.pic || '')) ? String(s.pic) : '';
+  const same = key === L.bk && title === L.bt && words === L.bw && pic === L.bp && (m ? sigOf(m) : '') === (L.bm ? sigOf(L.bm) : '');
   if (same) return;
-  L.bk = key; L.bt = title; L.bm = m;
+  L.bk = key; L.bt = title; L.bw = words; L.bp = pic; L.bm = m;
   if (!L.mo || L.mo.auto) L.mo = boardMoment();
   pushSoon(900);                // flicking through slides sends nothing until one stays on the board
   changed('board');
@@ -477,6 +502,21 @@ export function clearTask() { if (!L.on) return; L.tk = null; L.task = null; L.r
    or { pid: { i: 1 | 0 } } (a worksheet's marks). */
 export function setResults(res) { if (!L.on) return; L.res = res && typeof res === 'object' ? res : null; pushSoon(150); }      // the next push carries it (setTask and updateTask push at once)
 export function setEyes(on) { if (!L.on) return; L.eyes = !!on; push(); changed('eyes'); }
+/* Lock devices: the class page stays full screen where the browser allows it, its links are blocked, and a device
+   that leaves the page tells the teacher. (A website cannot stop a phone opening other apps: school device
+   management can.) */
+export function setDeviceLock(on) { if (!L.on) return; L.dl = !!on; save(); push(); changed('dlock'); }
+/* Who left the class page: { on, at, n, tot, ms, back } for a pupil, all of them, and how many times in all. */
+export const awayOf = (pid) => L.away.get(pid) || null;
+export const awayAll = () => Array.from(L.away.entries()).filter(([pid]) => L.pupils.has(pid)).map(([pid, a]) => Object.assign({ pid, name: nameOf(pid) }, a));
+export const awayCount = () => Array.from(L.away.values()).reduce((n, a) => n + (a.n || 0), 0);
+/* Something shown big on the board from the class view, for every device too: { k: 'q' | 'a', t: text } or null.
+   Never a name. */
+export function setSpot(sp) {
+  if (!L.on) return;
+  L.sp = sp && R.cleanText(sp.t, 300) ? { k: sp.k === 'q' ? 'q' : 'a', t: R.cleanText(sp.t, 300) } : null;
+  pushSoon(200); changed('spot');
+}
 /* Class tools on pupils' devices: patch { timer: { secs, ends, paused, left } | null, sign: { id, word } | null,
    groups: [{ name, color, names: [...] , pids: [...] }] | null, points: [{ name, color, points }] | null }. */
 export function setTools(patch) {

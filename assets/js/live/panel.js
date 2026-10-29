@@ -5,11 +5,11 @@
    live lesson stops it on every pupil's device.
    The header's Live button (wireLiveChip) shows a live lesson that is still running when Present mode is closed,
    or one running on another screen, so it can always be found and ended. */
-import { $, esc, icon, toast, copyOut, bus } from '../core.js?v=73f756c9';
-import { sfx } from '../fx/audio.js?v=73f756c9';
-import { Live, startLive, endLive, setLock, kick, onLive, joinShort, pupilsIn, setAuto, reconnect, budget } from './session.js?v=73f756c9';
-import { blocker, endElsewhere } from '../activity.js?v=73f756c9';
-import { qrSVG } from './qr.js?v=73f756c9';
+import { $, esc, icon, toast, copyOut, bus } from '../core.js?v=de4f9a51';
+import { sfx } from '../fx/audio.js?v=de4f9a51';
+import { Live, startLive, endLive, setLock, kick, onLive, joinShort, pupilsIn, setAuto, reconnect, budget } from './session.js?v=de4f9a51';
+import { blocker, endElsewhere } from '../activity.js?v=de4f9a51';
+import { qrSVG } from './qr.js?v=de4f9a51';
 
 let el = null, unsub = null, keyH = null, shownLink = '', host = null, title = '', offSince = 0;
 const spaced = (c) => String(c || '').replace(/^(\d{3})(\d{3})$/, '$1 $2');
@@ -105,7 +105,7 @@ export function openJoin(where, t) {
     else if (a === 'retry') { reconnect(); toast('Reconnecting to pupils’ devices…'); }
     else if (a === 'take') { Live.blocked = null; begin({ takeOver: true }); toast('The live lesson on the other screen is ending. It is starting here.'); }
     else if (a === 'auto') { setAuto(!Live.auto); paint(); toast(Live.auto ? 'Each slide’s question now goes to pupils’ devices by itself.' : 'Questions go to pupils’ devices only when you tap the slide’s pill.'); }
-    else if (a === 'cv') { const h = host; closeJoin(); import('./classview.js?v=73f756c9').then((m) => m.openClassView({ host: h })).catch(() => toast('The class view could not open.')); }
+    else if (a === 'cv') { const h = host; closeJoin(); import('./classview.js?v=de4f9a51').then((m) => m.openClassView({ host: h })).catch(() => toast('The class view could not open.')); }
   });
   keyH = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeJoin(); } };
   document.addEventListener('keydown', keyH, true);

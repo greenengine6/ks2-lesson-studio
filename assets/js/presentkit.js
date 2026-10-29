@@ -4,17 +4,19 @@
    - Join (J): the QR code for a live lesson; the button then shows how many pupils have joined, and a dot that
      says whether the latest slide reached their devices (green: sent; amber: sending or retrying; red: the relay
      is full for today).
-   - In a live lesson, what is on the board goes to pupils' devices: the slide's title, and its question (the
-     "how pupils respond" pill) by itself, with a count on the pill of how many have answered.
+   - In a live lesson, what is on the board goes to pupils' devices: the slide's title, the words they can see on
+     it (never answers still hidden), its picture when it is a free Wikimedia one, and its question (the "how pupils
+     respond" pill) by itself, with a count on the pill of how many have answered.
    - A timer, for screens that have none of their own.
    Each present screen calls kit.paint() after it draws a slide, and kit.close() when it closes. */
-import { $, $$, icon } from './core.js?v=73f756c9';
-import { sfx } from './fx/audio.js?v=73f756c9';
-import { timesUp } from './fx/timesup.js?v=73f756c9';
-import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=73f756c9';
-import { Live, onLive, pupilsIn, setBoard, boardQuestion, answersFor } from './live/session.js?v=73f756c9';
-import { openJoin, closeJoin } from './live/panel.js?v=73f756c9';
-import { closeMoment, infoOf, liveSpec, MOMENTS } from './moments.js?v=73f756c9';
+import { $, $$, icon } from './core.js?v=de4f9a51';
+import { sfx } from './fx/audio.js?v=de4f9a51';
+import { timesUp } from './fx/timesup.js?v=de4f9a51';
+import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=de4f9a51';
+import { Live, onLive, pupilsIn, setBoard, boardQuestion, answersFor } from './live/session.js?v=de4f9a51';
+import { openJoin, closeJoin } from './live/panel.js?v=de4f9a51';
+import { closeMoment, infoOf, liveSpec, MOMENTS } from './moments.js?v=de4f9a51';
+import { boardWords, boardPicture } from './context.js?v=de4f9a51';
 
 const TRAY_COLOURS = [1, 2, 3, 0, 4, 6];          // red, blue, green, black, yellow, white
 const kits = [];
@@ -69,7 +71,14 @@ function boardOf(k) {
   const title = (head && head.textContent.trim()) || k.o.title() || '';
   const kind = pill && pill.dataset.moment;
   const moment = kind && MOMENTS[kind] && MOMENTS[kind].live ? liveSpec(kind, infoOf(pill)) : null;
-  return { key: String(k.o.key()), title, moment };
+  // the words pupils can see on the board (never hidden answers), and its picture if it is a free Wikimedia one
+  let words = '', pic = '';
+  try {
+    words = boardWords(fr, 760);
+    if (title) words = words.split('\n').filter((l) => l.trim().toLowerCase() !== title.toLowerCase()).join('\n');   // the title is sent on its own
+    pic = boardPicture(fr);
+  } catch (e) { words = ''; pic = ''; }
+  return { key: String(k.o.key()), title, moment, words, pic };
 }
 function sendBoard(k) { if (Live.on && visible(k.o.root)) { const b = boardOf(k); if (b) setBoard(b); } }
 onLive((what) => {
@@ -152,7 +161,7 @@ export function presentKit(o) {
       const a = kb.dataset.kit;
       if (a === 'draw') k.setDraw(!k.draw);
       else if (a === 'join') openJoin(root, o.title());
-      else if (a === 'tools') import('./tools/tools.js?v=73f756c9').then((m) => { if (m && m.openToolDock) m.openToolDock(root); }).catch(() => { /* class tools not on this version yet */ });
+      else if (a === 'tools') import('./tools/tools.js?v=de4f9a51').then((m) => { if (m && m.openToolDock) m.openToolDock(root); }).catch(() => { /* class tools not on this version yet */ });
       else if (a === 'timer') { const m = $('[data-kit-menu]', root); if (m) { m.hidden = !m.hidden; kb.setAttribute('aria-expanded', String(!m.hidden)); } }
       else if (a === 'min') { const m = $('[data-kit-menu]', root); if (m) m.hidden = true; const v = Number(kb.dataset.min); if (v) startTimer(v); else stopTimer(); }
       return;

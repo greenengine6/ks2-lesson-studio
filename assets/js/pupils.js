@@ -1,11 +1,11 @@
 /* Our class: pupils' first names, kept on this device only (never sent to the engine or to Rabinder's reports).
    Symphony uses them to pick someone fairly: nobody is picked twice until everyone has had a turn. The picker shows
    a short shuffle, lands on one name, and Symphony says it. */
-import { $, esc, icon, store, bus } from './core.js?v=73f756c9';
-import { cleanName } from './live/relay.js?v=73f756c9';
-import { Voice } from './fx/voice.js?v=73f756c9';
-import { settings } from './settings.js?v=73f756c9';
-import { sfx } from './fx/audio.js?v=73f756c9';
+import { $, esc, icon, store, bus } from './core.js?v=de4f9a51';
+import { cleanName } from './live/relay.js?v=de4f9a51';
+import { Voice } from './fx/voice.js?v=de4f9a51';
+import { settings } from './settings.js?v=de4f9a51';
+import { sfx } from './fx/audio.js?v=de4f9a51';
 
 const KEY = 'ks2-engine.pupils.v1', BAG = 'ks2-engine.pupils.bag.v1', MAX = 60;
 const norm = (n) => String(n || '').toLowerCase().replace(/\s+/g, ' ').trim();

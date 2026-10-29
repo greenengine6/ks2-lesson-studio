@@ -1,11 +1,11 @@
 /* Settings: every switch in one place (Rabinder's point 4), and Reading support (points 3 and 11). #/settings/reading
    opens at Reading support. Also: our class's first names, a backup of everything made on this device, and Connect. */
-import { $, $$, esc, icon, toast, bus } from './core.js?v=73f756c9';
-import { who, isAdmin } from './people.js?v=73f756c9';
-import { paintSwitches } from './settings.js?v=73f756c9';
-import { FONTS, SIZES, BACKS, getReading, setReading, loadFonts, fontStack } from './reading.js?v=73f756c9';
-import { pupils, setPupils, namesIn } from './pupils.js?v=73f756c9';
-import { makeBackup, restoreBackup, download } from './backup.js?v=73f756c9';
+import { $, $$, esc, icon, toast, bus } from './core.js?v=de4f9a51';
+import { who, isAdmin } from './people.js?v=de4f9a51';
+import { paintSwitches } from './settings.js?v=de4f9a51';
+import { FONTS, SIZES, BACKS, getReading, setReading, loadFonts, fontStack } from './reading.js?v=de4f9a51';
+import { pupils, setPupils, namesIn } from './pupils.js?v=de4f9a51';
+import { makeBackup, restoreBackup, download } from './backup.js?v=de4f9a51';
 
 const LIGHT = '<div class="lc-light"><div class="lc-slit"></div><div class="lc-lumen"><i class="lc-min"></i><i class="lc-mid"></i><i class="lc-hi"></i></div><div class="lc-dark"><i class="lc-sl"></i><i class="lc-ll"></i><i class="lc-slt"></i><i class="lc-srt"></i></div></div>';
 const CARDS = [

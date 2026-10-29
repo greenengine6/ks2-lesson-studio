@@ -7,13 +7,13 @@
    them (this browser's storage). Worksheets, quizzes and games are kept in this browser's database (IndexedDB), with a
    small index here so lists draw at once. Folders and moves are kept on this device.
    Page modules use startMaking() / takeMaking() to open a maker with the topic, year and subject already filled in. */
-import { $, esc, str, icon, store, bus, uid, el, num, toast } from './core.js?v=73f756c9';
-import { who } from './people.js?v=73f756c9';
-import { kvGet, kvSet, kvDel } from './idb.js?v=73f756c9';
-import { SUBJECTS, match } from './lkie/curriculum.js?v=73f756c9';
-import { ENGINE_BY_ID } from './engines/registry.js?v=73f756c9';
-import { coverOfPack, unpin, OPEN_KEY } from './shelf.js?v=73f756c9';
-import { forgetUploads, safePic } from './pics.js?v=73f756c9';
+import { $, esc, str, icon, store, bus, uid, el, num, toast } from './core.js?v=de4f9a51';
+import { who } from './people.js?v=de4f9a51';
+import { kvGet, kvSet, kvDel } from './idb.js?v=de4f9a51';
+import { SUBJECTS, match } from './lkie/curriculum.js?v=de4f9a51';
+import { ENGINE_BY_ID } from './engines/registry.js?v=de4f9a51';
+import { coverOfPack, unpin, OPEN_KEY } from './shelf.js?v=de4f9a51';
+import { forgetUploads, safePic } from './pics.js?v=de4f9a51';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', DECKS = 'ks2-lesson-studio.recent.v1', SAVED = 'ks2-engine.saved.v1';
 const INDEX = 'ks2-engine.lib.v1', FOLDERS = 'ks2-engine.lib.folders.v1', PLACE = 'ks2-engine.lib.place.v1', MAKE = 'ks2-engine.make.v1';
@@ -251,9 +251,21 @@ export async function renameItem(key, title) {
 }
 
 /* ---------------- opening ---------------- */
-export function openItem(key) {
+/* openItem(key, { present: true }) also asks the lesson's page to start presenting as soon as it is open (the
+   Classroom's lesson flow): a one-time note for that one item, which lkie, Slide Studio and the starters take with
+   takePresent(key) (they read the same sessionStorage name, so they need no import). */
+export const PRESENT_ONCE = 'ks2-engine.present.once';
+export function takePresent(key) {
+  try {
+    const v = JSON.parse(sessionStorage.getItem(PRESENT_ONCE) || 'null');
+    if (v && v.key === key && Date.now() - (v.at || 0) < 60000) { sessionStorage.removeItem(PRESENT_ONCE); return true; }
+  } catch (e) { /* nothing waiting */ }
+  return false;
+}
+export function openItem(key, o) {
   const { k, id } = parseKey(key);
   const ss = (name, v) => { try { sessionStorage.setItem(name, v); } catch (e) { /* the page opens its latest instead */ } };
+  if (o && o.present && ['lkie', 'slides', 'eng'].includes(k)) ss(PRESENT_ONCE, JSON.stringify({ key: String(key), at: Date.now() }));
   if (k === 'lkie' || k === 'slides') { ss(OPEN_KEY[k], id); go(KINDS[k].route); return; }
   if (k === 'eng') { const [eid, ...rest] = id.split(':'); ss(ENG_OPEN, rest.join(':')); go('#/' + eid); return; }
   if (NEW_KINDS.has(k)) go(KINDS[k].route + '/' + encodeURIComponent(id));
@@ -282,7 +294,7 @@ function attachMade(key, topic) {
   const a = pendingAttach();
   if (!a || a.k !== parseKey(key).k) return;
   try { sessionStorage.removeItem(ATTACH); } catch (e) { /* once */ }
-  import('./calendar.js?v=73f756c9').then((c) => {
+  import('./calendar.js?v=de4f9a51').then((c) => {
     if (typeof c.planFor !== 'function' || typeof c.setPlan !== 'function') return;
     const p = c.planFor(a.date, a.slotId) || {}, items = Array.isArray(p.items) ? p.items : [];
     if (items.includes(key)) return;

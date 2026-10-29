@@ -11,15 +11,16 @@
    with a buzz, a soft chime and a little bounce, and the screen is kept awake (where the browser allows it) so the
    line to the teacher's screen does not drop. If it does drop, a bar says so and the page reconnects by itself,
    at once when the screen comes back on; "Reconnect" tries straight away. */
-import * as R from './relay.js?v=73f756c9';
-import { Ink, COLOURS, packStrokes } from '../draw.js?v=73f756c9';
-import { initFractions } from '../fractions.js?v=73f756c9';
-import { SHAPES, shapeSVG, STICKERS, REACTIONS, reactSVG, FACE_NAMES, faceSVG } from './shapes.js?v=73f756c9';
+import * as R from './relay.js?v=de4f9a51';
+import { Ink, COLOURS, packStrokes } from '../draw.js?v=de4f9a51';
+import { initFractions } from '../fractions.js?v=de4f9a51';
+import { SHAPES, shapeSVG, STICKERS, REACTIONS, reactSVG, FACE_NAMES, faceSVG } from './shapes.js?v=de4f9a51';
 
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ICON = {
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   check: '<path d="M4.5 12.5 9.5 17.5 19.5 7"/>', send: '<path d="M4.5 11.8 20 4.5l-4.6 15.2-3.7-6.4z"/><path d="M11.7 13.3 20 4.5"/>', undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
   trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', eraser: '<path d="M8.5 20H20"/><path d="M5.2 15.2 14.4 6a2 2 0 0 1 2.8 0l2.8 2.8a2 2 0 0 1 0 2.8L12 19.6H8.6z"/><path d="M9.6 10.8l4.6 4.6"/>',
   eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -39,7 +40,7 @@ const app = $('#app');
 const P = {
   info: null, screen: '', st: null, v: 0, pid: '', name: '', pair: null, myPub: '', key: null, allKey: null, relay: null, stop: null, status: 'off', joinT: 0, joinTries: 0,
   sent: new Map(), moAt: 0, tkAt: 0, ink: null, inkFor: '', tick: 0, cfg: null, offAt: 0, netT: 0, queued: false, lastMo: '', lastTk: '', sig: '',
-  blobs: new Map(), hand: false, coming: false, asks: [], quiz: new Map(), sheet: null, game: null, hwSeen: '', timerDone: '', read: null
+  blobs: new Map(), hand: false, coming: false, asks: [], quiz: new Map(), sheet: null, game: null, hwSeen: '', timerDone: '', read: null, locked: false
 };
 const store = {
   get(k) { try { return JSON.parse(sessionStorage.getItem(k) || 'null'); } catch (e) { return null; } },
@@ -366,6 +367,10 @@ function clean(st) {
     out.hw = { id: hw.id, subject: str(hw.subject, 40), title: str(hw.title, 120) || 'Homework', details: str(hw.details, 600), due: hw.due,
       dueTime: /^\d{2}:\d{2}$/.test(String(hw.dueTime || '')) ? hw.dueTime : '', link: /^https:\/\/[^\s"<>]{3,300}$/.test(String(hw.link || '')) ? hw.link : '' };
   }
+  out.bw = str(st.bw, 800);
+  out.bp = /^https:\/\/upload\.wikimedia\.org\/[^\s"'<>]{4,380}$/.test(String(st.bp || '')) ? st.bp : '';
+  if (st.sp && typeof st.sp === 'object' && str(st.sp.t, 300)) out.sp = { k: st.sp.k === 'q' ? 'q' : 'a', t: str(st.sp.t, 300) };
+  out.dl = !!st.dl;
   return out;
 }
 function apply() {
@@ -383,6 +388,7 @@ function apply() {
   if (st.mo && st.mo.left) P.moAt = Date.now() + st.mo.left * 1000; else P.moAt = 0;
   if (st.tk && st.tk.left) P.tkAt = Date.now() + st.tk.left * 1000; else P.tkAt = 0;
   showEyes(!!st.eyes);
+  lockDevice(!!st.dl);
   paintDock();
   if (st.hw && st.hw.id !== P.hwSeen) { P.hwSeen = st.hw.id; setTimeout(() => openHomework(), 300); buzz([60, 40, 60]); chime(); }
   // Only redraw when what is on the device itself changes, so a pupil typing, drawing or playing never loses their
@@ -404,6 +410,12 @@ function apply() {
   render();
   if (fresh && !(st.tk && st.tk.kind === 'quiz' && ['reveal', 'end'].includes(st.tk.phase))) cue();
 }
+/* What is on the board also shows under a question that is not a list of options: a reaction, a traffic light, talk
+   or think time, mini whiteboards and typed answers (pupils need the problem to work on). It redraws as the board
+   changes only where nothing is being typed or drawn. */
+const WITH_BOARD = new Set(['react', 'traffic', 'talk', 'think', 'listen', 'move', 'show', 'chat', 'waterfall']);
+const BOARD_REDRAW = new Set(['react', 'traffic', 'talk', 'think', 'listen', 'move']);
+const hashOf = (t) => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return h; };
 function sigOf(st) {
   if (st.tk) {
     const t = st.tk, has = t.blob ? (P.blobs.has(t.blob) ? 1 : 0) : 1;
@@ -411,7 +423,9 @@ function sigOf(st) {
     const mine = t.kind === 'quiz' && (t.phase === 'reveal' || t.phase === 'end') ? JSON.stringify(st.mine || null) : '';
     return ['tk', t.id, t.kind, t.phase || '', t.n || 0, has, lv, mine, t.open === false ? 'x' : ''].join('|');
   }
-  return st.mo ? [st.mo.id, st.mo.kind, JSON.stringify(st.mo.rv || null), st.title || ''].join('|') : 'wait|' + (st.title || '') + '|' + (st.bt || '') + '|' + (st.hw ? st.hw.id : '');
+  if (st.mo) return [st.mo.id, st.mo.kind, JSON.stringify(st.mo.rv || null), st.title || ''].join('|') + (BOARD_REDRAW.has(st.mo.kind) ? '|' + hashOf(st.bw || '') + '|' + (st.bp || '') : '');
+  return 'wait|' + (st.title || '') + '|' + (st.bt || '') + '|' + (st.hw ? st.hw.id : '') +
+    '|' + (st.bw || '').length + ':' + hashOf(st.bw || '') + '|' + (st.bp || '') + '|' + (st.sp ? st.sp.k + hashOf(st.sp.t) : '');
 }
 
 /* ---------------- the current moment or task ---------------- */
@@ -425,7 +439,8 @@ function render() {
   if (st && st.tk) { renderTask(st.tk); return; }
   if (!mo) {
     P.inkFor = '';
-    const bt = st && st.bt;
+    const bt = st && st.bt, bw = st && st.bw, bp = st && st.bp, sp = st && st.sp;
+    if (sp || bw || bp) { frame(boardCardHTML(st) + (st.hw ? '<section class="jn-card">' + hwCardHTML(st.hw, true) + '</section>' : '')); return; }
     frame('<section class="jn-card jn-center jn-wait"><div class="jn-bubble" aria-hidden="true">' + icon('check') + '</div><h1>You’re in, ' + esc(P.name) + '!</h1>' +
       (bt ? '<p class="jn-now"><small>On the board now</small><b>' + esc(bt) + '</b></p>' : '') +
       '<p>Look at the board. When your teacher asks a question, it appears here by itself.</p>' + (st && st.hw ? hwCardHTML(st.hw, true) : '') + '</section>');
@@ -465,7 +480,8 @@ function render() {
   const q = mo.q && !['react', 'ticket'].includes(mo.kind) && String(mo.q).trim().toLowerCase() !== String(MO_TITLE[mo.kind] || '').toLowerCase() ? '<p class="jn-q">' + esc(mo.q) + '</p>' : '';
   frame('<section class="jn-card jn-mo" data-kind="' + esc(mo.kind) + '"><div class="jn-mo-top"><h1>' + esc(MO_TITLE[mo.kind] || 'Your turn') + '</h1><span class="jn-time" hidden>' + icon('clock') + '<b></b></span></div>' + q +
     (q ? '<button type="button" class="jn-read" data-j="say" data-say="' + esc(mo.q) + '">' + icon('volume') + 'Read it to me</button>' : '') + body +
-    '<p class="jn-st" role="status">' + (mine ? icon('check') + 'Sent. Your teacher can see it.' : '') + '</p></section>');
+    '<p class="jn-st" role="status">' + (mine ? icon('check') + 'Sent. Your teacher can see it.' : '') + '</p></section>' +
+    (WITH_BOARD.has(mo.kind) && st && (st.bw || st.bp) ? boardCardHTML(Object.assign({}, st, { sp: null }), true) : ''));
   if (mo.kind === 'show') board(mo.id, $('#jn-board'));
   if (P.moAt) { paintTime(); P.tick = setInterval(paintTime, 500); }
 }
@@ -692,7 +708,7 @@ function gameScreen(tk) {
   frame('<section class="jn-card jn-game-c"><div class="jn-mo-top"><h1>' + esc(tk.title || 'Game') + '</h1><span class="jn-score" aria-live="polite"></span></div><div class="jn-game" id="jn-game"></div></section>', { leave: false });
   P.game = { id: tk.id, best: 0, sentBest: -1, at: 0, t: 0, ctl: null };
   const G = P.game;
-  import('../games/player.js?v=73f756c9').then((m) => {
+  import('../games/player.js?v=de4f9a51').then((m) => {
     if (P.game !== G || !$('#jn-game')) return;
     const host = $('#jn-game');
     G.ctl = m.playGame(host, b.data, {
@@ -819,6 +835,115 @@ function openGroup() {
 }
 const listWords = (a) => (a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
 
+/* ---------------- what is on the board now ---------------- */
+/* The slide's own words (never answers still hidden on the board), its picture when it is a free Wikimedia one, or
+   something the teacher is showing big from the class view. It follows Reading help like everything else here. */
+function boardCardHTML(st, under) {
+  const hi = under ? '' : '<p class="jn-in">' + icon('check') + 'You’re in, ' + esc(P.name) + '!</p>';
+  if (st.sp) {
+    const k = st.sp.k === 'q' ? 'A question from the class' : 'An answer from the class';
+    return hi + '<section class="jn-card jn-board-now"><p class="jn-now-k">' + icon('eye') + 'On the board now</p><p class="jn-now-sk">' + k + '</p><p class="jn-now-big">' + esc(st.sp.t) + '</p>' +
+      '<button type="button" class="jn-read" data-j="say" data-say="' + esc(k + '. ' + st.sp.t) + '">' + icon('volume') + 'Read it to me</button></section>';
+  }
+  const paras = String(st.bw || '').split('\n').map((x) => x.trim()).filter(Boolean);
+  return hi + '<section class="jn-card jn-board-now"><p class="jn-now-k">' + icon('eye') + 'On the board now</p>' + (st.bt ? '<h1 class="jn-now-t">' + esc(st.bt) + '</h1>' : '') +
+    (st.bp ? '<figure class="jn-now-pic"><img src="' + esc(st.bp) + '" alt="The picture on the board" decoding="async" referrerpolicy="no-referrer"></figure>' : '') +
+    (paras.length ? '<div class="jn-now-w">' + paras.slice(0, 14).map((x) => '<p>' + esc(x) + '</p>').join('') + '</div>' : '') +
+    ((st.bt || paras.length) ? '<button type="button" class="jn-read" data-j="say" data-say="' + esc([st.bt].concat(paras).filter(Boolean).join('. ')) + '">' + icon('volume') + 'Read it to me</button>' : '') +
+    '<p class="jn-fine">When your teacher asks a question, it appears here by itself.</p></section>';
+}
+
+/* ---------------- Lock devices ----------------
+   No website can stop a phone or tablet opening another app or tab (only school device management can: Guided
+   Access, App pinning, a Chromebook's locked mode). So, while the teacher has locked devices, this page does what a page
+   can: it asks to go full screen (a tap, where the browser allows it), blocks its own links, stops selecting and
+   dragging, shows a small "Stay on this page" bar, and tells the teacher when the pupil leaves the page for more than
+   2 seconds and for how long. One message when they go and one when they come back, one pair every 10 seconds at
+   most (the free relay counts every message). */
+const AWAY = { on: false, at: 0, marked: false, sentOn: false, lastPair: 0, n: 0, tot: 0, t: 0, fs: false, blurred: false };
+function lockDevice(on) {
+  if (on === P.locked) return;
+  P.locked = on;
+  document.documentElement.classList.toggle('jn-locked', on);
+  if (on) {
+    let bar = $('#jn-staybar');
+    if (!bar) { bar = document.createElement('div'); bar.id = 'jn-staybar'; bar.className = 'jn-staybar'; bar.setAttribute('role', 'status'); bar.innerHTML = icon('lock') + '<span>Stay on this page</span>'; document.body.appendChild(bar); }
+    if (fullOK() && !document.fullscreenElement) askFull();
+    toastOne('Your teacher has locked this page for the class. Stay on this page.', 'lock', true);
+  } else {
+    const bar = $('#jn-staybar'); if (bar) bar.remove();
+    const f = $('#jn-full'); if (f) f.remove();
+    clearTimeout(AWAY.t); AWAY.on = false; AWAY.marked = false;
+    if (AWAY.fs && document.fullscreenElement) { try { document.exitFullscreen().catch(() => {}); } catch (e) { /* fine */ } }
+    AWAY.fs = false;
+    toastOne('Your teacher has unlocked this page.', 'check');
+  }
+}
+const fullOK = () => !!(document.documentElement.requestFullscreen && document.fullscreenEnabled !== false);
+/* A tap is needed before a page may go full screen. Where there is no full screen (an iPhone), the tap only says
+   "I'm here". */
+function askFull() {
+  if ($('#jn-full')) return;
+  const o = document.createElement('div');
+  o.id = 'jn-full'; o.className = 'jn-full'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true'); o.setAttribute('aria-labelledby', 'jn-full-h');
+  o.innerHTML = '<div class="jn-full-in">' + icon('lock') + '<h2 id="jn-full-h">Your teacher has locked this page</h2><p>Stay on this page for the class.</p><button type="button" class="jn-btn">' + icon('check') + 'Tap to carry on</button></div>';
+  document.body.appendChild(o);
+  o.addEventListener('click', () => {
+    o.remove();
+    if (fullOK() && !document.fullscreenElement) { try { document.documentElement.requestFullscreen().then(() => { AWAY.fs = true; awayCheck(); }).catch(() => {}); } catch (e) { /* not allowed here */ } }
+  });
+}
+/* Has the pupil left the page? (another tab or app, the window behind another one, or out of full screen) */
+function isAway() {
+  if (!P.locked) return false;
+  if (document.visibilityState === 'hidden') return true;
+  return AWAY.blurred && !(document.activeElement && document.activeElement.tagName === 'IFRAME');     // a game in a frame keeps focus inside
+}
+function awayCheck() {
+  if (!P.locked) return;
+  const away = isAway();
+  if (away && !AWAY.on) {
+    AWAY.on = true; AWAY.at = Date.now(); AWAY.marked = false; AWAY.sentOn = false;
+    clearTimeout(AWAY.t);
+    AWAY.t = setTimeout(() => { if (AWAY.on && isAway()) markAway(); }, 2000);
+  } else if (!away && AWAY.on) {
+    clearTimeout(AWAY.t);
+    const ms = Date.now() - AWAY.at;
+    AWAY.on = false;
+    if (ms >= 2000) back(ms);              // a phone asleep never ran the 2-second timer: it counts on the way back
+  }
+}
+function markAway() {
+  AWAY.marked = true; AWAY.n += 1;
+  if (Date.now() - AWAY.lastPair >= 10000) {        // one pair of messages every 10 seconds at most
+    AWAY.lastPair = Date.now(); AWAY.sentOn = true;
+    send({ t: 'away', on: true, n: AWAY.n, tot: AWAY.tot }).catch(() => { AWAY.sentOn = false; });
+  }
+}
+function back(ms) {
+  if (!AWAY.marked) { AWAY.n += 1; if (Date.now() - AWAY.lastPair >= 10000) { AWAY.lastPair = Date.now(); AWAY.sentOn = true; } }
+  AWAY.tot += ms;
+  if (AWAY.sentOn) send({ t: 'away', on: false, ms, n: AWAY.n, tot: AWAY.tot }).catch(() => { /* the next pair carries the count */ });
+  AWAY.marked = false; AWAY.sentOn = false;
+  toastOne('You left the class page. Your teacher can see this.', 'eye', true);
+  if (fullOK() && !document.fullscreenElement) askFull();
+}
+['visibilitychange', 'pageshow'].forEach((ev) => document.addEventListener(ev, () => setTimeout(awayCheck, 30)));
+window.addEventListener('blur', () => { AWAY.blurred = true; setTimeout(awayCheck, 60); });
+window.addEventListener('focus', () => { AWAY.blurred = false; setTimeout(awayCheck, 30); });
+document.addEventListener('fullscreenchange', () => { if (P.locked && !document.fullscreenElement && AWAY.fs) { AWAY.fs = false; askFull(); } });
+/* While locked: links stay shut, and nothing can be selected, held for a menu or dragged away. */
+document.addEventListener('click', (e) => {
+  if (!P.locked) return;
+  const a = e.target.closest('a[href], [data-j="ics"], [data-j="leave"]');
+  if (!a) return;
+  e.preventDefault(); e.stopPropagation();
+  toastOne(a.dataset.j === 'leave' ? 'Your teacher has locked the class. Ask your teacher if you need to leave.' : 'Links are locked during class. Your teacher will unlock them later.', 'lock');
+}, true);
+['contextmenu', 'dragstart', 'selectstart'].forEach((ev) => document.addEventListener(ev, (e) => {
+  if (P.locked && !e.target.closest('input, textarea, [contenteditable]')) e.preventDefault();
+}, true));
+
 /* ---------------- homework, with Add to my calendar ---------------- */
 const dueWords = (hw) => { const d = new Date(hw.due + 'T12:00:00'); return isNaN(d) ? hw.due : d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) + (hw.dueTime ? ' at ' + hw.dueTime : ''); };
 function hwCardHTML(hw, small) {
@@ -855,7 +980,7 @@ async function addToCalendar() {
   if (!hw) return;
   const name = 'Homework - ' + (hw.subject || 'class').replace(/[^\w ]+/g, '') + ' - ' + new Date(hw.due + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + '.ics';
   let text = '', dl = null;
-  try { const m = await import('../ics.js?v=73f756c9'); if (m.icsHomework) text = m.icsHomework(hw, { name: P.name }); if (m.downloadText) dl = m.downloadText; } catch (e) { /* the small one below */ }
+  try { const m = await import('../ics.js?v=de4f9a51'); if (m.icsHomework) text = m.icsHomework(hw, { name: P.name }); if (m.downloadText) dl = m.downloadText; } catch (e) { /* the small one below */ }
   if (!text) text = icsFallback(hw, P.name);
   if (dl) { try { dl(text, name, 'text/calendar'); return; } catch (e) { /* the plain way */ } }
   const url = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' }));

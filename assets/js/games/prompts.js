@@ -1,7 +1,7 @@
 /* What the Game maker asks the engine. One schema per template, each with a good example; strict JSON back, which
    model.js checks again. Custom games come back as one HTML document after a TITLE line. */
-import { HOUSE_WORDS, ages } from '../core.js?v=73f756c9';
-import { TEMPLATE_BY_ID } from './model.js?v=73f756c9';
+import { HOUSE_WORDS, ages } from '../core.js?v=de4f9a51';
+import { TEMPLATE_BY_ID } from './model.js?v=de4f9a51';
 
 const WHO = 'a KS2 class (Years 3 to 6, ages 7 to 11) at an international school in Ipoh, Malaysia, which follows the English National Curriculum';
 const SAFE = 'Everything must be child-safe, kind and accurate: no violence, nothing scary or unkind, no brand names, and no real people’s names except well-known historical figures in a history topic. Malaysian contexts are welcome (ringgit, local places, foods and festivals). Never use the names of real pupils.';

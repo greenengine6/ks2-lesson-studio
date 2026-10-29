@@ -11,15 +11,15 @@
    - End class: a summary with no names (how many came, what was covered, the quiz average, what Symphony spotted,
      the class mood, the homework set, and Symphony's idea for the next lesson's starter), saved in My subjects and
      shown at #/class/<id>. */
-import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, askJSON, CONFIG, HOUSE_WORDS, YEARS } from '../core.js?v=73f756c9';
-import { sfx } from '../fx/audio.js?v=73f756c9';
-import { confetti } from '../fx/particles.js?v=73f756c9';
-import { chatState, chatStart, chatEnd } from '../guard.js?v=73f756c9';
-import { SUBJECT_LIST, subjectName, subjectColor, yearOf, subjectOf, takeClass, pickItem, getItem, openItem, findItem, putItem, startMaking, startClass } from '../library.js?v=73f756c9';
-import { Live, startLive, endLive, onLive, allPupils, setLock, setEyes, asks } from './session.js?v=73f756c9';
-import { openJoin } from './panel.js?v=73f756c9';
-import { startQuizLive, sendSheetLive, sendGameLive, sendHomework, taskLog, logStep, pushGroups, pushTimer, stopTimerLive, classPupils } from './tasks.js?v=73f756c9';
-import { openMoment } from '../moments.js?v=73f756c9';
+import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, askJSON, CONFIG, HOUSE_WORDS, YEARS } from '../core.js?v=de4f9a51';
+import { sfx } from '../fx/audio.js?v=de4f9a51';
+import { confetti } from '../fx/particles.js?v=de4f9a51';
+import { chatState, chatStart, chatEnd } from '../guard.js?v=de4f9a51';
+import { SUBJECT_LIST, subjectName, subjectColor, yearOf, subjectOf, takeClass, pickItem, getItem, openItem, findItem, putItem, startMaking, startClass } from '../library.js?v=de4f9a51';
+import { Live, startLive, endLive, onLive, allPupils, setLock, setEyes, asks, setDeviceLock, awayAll, awayCount } from './session.js?v=de4f9a51';
+import { openJoin } from './panel.js?v=de4f9a51';
+import { startQuizLive, sendSheetLive, sendGameLive, sendHomework, taskLog, logStep, pushGroups, pushTimer, stopTimerLive, classPupils } from './tasks.js?v=de4f9a51';
+import { openMoment } from '../moments.js?v=de4f9a51';
 
 const SS = 'ks2-engine.class.v1';
 let C = null, view = null, tick = 0, unsub = null, picked = new Set();
@@ -172,7 +172,9 @@ function renderRun() {
     '<section class="card cls-tools" aria-labelledby="cls-th"><h2 id="cls-th" class="cls-h">' + icon('clock') + 'Class tools</h2>' +
     '<div class="cls-tbtns"><button type="button" class="cls-qb" data-cls="pick">' + icon('star') + '<span>Pick a name</span></button><button type="button" class="cls-qb" data-cls="groups">' + icon('users') + '<span>Make groups</span></button>' +
     '<button type="button" class="cls-qb' + (Live.eyes ? ' on' : '') + '" data-cls="eyes" aria-pressed="' + Live.eyes + '">' + icon('eye') + '<span>' + (Live.eyes ? 'Let them look' : 'Eyes on the board') + '</span></button>' +
+    '<button type="button" class="cls-qb' + (Live.dl ? ' on' : '') + '" data-cls="dlock" aria-pressed="' + !!Live.dl + '">' + icon('lock') + '<span>' + (Live.dl ? 'Unlock devices' : 'Lock devices') + '</span></button>' +
     '<button type="button" class="cls-qb" data-cls="dock">' + icon('wand') + '<span>All class tools</span></button></div>' +
+    '<p class="fine cls-lockn" data-cls-lockn' + (Live.dl ? '' : ' hidden') + '>' + LOCK_NOTE + '</p>' +
     '<div class="cls-row"><span class="cls-rl" id="cls-gl">Groups of</span><div class="seg" role="group" aria-labelledby="cls-gl">' + [2, 3, 4, 5].map((n) => '<button type="button" data-cls-gsize="' + n + '" aria-pressed="' + ((c.gsize || 3) === n) + '">' + n + '</button>').join('') + '</div></div>' +
     '<div class="cls-row"><span class="cls-rl" id="cls-tl">Timer on devices</span><div class="cls-tset" role="group" aria-labelledby="cls-tl">' + [1, 2, 3, 5].map((m) => '<button type="button" class="btn small" data-cls-timer="' + m + '">' + m + ' min</button>').join('') +
     '<button type="button" class="btn small" data-cls="timer-x" aria-label="Stop the timer">' + icon('stop') + 'Stop</button></div></div>' +
@@ -184,11 +186,23 @@ function renderRun() {
     '</div></div>';
 }
 const roomSeen = new Set();
+const LOCK_NOTE = 'Devices are locked: the class page stays full screen where the browser allows it, its links are blocked, and you see here who leaves it. ' +
+  'A website cannot stop a phone or tablet opening other apps. Your school’s device settings can: Guided Access on iPads, App pinning on Android, or a Chromebook’s locked mode.';
+const clockS = (ms) => { const x = Math.max(0, Math.round(ms / 1000)); return Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0'); };
+/* Who has left the class page while devices are locked (a live line in Who's here), and who came back lately. */
+function awayHTML() {
+  const list = awayAll(), now = Date.now();
+  const gone = list.filter((a) => a.on), back = list.filter((a) => !a.on && a.back && now - a.back < 30000);
+  if (!gone.length && !back.length) return '';
+  return '<ul class="cls-away" aria-live="polite">' + gone.map((a) => '<li class="gone">' + icon('eye') + '<span><b>' + esc(a.name) + '</b> left the class page (<span data-cls-at="' + a.at + '">' + clockS(now - a.at) + '</span>)</span></li>').join('') +
+    back.map((a) => '<li>' + icon('check') + '<span><b>' + esc(a.name) + '</b> came back' + (a.ms ? ' after ' + clockS(a.ms) : '') + '</span></li>').join('') + '</ul>';
+}
 function roomHTML() {
   const list = allPupils(), here = list.filter((p) => !p.left);
   setTimeout(() => list.forEach((p) => roomSeen.add(p.pid)), 0);          // only a name that has just joined pops in
   C.maxIn = Math.max(C.maxIn || 0, here.length);
   return '<p class="cls-count"><b>' + here.length + '</b><span>' + (here.length === 1 ? 'pupil here' : 'pupils here') + (list.length > here.length ? ' · ' + (list.length - here.length) + ' left' : '') + '</span></p>' +
+    '<div data-cls-away>' + awayHTML() + '</div>' +
     (Live.code ? '<p class="cls-code"><span>Code <b>' + esc(String(Live.code).replace(/^(\d{3})(\d{3})$/, '$1 $2')) + '</b></span><button type="button" class="linkbtn" data-cls="join">Show the QR code</button></p>' : '') +
     (list.length ? '<ul class="cls-names">' + list.map((p) => '<li class="' + (p.left ? 'left' : '') + (roomSeen.has(p.pid) ? '' : ' new') + '"><i class="cls-dot" aria-hidden="true"></i>' + esc(p.name) + (Live.help.get(p.pid) && Live.help.get(p.pid).on ? '<span class="cls-hand" title="Hand up">' + icon('flag') + '</span>' : '') + '</li>').join('') + '</ul>'
       : '<p class="fine">Waiting for pupils… Show the join code on the board or put the link in the class chat.</p>');
@@ -206,11 +220,16 @@ function paintToggles() {
   const l = $('[data-cls="lock"]', view), e = $('[data-cls="eyes"]', view);
   if (l) { l.setAttribute('aria-pressed', String(Live.locked)); l.innerHTML = icon(Live.locked ? 'lock' : 'unlock') + '<span>' + (Live.locked ? 'Door locked' : 'Lock the door') + '</span>'; }
   if (e) { e.setAttribute('aria-pressed', String(Live.eyes)); e.classList.toggle('on', Live.eyes); e.innerHTML = icon('eye') + '<span>' + (Live.eyes ? 'Let them look' : 'Eyes on the board') + '</span>'; }
+  const d = $('[data-cls="dlock"]', view), n = $('[data-cls-lockn]', view);
+  if (d) { d.setAttribute('aria-pressed', String(!!Live.dl)); d.classList.toggle('on', !!Live.dl); d.innerHTML = icon('lock') + '<span>' + (Live.dl ? 'Unlock devices' : 'Lock devices') + '</span>'; }
+  if (n) n.hidden = !Live.dl;
 }
 let rang = '';
 function paintClock() {
   const c = view && $('[data-cls-clock]', view);
   if (c && C && C.startedAt) c.textContent = fmtClock(Date.now() - C.startedAt);
+  if (view) $$('[data-cls-at]', view).forEach((b) => { b.textContent = clockS(Date.now() - Number(b.dataset.clsAt)); });
+  if (view && Live.on && awayAll().some((a) => !a.on && a.back && Date.now() - a.back >= 30000 && Date.now() - a.back < 31500)) { const a = $('[data-cls-away]', view); if (a) a.innerHTML = awayHTML(); }
   // the timer that is on pupils' devices, shown here too, with a chime when it runs out
   const t = view && $('[data-cls-tnow]', view), tm = Live.on && Live.tools ? Live.tools.timer : null;
   if (!t) return;
@@ -227,7 +246,8 @@ function onLiveChange(w) {
   if (!(Live.on && C && C.sid === Live.sid)) return;
   if (w === 'pupils' || w === 'help' || w === 'code' || (w && w.help)) { const r = $('[data-cls-room]', view); if (r) r.innerHTML = roomHTML(); save(); }
   if (w === 'asks' || (w && w.ask) || w === 'pupils') { const a = $('[data-cls-asks]', view); if (a) a.innerHTML = asksHTML(); }
-  if (w === 'lock' || w === 'eyes') paintToggles();
+  if (w === 'lock' || w === 'eyes' || w === 'dlock') paintToggles();
+  if (w && w.away) { const a = $('[data-cls-away]', view); if (a) a.innerHTML = awayHTML(); }
   if (w === 'tools') paintClock();
   // the exit ticket's faces, as pupils tap them on their own devices
   if (w && w.ans && Live.mo && Live.mo.id === w.ans && Live.mo.kind === 'ticket' && typeof w.v === 'number' && w.v >= 0 && w.v < 5) {
@@ -255,7 +275,7 @@ async function runStep(k) {
     return;
   }
   if (s.k === 'hw') { if (await sendHomework(C.hw)) { if (!C.done.includes(k)) C.done.push(k); save(); render(); } return; }
-  if (['lkie', 'slides', 'eng'].includes(s.k)) { toast('Press Present on the lesson. Its questions go to pupils’ devices by themselves. Come back here with Classroom in the menu.'); openItem(s.key); return; }
+  if (['lkie', 'slides', 'eng'].includes(s.k)) { presentStep(k, s); return; }
   const it = await getItem(s.key);
   if (!it || !it.data) { toast('That could not be opened. It may have been removed from My subjects.'); return; }
   const data = Object.assign({ title: it.title, subject: it.subject, year: it.year }, it.data);
@@ -263,6 +283,30 @@ async function runStep(k) {
   else if (s.k === 'sheet') sendSheetLive(data, {});
   else if (s.k === 'game') sendGameLive(data, {});
 }
+/* A lesson step goes straight onto the board in Present mode, connected to this class, so every pupil's device
+   follows each slide. When she closes Present, she comes back here with that step "Now". */
+let presentT = 0;
+function presentStep(k, s) {
+  if (!findItem(s.key)) { toast('That lesson could not be found in My subjects. It may have been removed.'); return; }
+  C.presenting = { k, key: s.key, at: Date.now(), on: false }; save();
+  openItem(s.key, { present: true });
+  clearTimeout(presentT);
+  presentT = setTimeout(() => {
+    if (C && C.presenting && C.presenting.key === s.key && !C.presenting.on) toast('The lesson is open. Press Present to put it on the board and on pupils’ devices.');
+  }, 6000);
+}
+bus.on('present', (on) => {
+  if (!C || !C.presenting) return;
+  if (on) {
+    if (Date.now() - C.presenting.at < 60000) { C.presenting.on = true; clearTimeout(presentT); save(); } else { C.presenting = null; save(); }
+    return;
+  }
+  if (!C.presenting.on) return;
+  const k = C.presenting.k;
+  C.presenting = null;
+  if (Live.on && C.sid === Live.sid) { C.cur = k; if (!/^#\/class(\/|$)/.test(location.hash || '')) location.hash = '#/class'; }
+  save();
+});
 function quickCheck(kind) {
   const f = $('[data-cls-form="check"]', view), q = f ? str(f.elements.q.value) : '';
   const def = { react: 'How are you getting on?', traffic: 'How are you getting on?', vote: q || 'Vote: A, B, C or D?', cloud: q || 'One word to describe today’s lesson', show: q || 'Show me your working', chat: q || 'Type your answer' }[kind];
@@ -303,7 +347,7 @@ function makeGroups() {
   logStep({ kind: 'check', title: 'Groups of ' + size });
 }
 async function tryDock() {
-  try { const m = await import('../tools/tools.js?v=73f756c9'); if (m.openToolDock) { m.openToolDock(document.body); return; } } catch (e) { /* not there yet */ }
+  try { const m = await import('../tools/tools.js?v=de4f9a51'); if (m.openToolDock) { m.openToolDock(document.body); return; } } catch (e) { /* not there yet */ }
   location.hash = '#/tools';
 }
 function copyRegister() {
@@ -329,7 +373,8 @@ async function endClass(btn) {
     pupils: Math.max(c.maxIn || 0, allPupils().length), steps: steps.map((s, k) => ({ title: s.title, kind: (STEP_KIND[s.k] || ['Step'])[0], done: c.done.includes(k) })),
     quizzes: quizzes.map((q) => ({ title: q.title, avg: q.avg, questions: q.questions, hardest: q.hardest || [] })), sheets: sheets.map((s) => ({ title: s.title, avg: s.avg, handed: s.handed, pupils: s.pupils })), games: games.map((g) => ({ title: g.title, pupils: g.pupils })),
     checks: taskLog.filter((x) => x.kind === 'check').map((x) => x.title).slice(0, 12), spotted: taskLog.filter((x) => x.kind === 'spotted').map((x) => x.text).slice(0, 5),
-    mood: votes ? Math.round((faces.reduce((a, n, i) => a + n * (i + 1), 0) / votes) * 10) / 10 : 0, moodVotes: votes, faces, homework: c.hw ? { title: c.hw.title, due: c.hw.due } : null, next: ''
+    mood: votes ? Math.round((faces.reduce((a, n, i) => a + n * (i + 1), 0) / votes) * 10) / 10 : 0, moodVotes: votes, faces, homework: c.hw ? { title: c.hw.title, due: c.hw.due } : null, next: '',
+    away: awayCount()
   };
   await endLive();
   C = null; save();
@@ -375,7 +420,8 @@ async function showSummary(id) {
     '<div class="cls-stats"><div class="card"><b>' + (s.pupils || 0) + '</b><span>pupils joined</span></div><div class="card"><b>' + (quizAvg == null ? '–' : quizAvg + '%') + '</b><span>quiz average</span></div>' +
     '<div class="card"><b>' + (s.mood ? s.mood.toFixed(1) : '–') + '</b><span>class mood' + (moodWord ? ': ' + esc(moodWord) : '') + (s.moodVotes ? ' (' + s.moodVotes + ' votes)' : '') + '</span></div><div class="card"><b>' + (s.steps || []).filter((x) => x.done).length + '</b><span>steps done</span></div></div>' +
     '<div class="cls-sumgrid"><section class="card"><h2 class="cls-h">' + icon('layers') + 'What was covered</h2><ul class="cls-list">' + (s.steps || []).map((x) => '<li class="' + (x.done ? 'done' : '') + '">' + icon(x.done ? 'check' : 'minus') + '<span>' + esc(x.title) + ' <small>' + esc(x.kind) + '</small></span></li>').join('') + '</ul>' +
-    (s.checks && s.checks.length ? '<p class="fine">Quick checks: ' + esc(s.checks.join(', ')) + '.</p>' : '') + '</section>' +
+    (s.checks && s.checks.length ? '<p class="fine">Quick checks: ' + esc(s.checks.join(', ')) + '.</p>' : '') +
+    (s.away ? '<p class="fine">Devices were locked: pupils left the class page ' + s.away + (s.away === 1 ? ' time' : ' times') + ' in all.</p>' : '') + '</section>' +
     '<section class="card"><h2 class="cls-h">' + icon('bulb') + 'What pupils found hard</h2>' +
     ((s.quizzes || []).some((q) => q.hardest && q.hardest.length) ? '<ul class="cls-list">' + s.quizzes.flatMap((q) => (q.hardest || []).map((h) => '<li>' + icon('target') + '<span>' + esc(h.q) + ' <small>' + h.pct + '% right</small></span></li>')).join('') + '</ul>' : '') +
     ((s.spotted || []).length ? '<p class="cls-spot">' + esc(s.spotted.join(' ')) + '</p>' : '') +
@@ -413,7 +459,7 @@ async function onClick(e) {
   else if (a === 'start') begin();
   else if (a === 'join') openJoin(document.body, C.title);
   else if (a === 'lock') { setLock(!Live.locked); toast(Live.locked ? 'The door is locked. Nobody new can join.' : 'The door is open again.'); }
-  else if (a === 'cv') import('./classview.js?v=73f756c9').then((m) => m.openClassView({ host: document.body }));
+  else if (a === 'cv') import('./classview.js?v=de4f9a51').then((m) => m.openClassView({ host: document.body }));
   else if (a === 'end') endClass(b);
   else if (a === 'register') copyRegister();
   else if (a === 'pick') pickName();
@@ -421,7 +467,8 @@ async function onClick(e) {
   else if (a === 'timer-x') { stopTimerLive(); paintClock(); toast('The timer has stopped on every device.'); }
   else if (a === 'dock') tryDock();
   else if (a === 'eyes') { setEyes(!Live.eyes); toast(Live.eyes ? 'Every pupil’s screen says “Eyes on the board”.' : 'Pupils can see their screens again.'); }
-  else if (a === 'readq') { const q = Live.tk && Live.tk.q ? Live.tk.q : Live.mo && Live.mo.q ? Live.mo.q : ''; if (q) import('../fx/voice.js?v=73f756c9').then((m) => m.Voice.say(q, { lang: 'en-GB', style: 'chat' })); else toast('There is no question on pupils’ devices right now.'); }
+  else if (a === 'dlock') { setDeviceLock(!Live.dl); paintToggles(); toast(Live.dl ? 'Devices locked. You will see here who leaves the class page.' : 'Devices unlocked.'); }
+  else if (a === 'readq') { const q = Live.tk && Live.tk.q ? Live.tk.q : Live.mo && Live.mo.q ? Live.mo.q : ''; if (q) import('../fx/voice.js?v=de4f9a51').then((m) => m.Voice.say(q, { lang: 'en-GB', style: 'chat' })); else toast('There is no question on pupils’ devices right now.'); }
   else if (a === 'step-done') { if (C.cur >= 0 && !C.done.includes(C.cur)) C.done.push(C.cur); C.cur = -1; save(); renderRun(); confetti(view, { count: 40, y: 0.2 }); }
   else if (a === 'again') { const o = JSON.parse(view.dataset.sum || '{}'); startClass({ title: o.title, subject: o.subject, year: o.year }); }
 }

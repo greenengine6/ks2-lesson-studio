@@ -8,14 +8,14 @@
         onScore(score, info), onEnd(result) }
    This file imports nothing from the main site except fractions.js (through common.js), so the pupils' page can
    use it as it is. */
-import { normGame, TEMPLATE_BY_ID } from './model.js?v=73f756c9';
-import { makeSfx } from './sfx.js?v=73f756c9';
-import { el, txt, panel, starsHTML, starsFor, icon, confetti } from './common.js?v=73f756c9';
-import * as pop from './pop.js?v=73f756c9';
-import * as pairs from './pairs.js?v=73f756c9';
-import * as sort from './sort.js?v=73f756c9';
-import * as race from './race.js?v=73f756c9';
-import * as memory from './memory.js?v=73f756c9';
+import { normGame, TEMPLATE_BY_ID } from './model.js?v=de4f9a51';
+import { makeSfx } from './sfx.js?v=de4f9a51';
+import { el, txt, panel, starsHTML, starsFor, icon, confetti } from './common.js?v=de4f9a51';
+import * as pop from './pop.js?v=de4f9a51';
+import * as pairs from './pairs.js?v=de4f9a51';
+import * as sort from './sort.js?v=de4f9a51';
+import * as race from './race.js?v=de4f9a51';
+import * as memory from './memory.js?v=de4f9a51';
 
 const RUN = { pop, pairs, sort, race, memory };
 const VERSION = (() => { try { return new URL(import.meta.url).search; } catch (e) { return ''; } })();

@@ -3,9 +3,9 @@
    Silent to Too loud; the teacher picks the level she expects (Partner talk, say). When the room stays above it for two
    seconds, a gentle two-note alert plays (if she wants it), the meter turns red and says "Too loud". "This is quiet"
    sets the meter to the room as it is now. Stop (or leaving the page) switches the microphone off. */
-import { $, $$, esc, icon, bus } from '../core.js?v=73f756c9';
-import { Alarm } from './alarm.js?v=73f756c9';
-import { prefs, setPrefs, boardOverlay } from './shared.js?v=73f756c9';
+import { $, $$, esc, icon, bus } from '../core.js?v=de4f9a51';
+import { Alarm } from './alarm.js?v=de4f9a51';
+import { prefs, setPrefs, boardOverlay } from './shared.js?v=de4f9a51';
 
 export const LEVELS = [
   { id: 'silent', name: 'Silent', top: 15, c: '#8FD3B0' },

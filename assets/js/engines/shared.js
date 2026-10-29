@@ -1,14 +1,14 @@
 /* The engine framework: every engine is a small definition (fields, prompt, normaliser, class screens, notes).
    This file renders the engine page, talks to Claude, keeps saved activities, and runs Present mode. */
-import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=73f756c9';
-import { Ribbons } from '../fx/ribbons.js?v=73f756c9';
-import { sfx } from '../fx/audio.js?v=73f756c9';
-import { Ambient, Speech } from '../fx/sound.js?v=73f756c9';
-import { track } from '../track.js?v=73f756c9';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=73f756c9';
-import { presentKit } from '../presentkit.js?v=73f756c9';
-import { coverFor, picURL, creditText } from '../pics.js?v=73f756c9';
-import { timesUp } from '../fx/timesup.js?v=73f756c9';
+import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=de4f9a51';
+import { Ribbons } from '../fx/ribbons.js?v=de4f9a51';
+import { sfx } from '../fx/audio.js?v=de4f9a51';
+import { Ambient, Speech } from '../fx/sound.js?v=de4f9a51';
+import { track } from '../track.js?v=de4f9a51';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=de4f9a51';
+import { presentKit } from '../presentkit.js?v=de4f9a51';
+import { coverFor, picURL, creditText } from '../pics.js?v=de4f9a51';
+import { timesUp } from '../fx/timesup.js?v=de4f9a51';
 const ENG_OPEN = 'ks2-engine.eng.open';          // library.js: open this saved activity
 
 /* ---------------- how pupils respond (online or in class) ---------------- */
@@ -149,6 +149,15 @@ export function renderEngine(view, eng) {
   renderSavedList();
   const first = asked ? Object.assign({ example: false }, asked) : saved[0] ? Object.assign({ example: false }, saved[0]) : exampleItem(eng);
   showItem(first);
+  if (asked && presentAsked('eng:' + eng.id + ':' + asked.id)) openPresent(eng, first, 0);     // the Classroom: straight onto the board
+}
+/* library.js openItem(key, { present: true }) leaves this one-time note (read here without importing library.js). */
+function presentAsked(key) {
+  try {
+    const v = JSON.parse(sessionStorage.getItem('ks2-engine.present.once') || 'null');
+    if (v && v.key === key && Date.now() - (v.at || 0) < 60000) { sessionStorage.removeItem('ks2-engine.present.once'); return true; }
+  } catch (e) { /* nothing waiting */ }
+  return false;
 }
 function exampleItem(eng) { return { id: 'example-' + eng.id, at: 0, input: eng.example.input, data: eng.normalize(eng.example.data, eng.example.input) || eng.example.data, example: true }; }
 export function exampleData(eng) { return exampleItem(eng); }

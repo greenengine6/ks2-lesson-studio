@@ -1,7 +1,7 @@
 /* Balloon pop: balloons float up from the bottom, each carrying a short item. Pop only the ones that fit the rule.
    Right: points (more for a run of rights), a pop and a burst of colour. Wrong: a few points and a life go.
    The game ends when the time runs out or the lives do. Touch, mouse and keyboard (Tab to a balloon, Enter). */
-import { el, txt, shuffle, COLOURS, makeHud, makeClock, floatText, burst, say, reduced } from './common.js?v=73f756c9';
+import { el, txt, shuffle, COLOURS, makeHud, makeClock, floatText, burst, say, reduced } from './common.js?v=de4f9a51';
 
 const BALLOON = (c) => '<svg class="kg-bal-svg" viewBox="0 0 100 130" aria-hidden="true">' +
   '<path d="M50 4C24 4 8 25 8 49c0 27 22 48 39 53l-4 7h14l-4-7c17-5 39-26 39-53C92 25 76 4 50 4z" fill="' + c + '"/>' +

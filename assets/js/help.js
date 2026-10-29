@@ -1,11 +1,11 @@
 /* Help: How it works (every rule, howto.js), short guides for the jobs teachers do most, keyboard shortcuts, privacy
    and feedback. Kept off the everyday pages (Rabinder's point 4). */
-import { esc, icon } from './core.js?v=73f756c9';
-import { soon } from './library.js?v=73f756c9';
+import { esc, icon } from './core.js?v=de4f9a51';
+import { soon } from './library.js?v=de4f9a51';
 
 const GUIDES = [
   ['Make a lesson in a minute', 'pack', ['On Today, type the topic, pick the year and subject, and leave Lesson slides selected.', 'Press Make it, then Make on the next page.', 'Tap any slide to change it in plain words, for example “Make this simpler”.', 'Press Present, or download the PowerPoint.']],
-  ['Teach a live class', 'users', ['Press Start class (Today, the calendar or the menu).', 'Pupils scan the QR code, or type the 6-digit code, and type a first name.', 'Tap each step in the lesson flow: the board and every pupil’s device move together.', 'Watch the live check: who is right, who is stuck, hands up.', 'End class: a summary is saved with the lesson, with no names.']],
+  ['Teach a live class', 'users', ['Press Start class (Today, the calendar or the menu).', 'Pupils scan the QR code, or type the 6-digit code, and type a first name.', 'Tap a lesson in the lesson flow: it opens on the board, and every pupil’s device shows the slide’s words and picture. Close Present to come back to your class.', 'Press Lock devices to keep pupils on the class page: you see who leaves it and for how long.', 'Open the class view to see who is right, who is stuck and whose hand is up.', 'End class: a summary is saved with the lesson, with no names.']],
   ['Make a worksheet from a sample', 'sheet', ['Open Create, then Worksheet, then From a sample.', 'Upload a photo, a PDF or a Word file of a worksheet you like.', 'Symphony keeps the skills and the layout and writes new questions, then checks none were copied.', 'Download it in Word, with an answer sheet, or send it to pupils’ devices.']],
   ['Play a quiz as a team game', 'quiz', ['Open Create, then Quiz. Write the questions, or press Draft with Symphony.', 'Choose Board game for teams. Name the teams.', 'Teams take turns to pick a tile. Some tiles hide surprises.', 'Award the points. The podium appears at the end.']],
   ['Set up your week', 'cal', ['Open Calendar and follow the setup: your school day, then your lessons.', 'Tap a lesson to plan it: a topic, then make or attach what you need.', 'Press Plan my week to have Symphony suggest a topic for every lesson.', 'Add it to your phone’s calendar for a reminder before each class.']],

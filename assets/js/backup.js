@@ -3,9 +3,9 @@
    folders, the calendar, class-tool settings, reading support and other preferences, and her own uploaded pictures.
    Never in the file: keys, PINs, sign-in data, pupils' names, activity logs. Restoring adds what is in the file to
    what is already here; it never deletes anything. */
-import { bus } from './core.js?v=73f756c9';
-import { kvGet, kvSet, kvKeys } from './idb.js?v=73f756c9';
-import { who } from './people.js?v=73f756c9';
+import { bus } from './core.js?v=de4f9a51';
+import { kvGet, kvSet, kvKeys } from './idb.js?v=de4f9a51';
+import { who } from './people.js?v=de4f9a51';
 
 const ALLOW = [/^ks2-engine\.lkie\./, /^ks2-lesson-studio\.recent\.v1$/, /^ks2-engine\.saved\.v1$/, /^ks2-engine\.lib\./, /^ks2-engine\.cal\./, /^ks2-engine\.tools\./, /^ks2-engine\.points\./, /^ks2-engine\.reading\./,
   /^ks2-engine\.shelf\.pins\.v1$/, /^ks2-engine\.(mode|theme|sound|pointer|patient|symvoice|symspeed|symlang|wake)\.v1$/, /^ks2-engine\.today\.form\.v1$/];

@@ -1,7 +1,7 @@
 /* KS2 Lesson Engine: shared helpers, Claude connection, copying and small UI pieces. */
-import { sfx } from './fx/audio.js?v=73f756c9';
-import { fracNorm, fracHTML, fracText } from './fractions.js?v=73f756c9';
-import { setVoiceKey } from './fx/human.js?v=73f756c9';
+import { sfx } from './fx/audio.js?v=de4f9a51';
+import { fracNorm, fracHTML, fracText } from './fractions.js?v=de4f9a51';
+import { setVoiceKey } from './fx/human.js?v=de4f9a51';
 
 export const $ = (s, r) => (r || document).querySelector(s);
 export const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));

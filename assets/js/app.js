@@ -1,31 +1,31 @@
 /* KS2 Lesson Engine: start-up, routing, the shell (a sidebar of places on laptops, five tabs on phones, a slim top
    bar with one search for everything), the sign-in page's Earth, and the Connect dialog.
    Pages load the first time they are opened (LAZY below); each exports mount(view, sub) and maybe leave(). */
-import './security.js?v=73f756c9';
-import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=73f756c9';
-import { Symphony } from './fx/symphony.js?v=73f756c9';
-import { ENGINE_BY_ID } from './engines/registry.js?v=73f756c9';
-import { renderEngine, leaveEngine, wirePresent, setSymphony, presentState } from './engines/shared.js?v=73f756c9';
-import { initSlides, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=73f756c9';
-import { initSettings } from './settings.js?v=73f756c9';
-import { initChat } from './chat.js?v=73f756c9';
-import { track } from './track.js?v=73f756c9';
-import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=73f756c9';
-import { initFeedback } from './feedback.js?v=73f756c9';
-import { renderAdmin } from './admin.js?v=73f756c9';
-import { initPlay } from './play.js?v=73f756c9';
-import { initSync } from './sync.js?v=73f756c9';
-import { sfx } from './fx/audio.js?v=73f756c9';
-import { landed } from './guard.js?v=73f756c9';
-import { initShelf } from './shelf.js?v=73f756c9';
-import { wireLiveChip } from './live/panel.js?v=73f756c9';
-import { Live, onLive, pupilsIn } from './live/session.js?v=73f756c9';
-import { initHow } from './howto.js?v=73f756c9';
-import { initFractions } from './fractions.js?v=73f756c9';
-import { voiceKey, setVoiceKey, testKey, KEY_RX, onWarn } from './fx/human.js?v=73f756c9';
-import { Voice } from './fx/voice.js?v=73f756c9';
-import { initReading } from './reading.js?v=73f756c9';
-import { search, subjectName, subjectColor, KINDS, openItem, counts, SUBJECT_LIST, onLibrary, soon } from './library.js?v=73f756c9';
+import './security.js?v=de4f9a51';
+import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=de4f9a51';
+import { Symphony } from './fx/symphony.js?v=de4f9a51';
+import { ENGINE_BY_ID } from './engines/registry.js?v=de4f9a51';
+import { renderEngine, leaveEngine, wirePresent, setSymphony, presentState } from './engines/shared.js?v=de4f9a51';
+import { initSlides, refitSlides, enterSlides, slidesPresentInfo } from './slides.js?v=de4f9a51';
+import { initSettings } from './settings.js?v=de4f9a51';
+import { initChat } from './chat.js?v=de4f9a51';
+import { track } from './track.js?v=de4f9a51';
+import { initPeople, who, isAdmin, requireAdmin } from './people.js?v=de4f9a51';
+import { initFeedback } from './feedback.js?v=de4f9a51';
+import { renderAdmin } from './admin.js?v=de4f9a51';
+import { initPlay } from './play.js?v=de4f9a51';
+import { initSync } from './sync.js?v=de4f9a51';
+import { sfx } from './fx/audio.js?v=de4f9a51';
+import { landed } from './guard.js?v=de4f9a51';
+import { initShelf } from './shelf.js?v=de4f9a51';
+import { wireLiveChip } from './live/panel.js?v=de4f9a51';
+import { Live, onLive, pupilsIn } from './live/session.js?v=de4f9a51';
+import { initHow } from './howto.js?v=de4f9a51';
+import { initFractions } from './fractions.js?v=de4f9a51';
+import { voiceKey, setVoiceKey, testKey, KEY_RX, onWarn } from './fx/human.js?v=de4f9a51';
+import { Voice } from './fx/voice.js?v=de4f9a51';
+import { initReading } from './reading.js?v=de4f9a51';
+import { search, subjectName, subjectColor, KINDS, openItem, counts, SUBJECT_LIST, onLibrary, soon } from './library.js?v=de4f9a51';
 
 /* ---------------- the places ---------------- */
 const NAV = [
@@ -41,18 +41,18 @@ const FOOT = [{ id: 'settings', label: 'Settings', icon: 'gear' }, { id: 'help',
 const TABS = [{ id: 'today', label: 'Today', icon: 'sun' }, { id: 'calendar', label: 'Calendar', icon: 'cal' }, { id: 'subjects', label: 'Subjects', icon: 'folder' }, { id: 'create', label: 'Create', icon: 'spark' }];
 const CREATE_SUB = [['lkie', 'Lesson slides'], ['worksheet', 'Worksheet'], ['quiz', 'Quiz'], ['game', 'Game'], ['create/starters', 'Lesson starters'], ['slides', 'Two-way slides']];
 const LAZY = {
-  today: () => import('./today.js?v=73f756c9'),
-  calendar: () => import('./calendar.js?v=73f756c9'),
-  subjects: () => import('./subjects.js?v=73f756c9'),
-  create: () => import('./create.js?v=73f756c9'),
-  class: () => import('./live/class.js?v=73f756c9'),
-  tools: () => import('./tools/tools.js?v=73f756c9'),
-  explore: () => import('./explore.js?v=73f756c9'),
-  settings: () => import('./settingspage.js?v=73f756c9'),
-  help: () => import('./help.js?v=73f756c9'),
-  worksheet: () => import('./worksheet/maker.js?v=73f756c9'),
-  quiz: () => import('./quiz/maker.js?v=73f756c9'),
-  game: () => import('./games/maker.js?v=73f756c9')
+  today: () => import('./today.js?v=de4f9a51'),
+  calendar: () => import('./calendar.js?v=de4f9a51'),
+  subjects: () => import('./subjects.js?v=de4f9a51'),
+  create: () => import('./create.js?v=de4f9a51'),
+  class: () => import('./live/class.js?v=de4f9a51'),
+  tools: () => import('./tools/tools.js?v=de4f9a51'),
+  explore: () => import('./explore.js?v=de4f9a51'),
+  settings: () => import('./settingspage.js?v=de4f9a51'),
+  help: () => import('./help.js?v=de4f9a51'),
+  worksheet: () => import('./worksheet/maker.js?v=de4f9a51'),
+  quiz: () => import('./quiz/maker.js?v=de4f9a51'),
+  game: () => import('./games/maker.js?v=de4f9a51')
 };
 const TITLES = { today: 'Today', calendar: 'Calendar', subjects: 'My subjects', create: 'Create', class: 'Classroom', tools: 'Class tools', explore: 'Explore', settings: 'Settings', help: 'Help',
   worksheet: 'Worksheet maker', quiz: 'Quiz maker', game: 'Game maker', slides: 'Slide Studio', lkie: 'Lesson slides', admin: 'Dashboard', play: 'Wonder Window' };
@@ -216,7 +216,7 @@ function startEarth() {
   if (earthTried) { runEarth(); return; }
   earthTried = true;
   const hero = $('#hero'), fail = () => { earth = null; hero.classList.add('earth-off'); const t = $('#hero-hint'); if (t) t.hidden = true; };
-  import('./fx/earth.js?v=73f756c9').then(async (m) => {
+  import('./fx/earth.js?v=de4f9a51').then(async (m) => {
     earth = new m.Earth($('#earth'), { onFail: fail });
     if (!(await earth.init())) return;
     earthTip();
@@ -244,7 +244,7 @@ const mods = {};
 let lkie = null;
 function showLkie() {
   if (lkie) { lkie.mountLkie($('#view-lkie')); return; }
-  import('./lkie/lkie.js?v=73f756c9').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">Lesson slides could not load. Check the connection and reload the page.</p></div>'; });
+  import('./lkie/lkie.js?v=de4f9a51').then((m) => { lkie = m; if (current === 'lkie') m.mountLkie($('#view-lkie')); }).catch(() => { $('#view-lkie').innerHTML = '<div class="wrap"><p class="notice err">Lesson slides could not load. Check the connection and reload the page.</p></div>'; });
 }
 function viewFor(id) {
   let v = document.getElementById('view-' + id);
@@ -328,7 +328,7 @@ bus.on('vmode', (on) => { if (on && earth) earth.stop(); if (!on) runEarth(); })
 bus.on('who', (w) => {
   if (!w || !w.role) { if (current && ENGINE_BY_ID[current]) leaveEngine(); paintShell(); show('home'); } else { paintShell(); route(); }
   paintHeader();
-  if (w && w.role === 'teacher') import('./calendar.js?v=73f756c9').then((m) => m.startReminders()).catch(() => { /* no calendar yet */ });
+  if (w && w.role === 'teacher') import('./calendar.js?v=de4f9a51').then((m) => m.startReminders()).catch(() => { /* no calendar yet */ });
 });
 $('#pr-ticket').addEventListener('click', () => {
   const P = presentState; if (!P.open) return;
@@ -447,7 +447,7 @@ initFractions();
 paintShell();
 route();
 // a class timer that was running before a reload carries on, with its pill on every page (this tab only)
-try { const t = JSON.parse(sessionStorage.getItem('ks2-engine.tools.timer.v1') || 'null'); if (t && (t.running || t.done)) import('./tools/timer.js?v=73f756c9').catch(() => { /* no tools yet */ }); } catch (e) { /* no timer */ }
+try { const t = JSON.parse(sessionStorage.getItem('ks2-engine.tools.timer.v1') || 'null'); if (t && (t.running || t.done)) import('./tools/timer.js?v=de4f9a51').catch(() => { /* no tools yet */ }); } catch (e) { /* no timer */ }
 if (conn.keyFromLink || conn.joinedNow) {
   testConnection().then(() => toast('This device is connected. Every engine is ready.'), (err) => {
     const code = err && err.code;

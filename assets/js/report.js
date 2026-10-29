@@ -1,7 +1,7 @@
 /* Rabinder's numbers: everything is worked out here from the activity log (this device plus the locked activity
    that arrives by itself from teachers' devices). metrics() gives the figures, deviations() flags what needs a look, digest() is the short
    briefing Symphony uses, reportHTML() is the downloadable report and csv() the raw data. */
-import { ENGINES } from './engines/registry.js?v=73f756c9';
+import { ENGINES } from './engines/registry.js?v=de4f9a51';
 
 const DAY = 864e5;
 export const ENGINE_NAMES = Object.assign({ slides: 'Slide Studio', play: 'Wonder Window', lkie: 'lkie.like', worksheet: 'Worksheet maker', quiz: 'Quiz maker', game: 'Game maker', class: 'Classroom', tools: 'Class tools', calendar: 'Calendar' }, Object.fromEntries(ENGINES.map((e) => [e.id, e.name])));

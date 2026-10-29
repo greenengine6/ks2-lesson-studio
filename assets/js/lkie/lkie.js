@@ -3,24 +3,24 @@
    the curriculum with checked codes. Slides change in plain English with undo; a unit planner sequences up to 25
    lessons with recaps and assessments; packs open instantly from this device; PowerPoint and Word downloads.
    Every engine button goes through the shared guard (guard.js). */
-import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=73f756c9';
-import { track } from '../track.js?v=73f756c9';
-import { sfx } from '../fx/audio.js?v=73f756c9';
-import { Voice } from '../fx/voice.js?v=73f756c9';
-import { evAll } from '../idb.js?v=73f756c9';
-import { moodOf } from '../report.js?v=73f756c9';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=73f756c9';
-import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=73f756c9';
-import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=73f756c9';
-import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=73f756c9';
-import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=73f756c9';
-import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=73f756c9';
-import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=73f756c9';
-import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=73f756c9';
-import { takeMaking } from '../library.js?v=73f756c9';
-import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=73f756c9';
-import EXAMPLE from './example.js?v=73f756c9';
-import { presentKit, kitButtons } from '../presentkit.js?v=73f756c9';
+import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=de4f9a51';
+import { track } from '../track.js?v=de4f9a51';
+import { sfx } from '../fx/audio.js?v=de4f9a51';
+import { Voice } from '../fx/voice.js?v=de4f9a51';
+import { evAll } from '../idb.js?v=de4f9a51';
+import { moodOf } from '../report.js?v=de4f9a51';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=de4f9a51';
+import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=de4f9a51';
+import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=de4f9a51';
+import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=de4f9a51';
+import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=de4f9a51';
+import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=de4f9a51';
+import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=de4f9a51';
+import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=de4f9a51';
+import { takeMaking, takePresent } from '../library.js?v=de4f9a51';
+import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=de4f9a51';
+import EXAMPLE from './example.js?v=de4f9a51';
+import { presentKit, kitButtons } from '../presentkit.js?v=de4f9a51';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', UNITS = 'ks2-engine.lkie.units.v1', RULES = 'ks2-engine.lkie.rules.v1', THEME = 'ks2-engine.lkie.theme.v1', FORM = 'ks2-engine.lkie.form.v1';
 const YEARS = ['Year 3', 'Year 4', 'Year 5', 'Year 6'];
@@ -1160,6 +1160,12 @@ function openFromShelf() {
   const id = takeOpen('lkie'), p = id && loadPacks().find((x) => x.id === id);
   if (!p) return;
   openPack(p, 'saved');
+  // the Classroom's lesson flow: straight onto the board, full screen where the browser allows it
+  if (takePresent('lkie:' + id) && S.pack === p && !S.live) {
+    openPresent(0);
+    try { if (lp.requestFullscreen && !document.fullscreenElement) lp.requestFullscreen().catch(() => {}); } catch (e) { /* the Full screen button still works */ }
+    return;
+  }
   requestAnimationFrame(() => { const el = $('#lk-pack', S.view); if (el && window.matchMedia('(max-width: 1060px)').matches) el.scrollIntoView({ block: 'start' }); });
 }
 export function enterLkie() { repaint(); refit(); renderRecent(); openFromShelf(); takePrefill(); if (S.pack) paintActions(S.pack, !!S.live); }

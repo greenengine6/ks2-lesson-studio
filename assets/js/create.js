@@ -1,8 +1,8 @@
 /* Create: one place to make anything for the class (Rabinder's points 1, 2 and 4). The four makers first (lesson
    slides, worksheet, quiz, game), then the ten lesson starters (the engines) tidied into one grid, then the other
    ways to make slides. #/create/starters scrolls to the starters. */
-import { $, esc, icon } from './core.js?v=73f756c9';
-import { ENGINES } from './engines/registry.js?v=73f756c9';
+import { $, esc, icon } from './core.js?v=de4f9a51';
+import { ENGINES } from './engines/registry.js?v=de4f9a51';
 
 const MAKERS = [
   { href: '#/lkie', icon: 'pack', name: 'Lesson slides', c: '#5B52E6', c2: '#8B84FF', text: 'One topic in, a whole lesson out: slides with a picture or an exact diagram on every slide, key words, activities, teacher notes and a worksheet in three levels.', chips: ['Any KS2 subject', 'PowerPoint and Word'] },

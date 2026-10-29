@@ -1,15 +1,15 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
-import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=73f756c9';
-import { track } from './track.js?v=73f756c9';
-import { fractify, fracSlide } from './fractions.js?v=73f756c9';
-import EXAMPLE_RAW from './slides-example.js?v=73f756c9';
-import { Ribbons } from './fx/ribbons.js?v=73f756c9';
-import { sfx } from './fx/audio.js?v=73f756c9';
-import { timesUp } from './fx/timesup.js?v=73f756c9';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=73f756c9';
-import { presentKit } from './presentkit.js?v=73f756c9';
-import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=73f756c9';
+import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=de4f9a51';
+import { track } from './track.js?v=de4f9a51';
+import { fractify, fracSlide } from './fractions.js?v=de4f9a51';
+import EXAMPLE_RAW from './slides-example.js?v=de4f9a51';
+import { Ribbons } from './fx/ribbons.js?v=de4f9a51';
+import { sfx } from './fx/audio.js?v=de4f9a51';
+import { timesUp } from './fx/timesup.js?v=de4f9a51';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=de4f9a51';
+import { presentKit } from './presentkit.js?v=de4f9a51';
+import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=de4f9a51';
 
 const I = {
   flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
@@ -718,7 +718,18 @@ export function refitSlides() { requestAnimationFrame(() => $$('.sthumb .sl').fo
 export function enterSlides() {
   repaint(); refitSlides();
   const id = takeOpen('slides');                       // the dashboard asked for one of the saved lessons
-  if (id && state.recent.some((r) => r.id === id)) openDeck(id);
+  if (id && state.recent.some((r) => r.id === id)) {
+    openDeck(id);
+    if (presentAsked('slides:' + id) && state.deck && state.deckId === id) openPresent(0);   // the Classroom: straight onto the board
+  }
+}
+/* library.js openItem(key, { present: true }) leaves this one-time note (read here without importing library.js). */
+function presentAsked(key) {
+  try {
+    const v = JSON.parse(sessionStorage.getItem('ks2-engine.present.once') || 'null');
+    if (v && v.key === key && Date.now() - (v.at || 0) < 60000) { sessionStorage.removeItem('ks2-engine.present.once'); return true; }
+  } catch (e) { /* nothing waiting */ }
+  return false;
 }
 
 /* For the class feedback screen: what is being presented right now. */

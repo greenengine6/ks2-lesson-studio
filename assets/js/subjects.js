@@ -1,9 +1,9 @@
 /* My subjects (Rabinder's point 14, "folders for the subjects taught"): everything she makes is filed by itself under
    its subject and year group. Inside a subject she adds her own folders (a unit, a topic) and moves things about.
    #/subjects shows every subject; #/subjects/<id> opens one, with its years, folders and everything in it. */
-import { $, $$, esc, icon, str, el, toast, YEARS } from './core.js?v=73f756c9';
-import { listAll, search, counts, SUBJECT_LIST, subjectName, subjectColor, KINDS, openItem, removeItem, moveItem, folders, folderById, addFolder, renameFolder, removeFolder, renameItem, onLibrary, startMaking, dayLabel } from './library.js?v=73f756c9';
-import { subjectArt } from './art/subjects.js?v=73f756c9';
+import { $, $$, esc, icon, str, el, toast, YEARS } from './core.js?v=de4f9a51';
+import { listAll, search, counts, SUBJECT_LIST, subjectName, subjectColor, KINDS, openItem, removeItem, moveItem, folders, folderById, addFolder, renameFolder, removeFolder, renameItem, onLibrary, startMaking, dayLabel } from './library.js?v=de4f9a51';
+import { subjectArt } from './art/subjects.js?v=de4f9a51';
 
 const KIND_FILTERS = [['all', 'Everything'], ['lesson', 'Lessons'], ['sheet', 'Worksheets'], ['quiz', 'Quizzes'], ['game', 'Games'], ['eng', 'Starters'], ['class', 'Class summaries']];
 const isLesson = (it) => it.k === 'lkie' || it.k === 'slides';

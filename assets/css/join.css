@@ -291,3 +291,33 @@ button.jn-chip{cursor:pointer}
 .fr-n{border-bottom:.1em solid currentColor;padding-bottom:.08em}
 .fr-d{padding-top:.08em}
 .fr-s{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- on the board now: the slide's own words and picture, or what the teacher shows big ---------- */
+.jn-board-now{gap:12px}
+.jn-now-k{margin:0;display:inline-flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:800;font-size:calc(14px * var(--t));letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink)}
+.jn-now-k .i{width:18px;height:18px}
+.jn-now-t{margin:0;font-family:var(--f-display);font-weight:700;font-size:calc(24px * var(--t));line-height:1.25;color:var(--fg);overflow-wrap:anywhere}
+.jn-now-pic{margin:0;display:grid;place-items:center;border-radius:20px;overflow:hidden;background:#fff;box-shadow:var(--in-sm)}
+.jn-now-pic img{display:block;max-width:100%;max-height:38vh;object-fit:contain}
+.jn-now-w{display:grid;gap:8px;padding:14px 16px;border-radius:18px;box-shadow:var(--in-sm)}
+.jn-now-w p{margin:0;font-size:calc(18px * var(--t));line-height:var(--lh,1.55);color:var(--fg);overflow-wrap:anywhere}
+.jn-now-sk{margin:0;font-family:var(--f-display);font-weight:700;font-size:calc(16px * var(--t));color:var(--muted)}
+.jn-now-big{margin:0;padding:18px;border-radius:20px;box-shadow:var(--in-sm);font-family:var(--f-display);font-weight:700;font-size:calc(24px * var(--t));line-height:1.35;color:var(--fg);overflow-wrap:anywhere}
+
+/* ---------- Lock devices ---------- */
+html.jn-locked body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html.jn-locked :is(input,textarea){-webkit-user-select:text;user-select:text}
+html.jn-locked :is(a[href],[data-j="ics"],[data-j="leave"]){opacity:.5;cursor:not-allowed}
+.jn-staybar{position:fixed;left:50%;top:max(6px,env(safe-area-inset-top));transform:translateX(-50%);z-index:65;display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;
+  background:#1F2937;color:#fff;font-family:var(--f-display);font-weight:700;font-size:calc(14px * var(--t));box-shadow:0 6px 16px rgb(31 41 55 / .25);pointer-events:none}
+.jn-staybar .i{width:16px;height:16px}
+html.jn-locked .jn-top{padding-top:max(46px,calc(env(safe-area-inset-top) + 40px))}
+.jn-full{position:fixed;inset:0;z-index:85;display:grid;place-items:center;padding:24px;background:linear-gradient(160deg,#4338CA,#5B52E6 55%,#2B76C6);color:#fff;text-align:center;animation:jnFade .2s ease}
+.jn-full-in{display:grid;justify-items:center;gap:14px;max-width:420px}
+.jn-full-in > .i{width:64px;height:64px;padding:14px;border-radius:50%;background:rgb(255 255 255 / .16)}
+.jn-full-in h2{margin:0;font-family:var(--f-display);font-weight:800;font-size:calc(26px * var(--t));line-height:1.2}
+.jn-full-in p{margin:0;font-size:calc(18px * var(--t));opacity:.92}
+.jn-full .jn-btn{background:#fff;color:#312E81;min-width:240px}
+@media (prefers-reduced-motion:reduce){ .jn-full{animation:none} }
+.jn-in{margin:2vh 0 -4px;display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--card);box-shadow:var(--ex-sm);font-family:var(--f-display);font-weight:700;font-size:calc(15px * var(--t));color:var(--ok,#2E7D4F)}
+.jn-in .i{width:18px;height:18px;stroke-width:2.6}

@@ -164,3 +164,14 @@
 [data-theme="night"] .cls-end[data-sure]{color:#fff;background:#B42318}
 [data-theme="night"] :is(.cls-step.done small,.cls-list li.done .i){color:#7FD1A1}
 [data-theme="night"] .cls-hand{color:#FBBF24}
+
+/* ---------- Lock devices: the honest note, and who left the class page ---------- */
+.cls-lockn{padding:12px 14px;border-radius:var(--r);box-shadow:var(--in-sm)}
+.cls-lockn[hidden]{display:none}
+.cls-away{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.cls-away li{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:var(--r-sm);box-shadow:var(--in-sm);font-size:calc(15px * var(--t,1));line-height:1.4;color:var(--fg)}
+.cls-away li .i{width:18px;height:18px;flex:none;margin-top:2px;color:#2E7D4F}
+.cls-away li.gone{background:#FDECEA;box-shadow:none;color:#86190F}
+.cls-away li.gone .i{color:#B42318}
+.cls-away span[data-cls-at]{font-variant-numeric:tabular-nums;font-weight:700}
+[data-theme="night"] .cls-away li.gone{background:#4A1B1B;color:#FFD5D0}

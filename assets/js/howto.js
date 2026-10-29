@@ -1,10 +1,10 @@
 /* How it works: every rule on the site in one place, in plain words. It opens from the header's "How it works",
    Help page, the "?" next to Online / In class, and the Join screen. The numbers come
    from the same settings the rules themselves use (guard.js), so they are always right. */
-import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=73f756c9';
-import { LIMITS } from './guard.js?v=73f756c9';
-import { ENGINES } from './engines/registry.js?v=73f756c9';
-import { RESPOND } from './engines/shared.js?v=73f756c9';
+import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=de4f9a51';
+import { LIMITS } from './guard.js?v=de4f9a51';
+import { ENGINES } from './engines/registry.js?v=de4f9a51';
+import { RESPOND } from './engines/shared.js?v=de4f9a51';
 
 const SCRIPT = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/;
 const schoolOn = () => SCRIPT.test(String(CONFIG.inbox || ''));
@@ -68,9 +68,10 @@ function body(id) {
   ]);
   if (id === 'class') return '<p class="howm-lede">Each class is a live session on pupils’ own devices. Start it in one tap: Start class on Today, in the calendar or in the menu.</p>' + li([
     b('Joining:') + ' a QR code, a short address and a 6-digit code. Pupils type a first name; no accounts. ' + b('Who’s here') + ' is your register (Copy register); it is never saved.',
-    b('Lesson flow:') + ' tap a step and the board and every device move together.',
+    b('Lesson flow:') + ' tap a lesson and it opens on the board in Present mode; close Present to come back to your class. Every pupil’s device shows what is on the board: the slide’s words and its picture, with Read it to me. Answers you have not revealed stay hidden.',
+    b('Lock devices:') + ' the class page stays full screen where the browser allows it and its links are blocked; you see who leaves the page and for how long. A website cannot stop a phone or tablet opening other apps: your school’s device settings can (Guided Access on iPads, App pinning on Android, a Chromebook’s locked mode).',
     b('Quick checks:') + ' thumbs, traffic light, a vote, a word cloud or mini whiteboards, answers face down until you Reveal.',
-    b('Class view:') + ' a tile for every pupil: who is right, who is stuck, who has finished, hands up, and private questions you can answer privately. Mark or change marks, give praise or a sticker, put a pupil on a level. Show on the board can hide names.',
+    b('Class view:') + ' a tile for every pupil: who is right, who is stuck, who has finished, hands up, and private questions you can answer privately. Mark or change marks, give praise or a sticker, put a pupil on a level. Show on the board puts one answer or question big on your screen and on every device, never with a name.',
     b('On their devices:') + ' a quiz played live with a podium, a worksheet with marks given back, a game with a leaderboard, the timer, work signs, groups and class points.',
     b('For pupils:') + ' Reading help (the same fonts, sizes and backgrounds), I need help, and Ask my teacher (only you see it).',
     b('Homework') + ' arrives on every device as a card with the pupil’s own name, with Add to my calendar.',
@@ -175,6 +176,7 @@ function body(id) {
     b('Stays here:') + ' the engine key, everything you make, your folders, your reading support and your class’s first names.',
     b('Leaves, and why:') + ' the request the engine needs when you press a Make button (a worksheet sample goes with it to be read, and is not kept); your activity for Rabinder’s reports, locked so only she can open it; live-lesson messages, locked end to end; and picture searches, which go to Wikipedia. Videos play from YouTube’s privacy-enhanced player.',
     b('Backup files') + ' hold what you made and your settings, never keys, PINs or pupils’ names.',
+    b('In a live class') + ' pupils’ devices receive only what is on the board: its words and free Wikimedia pictures, never your uploaded pictures or answers you have not revealed. A locked device sends one message when a pupil leaves the class page and one when they come back. The class summary keeps only how many times pupils left, never names.',
     b('Speaking to Symphony') + ' uses your browser’s own speech service. Her answers come from the engine, which may search trusted education websites for her. With her human voice on, what she says aloud goes to a voice service (OpenAI) to be spoken; pupils’ names never do.',
     b('Protection:') + ' copying the site’s content and printing are blocked; lessons leave through the site’s own buttons (PowerPoint, Word and Copy). These are deterrents, and screen sharing always keeps working.'
   ]);

@@ -7,14 +7,14 @@
    only and gone when the lesson ends) and Remove. For the class: the hands-up queue, pupils' private questions (reply
    privately, or show one on the board with no name), "Eyes on the board", and "Symphony spotted": the answers, with
    no names, go to the engine to find the likely misconception. Nothing about pupils is saved. */
-import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, errorCopy, askJSON, CONFIG, HOUSE_WORDS } from '../core.js?v=73f756c9';
-import { sfx } from '../fx/audio.js?v=73f756c9';
-import { chatState, chatStart, chatEnd } from '../guard.js?v=73f756c9';
-import { Live, onLive, allPupils, pupilsIn, nameOf, answersFor, expectFor, helpQueue, asks, replyAsk, doneAsk, ack, sendTo, setEyes, kick } from './session.js?v=73f756c9';
-import { openJoin } from './panel.js?v=73f756c9';
-import { matches } from '../moments.js?v=73f756c9';
-import { strokesSVG, unpackStrokes } from '../draw.js?v=73f756c9';
-import { STICKERS } from './shapes.js?v=73f756c9';
+import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, errorCopy, askJSON, CONFIG, HOUSE_WORDS } from '../core.js?v=de4f9a51';
+import { sfx } from '../fx/audio.js?v=de4f9a51';
+import { chatState, chatStart, chatEnd } from '../guard.js?v=de4f9a51';
+import { Live, onLive, allPupils, pupilsIn, nameOf, answersFor, expectFor, helpQueue, asks, replyAsk, doneAsk, ack, sendTo, setEyes, kick, setDeviceLock, awayOf, setSpot } from './session.js?v=de4f9a51';
+import { openJoin } from './panel.js?v=de4f9a51';
+import { matches } from '../moments.js?v=de4f9a51';
+import { strokesSVG, unpackStrokes } from '../draw.js?v=de4f9a51';
+import { STICKERS } from './shapes.js?v=de4f9a51';
 
 let V = null;
 const NOTES = () => 'ks2-live.notes.' + Live.sid;
@@ -22,7 +22,7 @@ const PRAISE = ['Great work!', 'Brilliant thinking!', 'Keep going, you’re near
 const ago = (t) => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? s + ' s ago' : Math.round(s / 60) + ' min ago'; };
 function notes() { try { return JSON.parse(sessionStorage.getItem(NOTES()) || '{}') || {}; } catch (e) { return {}; } }
 function setNote(pid, text) { const n = notes(); if (text) n[pid] = text.slice(0, 600); else delete n[pid]; try { sessionStorage.setItem(NOTES(), JSON.stringify(n)); } catch (e) { /* this view only */ } }
-const tasks = () => import('./tasks.js?v=73f756c9').catch(() => null);
+const tasks = () => import('./tasks.js?v=de4f9a51').catch(() => null);
 
 /* ---------------- what is on the board now, and each pupil's answer to it ---------------- */
 function nowItem(T) {
@@ -55,8 +55,8 @@ function momentAnswer(it, pid) {
 }
 /* { state, text, ok, draw, prog, score } for one pupil */
 function cell(it, p) {
-  const hand = helpQueue().find((h) => h.pid === p.pid);
-  const base = { hand: !!hand, coming: !!(hand && hand.ack), left: !!p.left };
+  const hand = helpQueue().find((h) => h.pid === p.pid), aw = awayOf(p.pid);
+  const base = { hand: !!hand, coming: !!(hand && hand.ack), left: !!p.left, gone: aw && aw.on ? aw : null, goneN: aw ? aw.n || 0 : 0, goneTot: aw ? aw.tot || 0 : 0 };
   if (!it) return Object.assign(base, { state: p.left ? 'left' : 'joined' });
   if (it.kind === 'quiz') {
     const a = it.answer(p.pid);
@@ -87,7 +87,8 @@ export async function openClassView(o) {
   V.host.appendChild(el); V.el = el;
   el.addEventListener('click', onClick);
   el.addEventListener('submit', onSubmit);
-  V.keyH = (e) => { if (e.key === 'Escape' && V) { e.preventDefault(); e.stopPropagation(); if (V.big) { V.big = ''; paint(); } else if (V.sel) { V.sel = ''; paint(); } else closeClassView(); } };
+  V.keyH = (e) => { if (e.key === 'Escape' && V) { e.preventDefault(); e.stopPropagation(); if (V.big) hideBig(); else if (V.sel) { V.sel = ''; paint(); } else closeClassView(); } };
+  V.awayT = setInterval(() => { if (!V) return; $$('[data-away-at]', V.el).forEach((b) => { b.textContent = clock(Date.now() - Number(b.dataset.awayAt)); }); }, 1000);
   document.addEventListener('keydown', V.keyH, true);
   V.unsub = onLive(() => soon());
   V.busH = () => soon(); bus.on('live-marks', V.busH);
@@ -97,6 +98,8 @@ export async function openClassView(o) {
 }
 export function closeClassView() {
   if (!V) return;
+  if (V.board) { V.board.remove(); V.board = null; if (V.big) setSpot(null); }
+  clearInterval(V.awayT);
   if (V.unsub) V.unsub();
   document.removeEventListener('keydown', V.keyH, true);
   cancelAnimationFrame(V.raf);
@@ -114,6 +117,7 @@ function paint() {
   V.el.innerHTML = '<div class="cv-card">' +
     '<header class="cv-top"><span class="lt-k' + (Live.on ? '' : ' off') + '"><i></i>' + (Live.on ? 'Live' : 'Not live') + '</span><div class="cv-h"><h2>Class view</h2><p>' + esc(it ? it.label || it.title : 'Nothing on pupils’ devices right now') + '</p></div><span class="lt-sp"></span>' +
     '<button type="button" class="pbtn" data-cv="eyes" aria-pressed="' + Live.eyes + '">' + icon('eye') + '<span>' + (Live.eyes ? 'Let them look again' : 'Eyes on the board') + '</span></button>' +
+    '<button type="button" class="pbtn' + (Live.dl ? ' locked' : '') + '" data-cv="dlock" aria-pressed="' + !!Live.dl + '"' + (Live.on ? '' : ' disabled') + ' title="Keeps the class page full screen, blocks its links and tells you when someone leaves it">' + icon('lock') + '<span>' + (Live.dl ? 'Unlock devices' : 'Lock devices') + '</span></button>' +
     '<button type="button" class="pbtn" data-cv="spot"' + (it && Live.on ? '' : ' disabled') + '>' + icon('bulb') + '<span>' + (V.spotting ? 'Looking…' : 'Symphony spotted') + '</span></button>' +
     '<button type="button" class="pbtn" data-cv="join">' + icon('qr') + '<span>Join code</span></button>' +
     '<button type="button" class="pbtn" data-cv="notes">' + icon('copy') + '<span>Copy my notes</span></button>' +
@@ -124,12 +128,14 @@ function paint() {
       '<button type="button" class="cv-s s-no" data-cvf="wrong" aria-pressed="' + (V.filter === 'wrong') + '"><b>' + notYet + '</b><span>not yet</span></button>' +
       '<span class="cv-s s-wk"><b>' + working + '</b><span>working</span></span>' +
       '<button type="button" class="cv-s s-hd" data-cvf="hands" aria-pressed="' + (V.filter === 'hands') + '"><b>' + hands.length + '</b><span>hands up</span></button>' +
+      (Live.dl || rows.some((r) => r.c.gone || r.c.goneN) ? '<span class="cv-s s-gone' + (rows.some((r) => r.c.gone) ? ' now' : '') + '"><b>' + rows.filter((r) => r.c.gone).length + '</b><span>left the page</span></span>' : '') +
       '<label class="cv-hide"><input type="checkbox" data-cv="hide"' + (V.hideNames ? ' checked' : '') + '> Hide names on the board</label></div>' +
     (V.spot ? spotHTML() : '') +
     '<div class="cv-body"><div class="cv-main">' +
-    (V.big ? bigHTML(it) : rows.length ? '<ul class="cv-tiles">' + shown.map(({ p, c }) => tileHTML(p, c, N[p.pid])).join('') + '</ul>' : '<p class="lt-empty">' + icon('qr') + '<span>Nobody has joined yet. Show the join code.</span></p>') +
+    (rows.length ? '<ul class="cv-tiles">' + shown.map(({ p, c }) => tileHTML(p, c, N[p.pid])).join('') + '</ul>' : '<p class="lt-empty">' + icon('qr') + '<span>Nobody has joined yet. Show the join code.</span></p>') +
     '</div><aside class="cv-side">' + (V.sel ? pupilHTML(it, V.sel) : sideHTML(hands, qs)) + '</aside></div></div>';
 }
+const clock = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 function tileHTML(p, c, note) {
   const mark = c.ok === true ? '<span class="cv-mk ok" title="Right">' + icon('check') + '</span>' : c.ok === false ? '<span class="cv-mk no" title="Not yet">' + icon('close') + '</span>' : '';
   let body = '';
@@ -138,7 +144,9 @@ function tileHTML(p, c, note) {
   else if (c.score != null && c.text == null) body = '<span class="cv-score">' + Number(c.score).toLocaleString('en-GB') + ' points</span>';
   else if (c.text) body = '<span class="cv-ans">' + esc(c.text) + '</span>' + (c.score != null ? '<small>' + Number(c.score).toLocaleString('en-GB') + ' points</small>' : '');
   else body = '<span class="cv-wait">' + (c.state === 'left' ? 'Left the lesson' : c.state === 'answering' ? 'Working…' : 'Waiting') + '</span>';
-  return '<li><button type="button" class="cv-tile ' + c.state + (c.ok === true ? ' ok' : c.ok === false ? ' no' : '') + (c.hand ? ' hand' : '') + '" data-pid="' + esc(p.pid) + '" aria-label="' + esc(p.name) + ': ' + esc(c.state) + '">' +
+  if (c.gone) body = '<span class="cv-gone">' + icon('eye') + 'Left the page <b data-away-at="' + c.gone.at + '">' + clock(Date.now() - c.gone.at) + '</b></span>' + body;
+  else if (c.goneN) body += '<small class="cv-gonen">Left the page ' + c.goneN + (c.goneN === 1 ? ' time' : ' times') + (c.goneTot ? ' · ' + clock(c.goneTot) : '') + '</small>';
+  return '<li><button type="button" class="cv-tile ' + c.state + (c.ok === true ? ' ok' : c.ok === false ? ' no' : '') + (c.hand ? ' hand' : '') + (c.gone ? ' gone' : '') + '" data-pid="' + esc(p.pid) + '" aria-label="' + esc(p.name) + ': ' + esc(c.state) + '">' +
     '<span class="cv-tn"><i class="cv-dot" aria-hidden="true"></i><b>' + esc(p.name) + '</b>' + (c.hand ? '<span class="cv-hand" title="' + (c.coming ? 'On your way' : 'Hand up') + '">' + HAND + '</span>' : '') + (note ? '<span class="cv-nt" title="You have a note">' + icon('notes') + '</span>' : '') + mark + '</span>' + body + '</button></li>';
 }
 const HAND = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V12M11 11V4.5a1.5 1.5 0 0 1 3 0V11M14 11V5.5a1.5 1.5 0 0 1 3 0V13M8 13V9.5a1.5 1.5 0 0 0-3 0V14a7 7 0 0 0 7 7h1a6 6 0 0 0 6-6v-3a1.5 1.5 0 0 0-3 0"/></svg>';
@@ -164,7 +172,9 @@ function pupilHTML(it, pid) {
       (it && it.kind !== 'game' && (c.text || c.draw) ? '<p class="cv-mks"><button type="button" class="cv-m ok" data-cv-omark="1" aria-pressed="' + (c.ok === true) + '">' + icon('check') + 'Right</button><button type="button" class="cv-m no" data-cv-omark="0" aria-pressed="' + (c.ok === false) + '">' + icon('close') + 'Not yet</button></p>' : '') + '</div>';
   } else answers = '<p class="fine">No answer to this yet.</p>';
   return '<section class="cv-sec cv-pupil"><p class="cv-back"><button type="button" class="linkbtn" data-cv="back">' + icon('left') + 'All pupils</button></p><h3>' + esc(p.name) + (p.left ? ' <small>(left)</small>' : '') + '</h3>' +
-    '<p class="fine">Joined ' + new Date(p.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + (p.drops ? ' · dropped off ' + p.drops + (p.drops === 1 ? ' time' : ' times') : '') + '</p>' + answers +
+    '<p class="fine">Joined ' + new Date(p.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + (p.drops ? ' · dropped off ' + p.drops + (p.drops === 1 ? ' time' : ' times') : '') +
+      (c.goneN ? ' · left the class page ' + c.goneN + (c.goneN === 1 ? ' time' : ' times') + (c.goneTot ? ' (' + clock(c.goneTot) + ' in all)' : '') : '') + '</p>' +
+    (c.gone ? '<p class="cv-hrow gone">' + icon('eye') + 'Away from the class page for <b data-away-at="' + c.gone.at + '">' + clock(Date.now() - c.gone.at) + '</b></p>' : '') + answers +
     (c.text || c.draw ? '<button type="button" class="btn" data-cv="big">' + icon('expand') + 'Show on the board</button>' : '') +
     (hand ? '<p class="cv-hrow">' + HAND + (hand.ack ? 'You are on your way. <button type="button" class="btn small" data-cv-done="' + esc(pid) + '">Helped</button>' : 'Hand up ' + ago(hand.at) + ' <button type="button" class="btn small primary" data-cv-ack="' + esc(pid) + '">On my way</button>') + '</p>' : '') +
     '<h4>Praise, only for ' + esc(p.name) + '</h4><div class="cv-praise">' + PRAISE.map((t, k) => '<button type="button" class="cv-chip" data-cv-praise="' + k + '">' + esc(t) + '</button>').join('') + '</div>' +
@@ -173,14 +183,51 @@ function pupilHTML(it, pid) {
     '<label class="fld cv-mine"><span>My note (only on this screen, gone after the lesson)</span><textarea data-k="n' + esc(pid) + '" data-cv-note="' + esc(pid) + '" rows="2" maxlength="600">' + esc(note) + '</textarea></label>' +
     '<p class="cv-acts"><button type="button" class="linkbtn danger" data-cv-kick="' + esc(pid) + '">Remove ' + esc(p.name) + ' from the lesson</button></p></section>';
 }
-function bigHTML(it) {
-  if (V.big.startsWith('ask:')) {
-    const a = asks().find((x) => x.id === V.big.slice(4));
-    return '<div class="cv-big">' + (a ? '<p class="cv-big-k">A question from the class</p><p class="cv-big-t">' + esc(a.text) + '</p>' : '<p>That question has gone.</p>') + '<button type="button" class="btn" data-cv="unbig">' + icon('left') + 'Back</button></div>';
+/* Show on the board: an answer or a question big, on top of everything on this screen (the class view, a task's
+   board, Present mode in full screen), and on every pupil's device too (as text, never a name). */
+function boardHost() {
+  const fs = document.fullscreenElement;
+  return fs && !fs.contains(V.el) ? fs : V.host;
+}
+function showBig(what) {
+  if (!V || !what) return;
+  const it = nowItem(V.T);
+  let html = '', sp = null;
+  if (what.startsWith('ask:')) {
+    const a = asks().find((x) => x.id === what.slice(4));
+    if (!a) { toast('That question has gone.'); return; }
+    html = '<p class="cv-big-k">A question from the class</p><p class="cv-big-t">' + esc(a.text) + '</p>';
+    sp = { k: 'q', t: scrub(a.text) };
+  } else {
+    const p = Live.pupils.get(what), c = p ? cell(it, p) : null;
+    if (!c || (!c.text && !c.draw)) { toast('There is nothing to show yet.'); return; }
+    html = (c.draw ? '<span class="cv-ink big">' + strokesSVG(unpackStrokes(c.draw.d), c.draw.a, 'A pupil’s board') + '</span>' : '<p class="cv-big-k">An answer from the class</p><p class="cv-big-t">' + esc(c.text) + '</p>') +
+      (V.hideNames ? '' : '<p class="cv-big-n">' + esc(p.name) + '</p>');
+    sp = c.text && !c.draw ? { k: 'a', t: scrub(c.text) } : null;
   }
-  const p = Live.pupils.get(V.big), c = p ? cell(it, p) : null;
-  return '<div class="cv-big">' + (c ? (c.draw ? '<span class="cv-ink big">' + strokesSVG(unpackStrokes(c.draw.d), c.draw.a, 'A pupil’s board') + '</span>' : '<p class="cv-big-t">' + esc(c.text || '') + '</p>') + (V.hideNames ? '' : '<p class="cv-big-k">' + esc(p.name) + '</p>') : '<p>Nothing to show.</p>') +
-    '<button type="button" class="btn" data-cv="unbig">' + icon('left') + 'Back to the class</button></div>';
+  V.big = what;
+  let el = V.board;
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'cv-board'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'On the board');
+    el.addEventListener('click', (e) => { if (e.target.closest('[data-cvb="x"]')) hideBig(); });
+    V.board = el;
+  }
+  const host = boardHost();
+  el.classList.toggle('fixed', host === document.body);
+  el.innerHTML = '<div class="cv-board-in">' + html + '</div><p class="cv-board-f">' + (sp ? icon('check') + 'On pupils’ devices too' : '') + '</p>' +
+    '<button type="button" class="btn big cv-board-x" data-cvb="x">' + icon('left') + 'Back to the class</button>';
+  host.appendChild(el);
+  setSpot(sp);
+  sfx('whoosh');
+  setTimeout(() => { const b = V && V.board && $('[data-cvb="x"]', V.board); if (b) b.focus(); }, 60);
+}
+function hideBig() {
+  if (!V) return;
+  V.big = '';
+  if (V.board) { V.board.remove(); V.board = null; }
+  setSpot(null);
+  paint();
 }
 function spotHTML() {
   const s = V.spot;
@@ -215,7 +262,7 @@ async function onClick(e) {
   const kb = t.closest('[data-cv-kick]');
   if (kb) { const pid = kb.dataset.cvKick; if (kb.dataset.sure) { const n = nameOf(pid); kick(pid); V.sel = ''; toast(n + ' has been removed from this lesson.'); paint(); } else { kb.dataset.sure = '1'; kb.textContent = 'Tap again to remove'; } return; }
   const bd = t.closest('[data-cv-board]');
-  if (bd) { V.big = 'ask:' + bd.dataset.cvBoard; paint(); return; }
+  if (bd) { showBig('ask:' + bd.dataset.cvBoard); return; }
   const ad = t.closest('[data-cv-adone]');
   if (ad) { doneAsk(ad.dataset.cvAdone); return; }
   const b = t.closest('[data-cv]');
@@ -226,8 +273,13 @@ async function onClick(e) {
   else if (a === 'eyes') { setEyes(!Live.eyes); toast(Live.eyes ? 'Every pupil’s screen says “Eyes on the board”.' : 'Pupils can see their screens again.'); paint(); }
   else if (a === 'join') openJoin(V.el, Live.title);
   else if (a === 'notes') copyNotes();
-  else if (a === 'big') { V.big = V.sel; paint(); }
-  else if (a === 'unbig') { V.big = ''; paint(); }
+  else if (a === 'big') showBig(V.sel);
+  else if (a === 'unbig') hideBig();
+  else if (a === 'dlock') {
+    setDeviceLock(!Live.dl);
+    toast(Live.dl ? 'Devices locked: the class page stays full screen where it can, its links are blocked, and you see who leaves it.' : 'Devices unlocked.');
+    paint();
+  }
   else if (a === 'spot') spot();
   else if (a === 'unspot') { V.spot = null; paint(); }
 }
