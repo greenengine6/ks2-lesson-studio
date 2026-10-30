@@ -4,7 +4,7 @@
    The ancient wonders are drawn as they might have looked when they were new; a tap joins in: the Great Pyramid
    gets its polished white casing back, Zeus throws a lightning bolt, a beacon is lit on the Great Wall, the equinox
    serpent slithers down Chichén Itzá, the Taj Mahal changes colour with the time of day. */
-import { TAU, rnd, clamp, layer, view, noise, drawEmoji } from './util.js?v=cdc164df';
+import { TAU, rnd, clamp, layer, view, noise } from './util.js?v=cdc164df';
 import { Fx } from './music.js?v=cdc164df';
 import { dotGlow, seeded, hash, tint, hills, ground, houses, palm, tree, cypress, pine, mountain, sky, flame, burstParticles, drawParticles, stepParticles } from './scenery.js?v=cdc164df';
 
@@ -762,13 +762,13 @@ export function makeWonders() {
     resize(w, h) { this.w = w; this.h = h; this.layout(); },
     layout() {
       if (!this.f || !this.w) return;
-      const w = this.w, h = this.h, f = this.f, sm = w < 700 || h < 560;
-      this.top = view.top; this.s = clamp(Math.min(w, h) / 9, 30, 110);
-      const stripW = sm ? 0 : 250, textR = sm ? 0 : Math.min(w * 0.46, 620);
-      const x0 = sm ? 14 : textR + 16, x1 = w - stripW - 16;
-      this.y0 = Math.round(h * (sm ? 0.57 : 0.78));
+      const w = this.w, h = this.h, f = this.f, th = !!this.thumb, sm = !th && (w < 700 || h < 560);     // thumb: a small picture of the scene, framed for a card
+      this.top = th ? 0 : view.top; this.s = th ? clamp(Math.min(w, h) / 9, 8, 110) : clamp(Math.min(w, h) / 9, 30, 110);
+      const stripW = sm || th ? 0 : 250, textR = sm || th ? 0 : Math.min(w * 0.46, 620);
+      const x0 = th ? w * 0.04 : sm ? 14 : textR + 16, x1 = th ? w * 0.96 : w - stripW - 16;
+      this.y0 = Math.round(h * (th ? 0.74 : sm ? 0.57 : 0.78));
       this.cx = Math.round((x0 + x1) / 2 + (f.shift || 0) * (x1 - x0));
-      const hMax = this.y0 - (this.top + (sm ? 40 : 28)), wMax = f.wide ? Math.max(x1 - x0, f.wide * w) : x1 - x0;
+      const hMax = this.y0 - (th ? h * 0.06 : this.top + (sm ? 40 : 28)), wMax = th ? x1 - x0 : Math.max(x1 - x0, ((sm && f.wideSm) || f.wide || 0) * w);   // wideSm: on a phone, let a wide scene run off the sides so it can fill the height
       this.k = Math.min(hMax / f.size[1], wMax / f.size[0]) * (f.fit || 0.94);
       this.hor = this.y0 - (f.horizon || 0) * h;
       this.bg = null; this.prevBg = null; this.fade = 1; this.live = {}; this.acts = []; this.fx = [];
@@ -800,7 +800,7 @@ export function makeWonders() {
     step(dt, t) {
       this.time = t;
       if (!this.f) return;
-      if (this.top !== view.top) this.top = view.top;
+      if (this.top !== view.top && !this.thumb) this.top = view.top;
       if (this.fade < 1) this.fade = Math.min(1, this.fade + dt / 1.4);
       if (this.f.auto && this.f.phases) { this.phT += dt; if (this.phT > this.f.auto) this.phaseTo(this.ph + 1, false); }
       if (this.blaze > 0) this.blaze -= dt;
@@ -931,3 +931,5 @@ const ACTS = {
     } }
 };
 const a0 = {};
+/* for the Wonders of Malaysia scenes (malaysia.js), which run on this same engine */
+export { LIVE, ACTS, CLOTHES, figure, bird, poly, rect, disc, half, hline, box, ease };

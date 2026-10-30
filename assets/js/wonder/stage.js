@@ -4,7 +4,7 @@
    arrives, the item's colours and emoji glow in its place, so the screen is never empty.
    Also switcher(): one scene slot that can hold different scenes (a window's tabs). */
 import { leadPicture, picURL } from '../pics.js?v=cdc164df';
-import { TAU, rnd, clamp, smooth, layer, view, drawEmoji } from './util.js?v=cdc164df';
+import { TAU, rnd, clamp, smooth, layer, view } from './util.js?v=cdc164df';
 import { drawCreature, creatureOf } from './fauna.js?v=cdc164df';
 
 const photos = new Map();                  // wiki title → { p, img, ok }
@@ -122,7 +122,7 @@ export function makeStage() {
         ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
         const px = Math.min(w, h) * 0.34 * (1 + 0.03 * Math.sin(t * 1.4)), ck = creatureOf({ name: it.name || '', e: it.e });
         ctx.save(); ctx.shadowColor = 'rgba(255,255,255,.35)'; ctx.shadowBlur = 50;
-        if (!drawCreature(ctx, ck, w * 0.62, h * 0.44, px * 0.9, { rest: true, t, ph: t * 0.5 })) drawEmoji(ctx, it.e || '✨', w * 0.62, h * 0.44, px);
+        drawCreature(ctx, ck, w * 0.62, h * 0.44, px * 0.9, { rest: true, t, ph: t * 0.5 });   // (with no drawing of its own, the coloured light alone waits for the photo)
         ctx.restore();
       }
       ctx.restore();

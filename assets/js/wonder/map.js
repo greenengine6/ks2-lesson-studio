@@ -4,8 +4,9 @@
    last city visited, with the distance and about how long the flight takes. The map gives room to the postcard
    when one is open. */
 import { CITIES } from './data.js?v=cdc164df';
-import { TAU, clamp, smooth, layer, sunAt, sunHeight, view, FONT, flag } from './util.js?v=cdc164df';
+import { TAU, clamp, smooth, layer, sunAt, sunHeight, view, FONT } from './util.js?v=cdc164df';
 import { drawCreature } from './fauna.js?v=cdc164df';
+import { drawFlag, isoOf } from './art.js?v=cdc164df';
 
 const TOP = 78, BOTTOM = -58, SPAN = TOP - BOTTOM, ASPECT = 360 / SPAN;   // the far north and most of Antarctica are left off
 const RAD = Math.PI / 180;
@@ -200,9 +201,9 @@ export const explorer = {
     });
     // names, where they fit (the chosen city and the one under the pointer always win)
     const label = (c, p, strong) => {
-      const txt = (flag(c.flag) ? flag(c.flag) + ' ' : '') + c.name;
-      ctx.font = (strong ? '800 ' : '700 ') + (strong ? fs * 1.12 : fs) + 'px ' + FONT;
-      const tw = ctx.measureText(txt).width, ph = (strong ? fs * 1.12 : fs) + 8, pw = tw + 14;
+      const txt = c.name, fz = strong ? fs * 1.12 : fs, fh = Math.round(fz * 0.82), fw = Math.round(fh * 1.5);
+      ctx.font = (strong ? '800 ' : '700 ') + fz + 'px ' + FONT;
+      const tw = ctx.measureText(txt).width, ph = fz + 8, pw = tw + 14 + fw + 6;
       const tries = [[p.x + dot + 6, p.y - ph / 2], [p.x - dot - 6 - pw, p.y - ph / 2], [p.x - pw / 2, p.y - dot - 6 - ph], [p.x - pw / 2, p.y + dot + 6]];
       const fits = ([x]) => x >= r.x - 4 && x + pw <= r.x + r.w + 4;
       if (strong) tries.sort((a, b) => fits(b) - fits(a));                        // the chosen city's name always shows, inside the map if it can
@@ -212,7 +213,8 @@ export const explorer = {
         placed.push(box);
         ctx.fillStyle = strong ? 'rgba(255,216,77,.96)' : 'rgba(8,12,26,.72)';
         ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, pw, ph, ph / 2); else ctx.rect(x, y, pw, ph); ctx.fill();
-        ctx.fillStyle = strong ? '#1A1405' : '#F2F5FC'; ctx.fillText(txt, x + 7, y + ph / 2 + fs * 0.36);
+        drawFlag(ctx, isoOf(c.flag), x + 7, y + (ph - fh) / 2, fw, fh);         // its flag, drawn
+        ctx.font = (strong ? '800 ' : '700 ') + fz + 'px ' + FONT; ctx.fillStyle = strong ? '#1A1405' : '#F2F5FC'; ctx.fillText(txt, x + 7 + fw + 6, y + ph / 2 + fs * 0.36);
         return;
       }
     };

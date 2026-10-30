@@ -566,3 +566,60 @@ export function swapCreatures(root) {
     el.textContent = ''; el.appendChild(c); el.dataset.creDone = '1';
   });
 }
+
+/* ---------------- more record breakers: the python, the saltwater crocodile, the Etruscan shrew and a dung beetle ---------------- */
+Object.assign(K, {
+  python(c, s, o) {                                                                                    // a reticulated python, in long S-bends
+    const h = s, col = '#A88A4E', dk = '#4A3A22', w = o.rest ? 0 : Math.sin(o.ph * 1.5) * h * 0.06;
+    const pts = []; for (let i = 0; i <= 40; i++) { const u = i / 40; pts.push([-h * 1.2 + u * h * 2.2, Math.sin(u * TAU * 1.2 + 0.6) * h * 0.18 * (0.4 + u * 0.6) + w * Math.sin(u * 9 + o.t * 3)]); }
+    c.lineJoin = 'round'; c.lineCap = 'round';
+    for (let i = 0; i < 40; i++) { const u = i / 40, wd = h * (0.04 + 0.13 * Math.sin(Math.min(1, u * 1.15) * Math.PI * 0.62)); c.strokeStyle = col; c.lineWidth = wd; c.beginPath(); c.moveTo(pts[i][0], pts[i][1]); c.lineTo(pts[i + 1][0], pts[i + 1][1]); c.stroke(); }
+    c.fillStyle = dk; for (let i = 3; i < 38; i += 2) { const [x, y] = pts[i], [x2, y2] = pts[i + 1], a = Math.atan2(y2 - y, x2 - x), wd = h * (0.03 + 0.09 * Math.sin(Math.min(1, i / 40 * 1.15) * Math.PI * 0.62)); c.save(); c.translate(x, y); c.rotate(a); P(c, [[-wd * 0.6, 0], [0, -wd * 0.55], [wd * 0.6, 0], [0, wd * 0.55]]); c.restore(); }   // its net pattern
+    c.fillStyle = '#E2D3A0'; for (let i = 4; i < 38; i += 2) { const [x, y] = pts[i]; D(c, x, y, h * 0.012); }
+    const [hx, hy] = pts[40]; c.fillStyle = col; E(c, hx + h * 0.06, hy, h * 0.12, h * 0.075, 0.1);         // the head
+    eye(c, hx + h * 0.1, hy - h * 0.025, h * 0.02, '#E8C86A');
+    if (!o.rest || Math.sin(o.t * 4) > 0.3) { c.strokeStyle = '#C8303A'; c.lineWidth = h * 0.012; c.beginPath(); c.moveTo(hx + h * 0.17, hy + h * 0.01); c.lineTo(hx + h * 0.26, hy + h * 0.01); c.lineTo(hx + h * 0.3, hy - h * 0.02); c.moveTo(hx + h * 0.26, hy + h * 0.01); c.lineTo(hx + h * 0.3, hy + h * 0.04); c.stroke(); }   // the forked tongue
+  },
+  croc(c, s, o) {                                                                                      // a saltwater crocodile, low and long
+    const h = s, col = '#5E6E3A', dk = '#3C4824', belly = '#C8C08A', sw = o.rest ? 0 : Math.sin(o.ph) * h * 0.05, wag = Math.sin(o.t * 1.6) * h * 0.04;
+    [[-h * 0.42, 1], [h * 0.3, 1]].forEach(([x, d]) => { L(c, x, h * 0.12, x - h * 0.08 - sw, h * 0.3, h * 0.07, dk); });   // the far legs
+    c.fillStyle = col; c.beginPath(); c.moveTo(-h * 0.6, 0); c.quadraticCurveTo(-h * 1.0, h * 0.04 + wag, -h * 1.4, h * 0.12 + wag); c.quadraticCurveTo(-h * 1.0, h * 0.14 + wag * 0.5, -h * 0.6, h * 0.17); c.closePath(); c.fill();   // the long tail
+    E(c, 0, h * 0.06, h * 0.66, h * 0.15);                                                                  // body
+    c.fillStyle = belly; E(c, h * 0.02, h * 0.15, h * 0.56, h * 0.05);
+    c.fillStyle = col; P(c, [[h * 0.5, -h * 0.02], [h * 1.3, h * 0.04], [h * 1.32, h * 0.1], [h * 0.5, h * 0.16]]);   // the long snout
+    E(c, h * 0.62, h * 0.03, h * 0.18, h * 0.1);
+    c.fillStyle = '#F2EEDC'; for (let i = 0; i < 7; i++) P(c, [[h * (0.72 + i * 0.08), h * 0.1], [h * (0.75 + i * 0.08), h * 0.14], [h * (0.78 + i * 0.08), h * 0.1]]);   // teeth
+    c.fillStyle = dk; for (let i = 0; i < 16; i++) { const x = -h * 1.2 + i * h * 0.12, y = x < -h * 0.6 ? h * 0.06 + (x + h * 0.6) * -0.1 + wag * ((-h * 0.6 - x) / (h * 0.8)) : -h * 0.06 - Math.cos((x / h) * 1.6) * h * 0.04; P(c, [[x - h * 0.03, y + h * 0.02], [x, y - h * 0.05], [x + h * 0.03, y + h * 0.02]]); }   // the ridges along its back
+    [[-h * 0.34, -1], [h * 0.38, -1]].forEach(([x]) => { L(c, x, h * 0.12, x + h * 0.06 + sw, h * 0.3, h * 0.08, col); c.fillStyle = col; E(c, x + h * 0.1 + sw, h * 0.31, h * 0.07, h * 0.03); });   // the near legs
+    eye(c, h * 0.66, -h * 0.05, h * 0.03, '#D8C04A');
+    dot(c, h * 1.28, h * 0.035, h * 0.015);
+  },
+  shrew(c, s, o) {                                                                                     // the Etruscan shrew, smaller than your thumb
+    const h = s, col = '#8A7462', dk = '#5E4C3E', sw = o.rest ? 0 : Math.sin(o.ph * 2) * h * 0.06;
+    Q(c, -h * 0.44, h * 0.06, -h * 0.7, h * 0.14, -h * 0.8 + sw, h * 0.02, h * 0.03, '#B49A88');           // the thin tail
+    [[-h * 0.24, 0], [h * 0.18, Math.PI]].forEach(([x, off]) => { const a = o.rest ? 0 : Math.sin(o.ph * 2 + off) * 0.4; L(c, x, h * 0.16, x + Math.sin(a) * h * 0.12, h * 0.3, h * 0.04, '#D8B4A0'); });
+    c.fillStyle = lin(c, 0, -h * 0.24, 0, h * 0.2, col, '#C8B4A2'); E(c, -h * 0.04, h * 0.02, h * 0.44, h * 0.22);   // its round, velvety body
+    c.fillStyle = col; P(c, [[h * 0.3, -h * 0.12], [h * 0.68, h * 0.02], [h * 0.3, h * 0.14]]); E(c, h * 0.32, 0, h * 0.14, h * 0.13);   // the long pointed snout
+    c.fillStyle = '#E8A8A0'; D(c, h * 0.68, h * 0.02, h * 0.03);
+    c.fillStyle = dk; E(c, h * 0.2, -h * 0.13, h * 0.06, h * 0.05);                                            // a little ear
+    eye(c, h * 0.34, -h * 0.05, h * 0.026);
+    c.strokeStyle = 'rgba(40,30,20,.5)'; c.lineWidth = h * 0.008; for (let k = -1; k <= 1; k++) { c.beginPath(); c.moveTo(h * 0.58, h * 0.02); c.lineTo(h * 0.78, h * 0.02 + k * h * 0.08); c.stroke(); }   // whiskers
+  },
+  beetle(c, s, o) {                                                                                    // a horned dung beetle, pushing its ball backwards
+    const h = s, sw = o.rest ? 0 : Math.sin(o.ph * 2) * 0.3, roll = (o.t || 0) * 0.8;
+    c.fillStyle = lin(c, -h * 0.9, -h * 0.4, -h * 0.3, h * 0.3, '#8A6A44', '#4A3620'); D(c, -h * 0.52, 0, h * 0.36);   // the ball
+    c.strokeStyle = 'rgba(40,28,14,.5)'; c.lineWidth = h * 0.02; for (let k = 0; k < 3; k++) { c.beginPath(); c.arc(-h * 0.52, 0, h * (0.12 + k * 0.08), roll + k, roll + k + 1.6); c.stroke(); }
+    c.save(); c.translate(h * 0.22, h * 0.02); c.rotate(-0.35);
+    c.strokeStyle = '#1A1612'; c.lineWidth = h * 0.035; c.lineCap = 'round';
+    [[-0.16, -1], [0.0, 1], [0.16, -1]].forEach(([u, d], i) => { const a = sw * d; c.beginPath(); c.moveTo(u * h, h * 0.06); c.lineTo(u * h - h * 0.14 + Math.sin(a) * h * 0.06, h * 0.22); c.lineTo(u * h - h * 0.24 + Math.sin(a) * h * 0.08, h * 0.2 + (i === 0 ? -h * 0.1 : 0)); c.stroke(); });   // the legs, the back ones up on the ball
+    c.fillStyle = lin(c, 0, -h * 0.22, 0, h * 0.14, '#3E3A36', '#121010'); E(c, -h * 0.02, -h * 0.02, h * 0.26, h * 0.17);   // its shiny wing cases
+    c.fillStyle = 'rgba(255,255,255,.28)'; E(c, -h * 0.08, -h * 0.1, h * 0.12, h * 0.04, -0.15);
+    c.fillStyle = '#1C1A18'; E(c, h * 0.24, -h * 0.01, h * 0.1, h * 0.09); E(c, h * 0.34, h * 0.0, h * 0.06, h * 0.05);
+    c.strokeStyle = '#1C1A18'; c.lineWidth = h * 0.03; c.beginPath(); c.moveTo(h * 0.3, -h * 0.06); c.quadraticCurveTo(h * 0.3, -h * 0.22, h * 0.18, -h * 0.28); c.stroke();   // its horns
+    c.restore();
+  }
+});
+BY_NAME.push([/python|snake/i, 'python'], [/crocodile/i, 'croc'], [/shrew/i, 'shrew'], [/beetle/i, 'beetle']);
+Object.assign(BY_EMOJI, { '🐍': 'python', '🐊': 'croc', '🐭': 'shrew', '🪲': 'beetle' });
+Object.assign(WIDTH, { python: 2.6, croc: 2.8, shrew: 1.7, beetle: 1.8 });
+function lin(c, x0, y0, x1, y1, a, b) { const g = c.createLinearGradient(x0, y0, x1, y1); g.addColorStop(0, a); g.addColorStop(1, b); return g; }

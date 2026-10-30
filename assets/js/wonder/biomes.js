@@ -218,10 +218,21 @@ export function makeBiome(key) {
       return B.layers.map((L, i) => ({ L, i, x: 14, y: (i === 3 ? G.floor - 34 : L.y * this.h) - 14, w: 0, h: fs + 14, fs }));
     },
     pointer(x, y) { const a = this.pickAnimal(x, y); this.hover = a; },
+    /* A picture of one of the rainforest's layers for its card, cut from the scene itself (right of the layer names). */
+    layerArt(i) {
+      const w = this.w, h = this.h, d = Math.min(2, window.devicePixelRatio || 1), full = layer(Math.round(w * d), Math.round(h * d)), g = full.getContext('2d');
+      g.scale(d, d); this.draw(g, w, h, this.t || 0);
+      const G = geom(key, w, h), cy = i === 3 ? G.floor - h * 0.06 : B.layers[i].y * h;
+      let sh = h * 0.32, sw = sh * 1.6; if (sw > w * 0.66) { sw = w * 0.66; sh = sw / 1.6; }
+      const sx = clamp(w * 0.64 - sw / 2, w * 0.32, w - sw), sy = clamp(cy - sh / 2, 0, h - sh);
+      const out = document.createElement('canvas'); out.width = 960; out.height = 600; out.style.width = '480px'; out.style.height = '300px';
+      out.getContext('2d').drawImage(full, sx * d, sy * d, sw * d, sh * d, 0, 0, 960, 600); out.setAttribute('aria-hidden', 'true');
+      return out;
+    },
     click(x, y) {
       const ms = this.lang === 'ms';
       const lab = this.labels().find((l) => x >= l.x && x <= l.x + ((this.labW || [])[l.i] || 160) && y >= l.y && y <= l.y + l.h);
-      if (lab) return { card: { title: ms ? lab.L.bm : lab.L.name, sub: ms ? B.bmName : B.name, text: ms ? lab.L.textBm : lab.L.text, e: ['🌳', '🌿', '🍃', '🍂'][lab.i], lang: this.lang } };
+      if (lab) return { card: { title: ms ? lab.L.bm : lab.L.name, sub: ms ? B.bmName : B.name, text: ms ? lab.L.textBm : lab.L.text, art: () => this.layerArt(lab.i), lang: this.lang } };
       const a = this.pickAnimal(x, y);
       if (!a) return null;
       this.sel = a; this.selT = 6; a.rest = Math.max(a.rest, 4);
