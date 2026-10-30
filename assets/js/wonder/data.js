@@ -501,7 +501,7 @@ export const CAPTIONS = {
     wonders: ['Which record breaker would you like to be for a day?', 'Why do you think the cheetah can only run fast for a short time?', 'How could we measure how fast you can run?']
   },
   malaysia: {
-    facts: [{ text: 'Malaysia is one of the world’s 17 “megadiverse” countries: it is home to a huge number of kinds of plants and animals.', bm: 'Malaysia ialah salah satu daripada 17 negara “megabiodiversiti” di dunia: ia menjadi rumah kepada sangat banyak jenis tumbuhan dan haiwan.' },
+    facts: [{ text: 'Malaysia is one of only 17 “megadiverse” countries, home to a huge variety of plants and animals.', bm: 'Malaysia ialah antara 17 negara “megabiodiversiti”, rumah kepada pelbagai jenis tumbuhan dan haiwan.' },
       { text: 'Malaysia has two parts: Peninsular Malaysia, and Sabah and Sarawak on the island of Borneo.', bm: 'Malaysia terdiri daripada dua bahagian: Semenanjung Malaysia, serta Sabah dan Sarawak di pulau Borneo.' },
       { text: 'Borneo is the third biggest island in the world.', bm: 'Borneo ialah pulau ketiga terbesar di dunia.' }],
     wonders: [{ text: 'Which wonder of Malaysia would you like to visit?', bm: 'Keajaiban Malaysia yang manakah ingin anda lawati?' }, { text: 'How can we help to protect Malaysia’s animals?', bm: 'Bagaimanakah kita boleh membantu melindungi haiwan Malaysia?' }]

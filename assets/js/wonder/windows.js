@@ -22,7 +22,6 @@ import { swapIcons, flagCanvas, isoOf, GLYPH } from './art.js?v=cdc164df';
 export { swapCreatures, swapIcons };
 import { makeScale, makeRace } from './scale.js?v=cdc164df';
 import { Music, Fx } from './music.js?v=cdc164df';
-import { haptic } from '../fx/haptics.js?v=cdc164df';
 import { makeBiome } from './biomes.js?v=cdc164df';
 import { weather, feelsLike } from './weather.js?v=cdc164df';
 import { seasons, PLACES, MONTHS, dateOf, dayOfYear, seasonOf, daylight } from './seasons.js?v=cdc164df';
