@@ -11,6 +11,7 @@
    with a buzz, a soft chime and a little bounce, and the screen is kept awake (where the browser allows it) so the
    line to the teacher's screen does not drop. If it does drop, a bar says so and the page reconnects by itself,
    at once when the screen comes back on; "Reconnect" tries straight away. */
+import { settleViewport } from '../viewport.js?v=cdc164df';
 import * as R from './relay.js?v=cdc164df';
 import { Ink, COLOURS, packStrokes } from '../draw.js?v=cdc164df';
 import { initFractions } from '../fractions.js?v=cdc164df';
@@ -243,6 +244,7 @@ function nameScreen(msg) {
     const n = R.cleanName(i.value);
     if (!n) { say(i.value.trim() ? 'Please use your real first name or a kind nickname.' : 'Type your first name first.', true); return; }
     soundReady();
+    settleViewport();                                 // the keyboard closes cleanly, so an iPhone is not left zoomed in
     join(n);
   });
 }

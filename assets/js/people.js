@@ -7,6 +7,7 @@ import { $, $$, esc, el, icon, store, bus, CONFIG, setKey, toast } from './core.
 import { voiceKey, setVoiceKey, KEY_RX } from './fx/human.js?v=cdc164df';
 import { cryptoOK, b64u, unb64u, utf8, unutf8, random, pbkdf2, sha256, sameBytes, aesKey, aesDecrypt, importAdminPrivate, passkeyOK, platformPasskey, createPasskey, checkPasskey, idbGet, idbSet, idbDel } from './crypto.js?v=cdc164df';
 import { sfx } from './fx/audio.js?v=cdc164df';
+import { settleViewport } from './viewport.js?v=cdc164df';
 
 const ME_KEY = 'ks2-engine.me.v1', ROSTER_KEY = 'ks2-engine.roster.v1', PASS_KEY = 'ks2-engine.passkey.v1', SES_KEY = 'ks2-engine.session.v1', LOCK_KEY = 'ks2-engine.pinlock.v1';
 const PIN_ITER = 150000, ADMIN_IDLE = 30 * 60 * 1000;
@@ -170,7 +171,7 @@ function teacherForm() {
     start('teacher', p.id, p.n);
     sfx('success');
     hideGate();
-    toast('Hello, ' + p.n.split(' ')[0] + '. Have a lovely lesson.');
+    toast('Hello, ' + p.n.split(' ')[0] + '. Have a lovely lesson.', { sym: true });
   });
   heroForm = host;
   return host;
@@ -277,7 +278,7 @@ function finishAdmin() {
   hideGate();
   const f = afterAdmin; afterAdmin = null;
   if (f) f(); else location.hash = '#/admin';
-  toast('Hello Admin. Your dashboard is open.');
+  toast('Hello Admin. Your dashboard is open.', { sym: true });
 }
 function say(n, msg) { if (!n) return; n.textContent = msg; n.hidden = !msg; }
 export function initials(n) { return String(n || '').split(/\s+/).filter(Boolean).slice(0, 2).map((x) => x[0].toUpperCase()).join('') || '?'; }
@@ -294,6 +295,8 @@ export function showGate() {
   setTimeout(() => { if (!document.body.classList.contains('gated')) return; const target = chosen ? $('#hg-pin') : $('#hg-name'); if (target && window.matchMedia('(hover: hover)').matches) target.focus({ preventScroll: true }); }, 120);
 }
 export function hideGate() {
+  settleViewport();                                   // close the keyboard first: an iPhone otherwise stays zoomed in
+  setTimeout(settleViewport, 450);
   document.body.classList.remove('gated');
   if (heroForm) heroForm.hidden = true;
   bus.emit('gate', false);

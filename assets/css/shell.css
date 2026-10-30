@@ -135,7 +135,6 @@ body.shell-on .tabs{display:none}
   .tab .i{width:24px;height:24px}
   .tab[aria-current="page"],.tab[aria-expanded="true"]{color:var(--accent-ink);box-shadow:var(--in-sm)}
   body.shell-on .sym-fab{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
-  body.shell-on .toast{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
   body.shell-on .mnav{top:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px));max-height:calc(100vh - 160px);overflow:auto}
 }
 @media (min-width:900px) and (max-width:1179px){
@@ -145,7 +144,7 @@ body.shell-on .tabs{display:none}
 }
 @media (min-width:900px){
   body.shell-on .sym-fab{bottom:24px;right:24px}
-  body.shell-on .toast{bottom:32px;left:calc(50% + var(--side) / 2)}
+  body.shell-on .toast{left:calc(50% + var(--side) / 2);top:18px}
 }
 
 /* the More sheet on phones (the old menu) */
