@@ -766,7 +766,7 @@ export function makeWonders() {
       this.top = th ? 0 : view.top; this.s = th ? clamp(Math.min(w, h) / 9, 8, 110) : clamp(Math.min(w, h) / 9, 30, 110);
       const stripW = sm || th ? 0 : 250, textR = sm || th ? 0 : Math.min(w * 0.46, 620);
       const x0 = th ? w * 0.04 : sm ? 14 : textR + 16, x1 = th ? w * 0.96 : w - stripW - 16;
-      this.y0 = Math.round(h * (th ? 0.74 : sm ? 0.57 : 0.78));
+      this.y0 = Math.round(h * (th ? 0.74 : sm ? f.y0Sm || 0.57 : 0.78));           // y0Sm: on a phone, the ground higher up, clear of the words under it
       this.cx = Math.round((x0 + x1) / 2 + (f.shift || 0) * (x1 - x0));
       const hMax = this.y0 - (th ? h * 0.06 : this.top + (sm ? 40 : 28)), wMax = th ? x1 - x0 : Math.max(x1 - x0, ((sm && f.wideSm) || f.wide || 0) * w);   // wideSm: on a phone, let a wide scene run off the sides so it can fill the height
       this.k = Math.min(hMax / f.size[1], wMax / f.size[0]) * (f.fit || 0.94);

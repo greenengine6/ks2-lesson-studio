@@ -315,14 +315,21 @@ const KIN_BODY = [[-7000, -60], [-5600, 300], [-4900, 560], [-4500, 640], [-3900
 const kinFoot = (x) => GRANITE_BASE - 30 + 55 * Math.sin(x * 0.0042 + 0.5) + 25 * Math.sin(x * 0.011 + 2);   // where the granite meets the forest
 const pathOf = (g, pts, X, Y) => { g.beginPath(); pts.forEach((p, i) => (i ? g.lineTo(X ? X(p[0]) : p[0], Y ? Y(p[1]) : p[1]) : g.moveTo(X ? X(p[0]) : p[0], Y ? Y(p[1]) : p[1]))); g.closePath(); };
 M.kinabalu = {
-  size: [6200, 3500], wide: 0.95, wideSm: 1.3, horizon: 0.3, fit: 0.97, phases: ['dawn', 'day'],
+  size: [6200, 3500], wide: 0.95, wideSm: 1.3, horizon: 0.3, y0Sm: 0.53, fit: 0.97, phases: ['dawn', 'day'],
   sky: (ph) => (ph === 'dawn' ? ['#101236', '#2A2656', '#7E4A78', '#F0A070'] : ['#1E5AA8', '#5C9FDB', '#AFD0EC', '#E6EEF2']),
   light: (ph) => (ph === 'dawn' ? { sun: { x: 0.86, y: 0.52, c: '255,176,112', big: true } } : { sun: { x: 0.16, y: 0.13, disc: 0.024 } }),
   sound: 'mountain', music: 'sape', live: ['mist', 'myClimb', 'birds'], tap: 'phase', mist: { n: 7, y0: -0.24, span: 0.12, a: 0.16 }, birds: { n: 3, c: 'rgba(40,40,60,.7)' },
   trail: [[-480, 2420], [-380, 2600], [-520, 2760], [-330, 2900], [-430, 3060], [-210, 3180], [-120, 3300], [0, 3400]],
   says: {
-    dawn: { kind: 'Mount Kinabalu', text: 'Climbers set off at about 2 o’clock in the morning to reach Low’s Peak, the very top, by sunrise. Their head torches make a line of lights up the mountain. Tap again for daytime.', bmKind: 'Gunung Kinabalu', bm: 'Pendaki bertolak kira-kira pukul 2 pagi untuk sampai ke Puncak Low, puncak tertinggi, sebelum matahari terbit. Lampu kepala mereka membentuk barisan cahaya di gunung. Ketik lagi untuk waktu siang.' },
-    day: { kind: 'Mount Kinabalu', text: 'Below the bare granite top grows a cloud forest full of mosses and orchids. The giant pitcher plant Nepenthes rajah grows only here and on one mountain nearby: its pitchers can hold more than two litres of water! Tap again for sunrise.', bmKind: 'Gunung Kinabalu', bm: 'Di bawah puncak granit yang gondol tumbuh hutan awan yang penuh dengan lumut dan orkid. Periuk kera gergasi Nepenthes rajah hanya tumbuh di sini dan di sebuah gunung berdekatan: periuknya boleh memuatkan lebih daripada dua liter air! Ketik lagi untuk matahari terbit.' }
+    dawn: [
+      { kind: 'Mount Kinabalu', text: 'Climbers set off at about 2 o’clock in the morning to reach Low’s Peak, the very top, by sunrise.', bmKind: 'Gunung Kinabalu', bm: 'Pendaki bertolak kira-kira pukul 2 pagi untuk sampai ke Puncak Low, puncak tertinggi, sebelum matahari terbit.' },
+      { kind: 'Mount Kinabalu', text: 'Their head torches make a line of lights up the mountain. Tap again for daytime.', bmKind: 'Gunung Kinabalu', bm: 'Lampu kepala mereka membentuk barisan cahaya di gunung. Ketik lagi untuk waktu siang.' }
+    ],
+    day: [
+      { kind: 'Mount Kinabalu', text: 'Below the bare granite top grows a cloud forest, full of mosses and orchids.', bmKind: 'Gunung Kinabalu', bm: 'Di bawah puncak granit yang gondol tumbuh hutan awan yang penuh dengan lumut dan orkid.' },
+      { kind: 'Mount Kinabalu', text: 'The giant pitcher plant Nepenthes rajah grows only here and on one mountain nearby.', bmKind: 'Gunung Kinabalu', bm: 'Periuk kera gergasi Nepenthes rajah hanya tumbuh di sini dan di sebuah gunung berdekatan.' },
+      { kind: 'Mount Kinabalu', text: 'Its pitchers can hold more than two litres of water! Tap again for sunrise.', bmKind: 'Gunung Kinabalu', bm: 'Periuknya boleh memuatkan lebih daripada dua liter air! Ketik lagi untuk matahari terbit.' }
+    ]
   },
 
   far(g, S, ph) {
@@ -421,12 +428,16 @@ M.kinabalu = {
 
 /* ---------- Taman Negara: giant tualang trees, the canopy walkway, the Tembeling river ---------- */
 M.tamannegara = {
-  size: [100, 74], wide: 0.86, wideSm: 1.5, horizon: 0.42, fit: 0.98,
+  size: [100, 74], wide: 0.86, wideSm: 1.5, horizon: 0.42, y0Sm: 0.52, fit: 0.98,
   sky: ['#78AECE', '#B0D2E2', '#DAEAEC', '#EDF3EA'], light: () => ({ sun: { x: 0.24, y: 0.08, c: '255,246,214' } }),
   sound: 'jungle', music: 'gamelan', live: ['mist', 'myWalk', 'myBoat', 'birds'], tap: 'myCanopy', mist: { n: 9, y0: -0.46, span: 0.36, a: 0.13 }, birds: { n: 4 },
   walk: [[-30, 41, -3, 39, 2.2], [-3, 39, 26, 42, 2.6]],
-  river: (S) => ({ x0: 0, x1: S.w, y: S.y0 + S.h * 0.05, boatY: S.y0 + S.h * 0.105, boatL: clamp(S.s * 2.2, 70, 210) }),
-  say: { kind: 'Taman Negara', text: 'The canopy walkway hangs more than 40 metres above the forest floor, higher than a 10-storey building. Up here are the treetops, where most rainforest animals live. The tall pale trees are tualang trees.', bmKind: 'Taman Negara', bm: 'Jambatan kanopi tergantung lebih daripada 40 meter di atas lantai hutan, lebih tinggi daripada bangunan 10 tingkat. Di atas sini ialah puncak pokok, tempat kebanyakan haiwan hutan hujan tinggal. Pokok tinggi yang pucat itu ialah pokok tualang.' },
+  river: (S) => { const sm = S.w < 700; return { x0: 0, x1: S.w, y: S.y0 + S.h * (sm ? 0.012 : 0.05), boatY: S.y0 + S.h * (sm ? 0.034 : 0.105), boatL: clamp(S.s * 2.2, 70, 210) }; },   // on a phone, the river just under the trees, clear of the words
+  say: [
+    { kind: 'Taman Negara', text: 'The canopy walkway hangs more than 40 metres above the forest floor, higher than a 10-storey building.', bmKind: 'Taman Negara', bm: 'Jambatan kanopi tergantung lebih 40 meter di atas lantai hutan, lebih tinggi daripada bangunan 10 tingkat.' },
+    { kind: 'Taman Negara', text: 'Up here in the treetops is where most rainforest animals live.', bmKind: 'Taman Negara', bm: 'Di puncak pokok inilah kebanyakan haiwan hutan hujan tinggal.' },
+    { kind: 'Taman Negara', text: 'The tall, pale trees are tualang trees. They can grow taller than 80 metres.', bmKind: 'Taman Negara', bm: 'Pokok tinggi yang pucat itu ialah pokok tualang. Ia boleh tumbuh lebih tinggi daripada 80 meter.' }
+  ],
   far(g, S, ph, R) {
     const w = S.w, h = S.h;
     hills(g, w, S.hor + h * 0.03, S.s * 1.7, '#A2BCC4', 41);                    // the ridges of the Main Range, far off in the haze
@@ -461,11 +472,15 @@ M.tamannegara = {
 
 /* ---------- Rafflesia: the biggest single flower, on the forest floor, with a Year 4 pupil for scale ---------- */
 M.rafflesia = {
-  size: [3.4, 1.62], wide: 0.62, horizon: 0.44, fit: 0.96,
+  size: [3.4, 1.62], wide: 0.62, horizon: 0.44, y0Sm: 0.5, fit: 0.96,
   sky: ['#16301E', '#24482C', '#3A6640', '#56865A'], light: () => ({}),
   sound: 'jungle', music: 'sape', live: ['rays', 'motes', 'leaves', 'myFlies'], tap: 'myFliesCome', rays: { x: 0.42, y: -0.12, a: 1.25, k: 0.08, c: '220,255,200' }, leafCols: ['#7A9A3A', '#A0882E', '#6A8A2E'],
   flower: { x: 0.62, y: 0.02 },
-  say: { kind: 'Rafflesia', text: 'Rafflesia has no leaves, stem or roots of its own: it grows inside a jungle vine. It smells like rotting meat, which brings flies, and they carry its pollen. Each flower lasts only about a week.', bmKind: 'Rafflesia', bm: 'Rafflesia tidak mempunyai daun, batang atau akar sendiri: ia tumbuh di dalam sejenis pokok menjalar hutan. Baunya seperti daging busuk, jadi lalat datang dan membawa debunganya. Setiap bunga hanya bertahan kira-kira seminggu.' },
+  say: [
+    { kind: 'Rafflesia', text: 'Rafflesia has no leaves, stem or roots of its own: it grows inside a jungle vine.', bmKind: 'Rafflesia', bm: 'Rafflesia tidak mempunyai daun, batang atau akar sendiri: ia tumbuh di dalam sejenis pokok menjalar.' },
+    { kind: 'Rafflesia', text: 'It smells like rotting meat. That brings flies, and they carry its pollen.', bmKind: 'Rafflesia', bm: 'Baunya seperti daging busuk. Lalat pun datang, lalu membawa debunganya.' },
+    { kind: 'Rafflesia', text: 'Each flower lasts only about a week.', bmKind: 'Rafflesia', bm: 'Setiap bunga hanya bertahan kira-kira seminggu.' }
+  ],
   far(g, S, ph, R) {
     const w = S.w, h = S.h;
     for (let i = 0; i < 16; i++) { const x = R() * w, tw = S.s * (0.1 + R() * 0.45), d = R(); g.fillStyle = lin(g, x - tw / 2, 0, x + tw / 2, 0, [[0, rgba('#20382A', 0.3 + d * 0.5)], [0.5, rgba('#3E5E46', 0.3 + d * 0.5)], [1, rgba('#1A3024', 0.3 + d * 0.5)]]); g.fillRect(x - tw / 2, 0, tw, S.y0); }
@@ -496,7 +511,10 @@ M.orangutan = {
   sky: ['#C6DCCE', '#ADCBB4', '#93B99A', '#7EA886'], light: () => ({ sun: { x: 0.3, y: 0.05, c: '255,250,225' } }),
   sound: 'jungle', music: 'sape', live: ['rays', 'mist', 'leaves', 'myOrang'], tap: 'myNest', rays: { x: 0.3, y: -0.08, a: 1.05, k: 0.12, c: '255,250,220' }, mist: { n: 7, y0: -0.5, span: 0.45, a: 0.14 },
   apes: { mother: { x: 0.15, y: 1.22, s: 0.95 }, male: { x: 1.75, top: 3.25, s: 1.0 } },
-  say: { kind: 'Orangutans', text: 'Every evening an orangutan bends and weaves branches into a new nest high in the trees, with leaves for a pillow. A baby orangutan stays with its mother for about seven years.', bmKind: 'Orang utan', bm: 'Setiap petang, orang utan membengkok dan menganyam dahan menjadi sarang baharu yang tinggi di atas pokok, dengan daun sebagai bantal. Anak orang utan tinggal bersama ibunya selama kira-kira tujuh tahun.' },
+  say: [
+    { kind: 'Orangutans', text: 'Every evening, an orangutan weaves branches into a new nest high in the trees, with leaves for a pillow.', bmKind: 'Orang utan', bm: 'Setiap petang, orang utan menganyam dahan menjadi sarang baharu di atas pokok, dengan daun sebagai bantal.' },
+    { kind: 'Orangutans', text: 'A baby orangutan stays with its mother for about seven years.', bmKind: 'Orang utan', bm: 'Anak orang utan tinggal bersama ibunya selama kira-kira tujuh tahun.' }
+  ],
   far(g, S, ph, R) {
     const w = S.w, h = S.h;
     for (let i = 0; i < 8; i++) leafMass(g, R() * w, S.top + R() * h * 0.45, S.s * (3 + R() * 2), S.s * (1.8 + R()), '#9EC0A6', R, { lit: 0.06, edge: false, shade: 0.1 });
@@ -520,14 +538,17 @@ M.orangutan = {
 
 /* ---------- Proboscis monkeys over a Borneo river ---------- */
 M.proboscis = {
-  size: [4.6, 3.5], wide: 0.7, wideSm: 1.25, horizon: 0.34, fit: 0.97,
+  size: [4.6, 3.5], wide: 0.7, wideSm: 1.25, horizon: 0.34, y0Sm: 0.52, fit: 0.97,
   sky: ['#3E7EB8', '#86B6D8', '#D9E6DA', '#F2E2B8'], light: () => ({ sun: { x: 0.8, y: 0.22, c: '255,230,170' } }),
   sound: 'river', music: 'sape', live: ['mist', 'birds', 'myMonkeys'], tap: 'myLeap', mist: { n: 6, y0: -0.14, span: 0.16, a: 0.12 }, birds: { n: 3, c: 'rgba(255,255,255,.9)', scale: 1.2 },
   troop: [{ x: -1.55, y: 2.14, s: 0.6, male: true }, { x: -0.6, y: 2.17, s: 0.48 }, { x: 0.35, y: 2.22, s: 0.46 }, { x: 1.2, y: 2.29, s: 0.33 }],
   leaper: 2,
   river: (S) => ({ y: S.y0 + 2 }),
   water: (S) => ({ x0: 0, x1: S.w, y: S.y0, a: 0.3, c: '74,72,46' }),
-  say: { kind: 'Proboscis monkeys', text: 'Proboscis monkeys leap from the trees into the river and swim across. Their toes are partly webbed, which helps them swim. They live only on the island of Borneo.', bmKind: 'Monyet belanda', bm: 'Monyet belanda melompat dari pokok ke dalam sungai dan berenang ke seberang. Jari kaki mereka sebahagiannya berselaput, yang membantu mereka berenang. Mereka hanya tinggal di pulau Borneo.' },
+  say: [
+    { kind: 'Proboscis monkeys', text: 'Proboscis monkeys leap from the trees into the river and swim across.', bmKind: 'Monyet belanda', bm: 'Monyet belanda melompat dari pokok ke dalam sungai dan berenang ke seberang.' },
+    { kind: 'Proboscis monkeys', text: 'Their toes are partly webbed, which helps them swim. They live only on the island of Borneo.', bmKind: 'Monyet belanda', bm: 'Jari kaki mereka sebahagiannya berselaput untuk membantu berenang. Mereka hanya tinggal di Borneo.' }
+  ],
   far(g, S, ph, R) {
     const w = S.w, h = S.h;
     treeline(g, w, S.hor + h * 0.07, S.s * 0.7, '#6E8C6A', R, { lit: 0.12, texture: false });
@@ -555,11 +576,15 @@ M.proboscis = {
 
 /* ---------- The Malayan tiger, at dusk ---------- */
 M.tiger = {
-  size: [4.6, 2.2], wide: 0.72, horizon: 0.36, fit: 0.96,
+  size: [4.6, 2.2], wide: 0.72, horizon: 0.36, y0Sm: 0.5, fit: 0.96,
   sky: ['#241E3A', '#5E3446', '#B85E46', '#F0A25A'], light: () => ({ sun: { x: 0.68, y: 0.44, c: '255,170,90', big: true } }),
   sound: 'jungle', music: 'gamelan', live: ['motes', 'leaves', 'myTiger'], tap: 'myRoar', leafCols: ['#8A5A2A', '#6A6A2A', '#9A7A3A'],
   groundY: 0.02, walkX: [-1.3, 1.1],
-  say: { kind: 'The Malayan tiger', text: 'A tiger’s roar can be heard about 3 kilometres away. Every tiger has its own pattern of stripes, like a fingerprint. Fewer than 150 Malayan tigers are left in the wild.', bmKind: 'Harimau Malaya', bm: 'Ngauman harimau boleh didengar kira-kira 3 kilometer jauhnya. Setiap harimau mempunyai corak belang tersendiri, seperti cap jari. Kurang daripada 150 ekor Harimau Malaya masih tinggal di hutan.' },
+  say: [
+    { kind: 'The Malayan tiger', text: 'A tiger’s roar can be heard about 3 kilometres away.', bmKind: 'Harimau Malaya', bm: 'Ngauman harimau boleh didengar kira-kira 3 kilometer jauhnya.' },
+    { kind: 'The Malayan tiger', text: 'Every tiger has its own pattern of stripes, like a fingerprint.', bmKind: 'Harimau Malaya', bm: 'Setiap harimau mempunyai corak belang tersendiri, seperti cap jari.' },
+    { kind: 'The Malayan tiger', text: 'Fewer than 150 Malayan tigers are left in the wild.', bmKind: 'Harimau Malaya', bm: 'Kurang daripada 150 ekor Harimau Malaya masih tinggal di hutan.' }
+  ],
   far(g, S, ph, R) {
     const w = S.w, h = S.h;
     treeline(g, w, S.hor + h * 0.06, S.s * 1.0, '#6A3A44', R, { lit: 0.1, texture: false });
@@ -583,11 +608,14 @@ M.tiger = {
 
 /* ---------- Mulu: Deer Cave at dusk, and millions of bats ---------- */
 M.mulu = {
-  size: [440, 250], wide: 0.9, wideSm: 1.6, horizon: 0.2, fit: 0.97,
+  size: [440, 250], wide: 0.9, wideSm: 1.6, horizon: 0.2, y0Sm: 0.52, fit: 0.97,
   sky: ['#1C1838', '#54386A', '#BE6A6C', '#F2A272'], light: () => ({ sun: { x: 0.12, y: 0.44, c: '255,170,110', big: true } }),
   sound: 'cave', music: 'sape', live: ['mist', 'myBats'], tap: 'myBatsWave', mist: { n: 6, y0: -0.1, span: 0.12, a: 0.1 },
   mouth: { x: -10, y: 56, vx: 10, vy: 160, r: 34, endX: 0.3 },
-  say: { kind: 'Mulu caves', text: 'Every evening, millions of wrinkle-lipped bats fly out of Deer Cave in long, twisting ribbons to hunt insects. Their swirling shapes make it hard for hunting birds to catch them.', bmKind: 'Gua Mulu', bm: 'Setiap petang, berjuta-juta kelawar keluar dari Gua Rusa dalam barisan panjang yang berpusing untuk memburu serangga. Pusingan mereka menyukarkan burung pemangsa untuk menangkap mereka.' },
+  say: [
+    { kind: 'Mulu caves', text: 'Every evening, millions of wrinkle-lipped bats fly out of Deer Cave to hunt insects.', bmKind: 'Gua Mulu', bm: 'Setiap petang, berjuta-juta kelawar keluar dari Gua Rusa untuk memburu serangga.' },
+    { kind: 'Mulu caves', text: 'They fly out in long, twisting ribbons, which makes it hard for hunting birds to catch them.', bmKind: 'Gua Mulu', bm: 'Mereka terbang dalam barisan panjang yang berpusing, jadi burung pemangsa sukar menangkap mereka.' }
+  ],
   far(g, S, ph, R) {
     const w = S.w, h = S.h;
     g.fillStyle = '#3A2C4A'; for (let k = 0; k < 9; k++) { const x = R() * w, hh = S.s * (1.2 + R() * 1.8), b = S.hor + h * 0.12; P(g, [[x - hh * 0.22, b], [x - hh * 0.06, b - hh * 0.8], [x - hh * 0.02, b - hh], [x + hh * 0.06, b - hh * 0.86], [x + hh * 0.24, b]]); }   // limestone pinnacles far off
@@ -622,14 +650,17 @@ M.mulu = {
 
 /* ---------- The fireflies of Kuala Selangor ---------- */
 M.fireflies = {
-  size: [60, 14], wide: 0.86, wideSm: 2.2, horizon: 0.07, fit: 0.97,
+  size: [60, 14], wide: 0.86, wideSm: 2.2, horizon: 0.07, y0Sm: 0.5, fit: 0.97,
   sky: ['#03071A', '#0A1638', '#1A3266', '#3A5890'], light: () => ({ night: true, moon: { x: 0.2, y: 0.16, crescent: true, r: 0.8 } }),
   sound: 'mangrove', music: 'chimes', live: ['myFlash', 'mySampan'], tap: 'myGlow',
   trees: (S) => [[-22, 6.8, 4.4], [-10.5, 8.0, 5.4], [1.5, 7.4, 5.0], [13.5, 8.2, 5.6], [24, 7.0, 4.6]].map(([x, h, r]) => ({ x: S.px(x), y: S.py(h * 0.62 + 0.3), r: r * S.k })),
   waterY: (S) => S.y0 + 2,
   boat: (S) => ({ x0: 0, x1: S.w, y: S.y0 + S.h * 0.045, L: clamp(S.s * 1.6, 50, 140) }),
   water: (S) => ({ x0: 0, x1: S.w, y: S.y0, a: 0.45, c: '4,8,22' }),
-  say: { kind: 'Fireflies of Kuala Selangor', text: 'Thousands of fireflies on the same berembang tree flash on and off together, again and again. Only the male fireflies flash in time with each other: it helps the females find them.', bmKind: 'Kelip-kelip Kuala Selangor', bm: 'Beribu-ribu kelip-kelip pada pokok berembang yang sama berkelip serentak, berulang-ulang. Hanya kelip-kelip jantan yang berkelip serentak: ini membantu betina mencari mereka.' },
+  say: [
+    { kind: 'Fireflies of Kuala Selangor', text: 'Thousands of fireflies on the same berembang tree flash on and off together, again and again.', bmKind: 'Kelip-kelip Kuala Selangor', bm: 'Beribu-ribu kelip-kelip pada pokok berembang yang sama berkelip serentak, berulang-ulang.' },
+    { kind: 'Fireflies of Kuala Selangor', text: 'Only the male fireflies flash in time with each other. It helps the females find them.', bmKind: 'Kelip-kelip Kuala Selangor', bm: 'Hanya kelip-kelip jantan yang berkelip serentak. Ini membantu betina mencari mereka.' }
+  ],
   far(g, S, ph, R) {
     const w = S.w, h = S.h;
     hills(g, w, S.hor - h * 0.01, S.s * 0.5, '#16264A', 51);                       // low hills inland, just showing against the sky
@@ -645,13 +676,17 @@ M.fireflies = {
 
 /* ---------- Leatherback turtles on a Terengganu beach at night ---------- */
 M.turtle = {
-  size: [7, 2.4], wide: 0.82, wideSm: 1.6, horizon: 0.44, fit: 0.97,
+  size: [7, 2.4], wide: 0.82, wideSm: 1.6, horizon: 0.44, y0Sm: 0.5, fit: 0.97,
   sky: ['#040A1C', '#0A1636', '#16284E', '#28426C'], light: () => ({ night: true, moon: { x: 0.22, y: 0.14, r: 1.1 } }),
   sound: 'beach', music: 'gamelan', live: ['glitter', 'mySurf', 'myFront', 'myTurtle'], tap: 'myHatch',
   nest: { x: 0.25, y: 0.04, hx: -1.25 },
   surf: (S) => ({ x0: 0, x1: S.w, y0: S.y0 - S.h * 0.11, y1: S.y0 - S.h * 0.03, amp: 3 }),
   glitter: (S) => ({ x: S.w * 0.22, w: S.w * 0.05, y0: S.hor + 4, y1: S.y0 - S.h * 0.12, c: '230,236,255' }),
-  say: { kind: 'Leatherback turtles', text: 'After about two months the eggs hatch. The baby turtles dig their way out of the sand and race to the sea, often at night. Leatherbacks can dive deeper than 1,000 metres.', bmKind: 'Penyu belimbing', bm: 'Selepas kira-kira dua bulan, telur menetas. Anak penyu menggali keluar dari pasir lalu berlari ke laut, selalunya pada waktu malam. Penyu belimbing boleh menyelam lebih dalam daripada 1,000 meter.' },
+  say: [
+    { kind: 'Leatherback turtles', text: 'After about two months, the eggs hatch.', bmKind: 'Penyu belimbing', bm: 'Selepas kira-kira dua bulan, telur menetas.' },
+    { kind: 'Leatherback turtles', text: 'The baby turtles dig their way out of the sand and race to the sea, often at night.', bmKind: 'Penyu belimbing', bm: 'Anak penyu menggali keluar dari pasir lalu berlari ke laut, selalunya pada waktu malam.' },
+    { kind: 'Leatherback turtles', text: 'Leatherbacks can dive deeper than 1,000 metres.', bmKind: 'Penyu belimbing', bm: 'Penyu belimbing boleh menyelam lebih dalam daripada 1,000 meter.' }
+  ],
   far(g, S, ph, R) {
     const w = S.w, h = S.h;
     g.fillStyle = lin(g, 0, S.hor, 0, S.y0, [[0, '#1C2E50'], [1, '#0E1C36']]); g.fillRect(0, S.hor, w, S.y0 - S.hor);             // the South China Sea
@@ -659,8 +694,6 @@ M.turtle = {
     for (let k = 0; k < 120; k++) { g.fillStyle = 'rgba(50,40,30,' + (0.08 + R() * 0.12).toFixed(2) + ')'; E(g, R() * w, S.y0 + R() * (h - S.y0), 1.5 + R() * 3, 0.8 + R()); }
   },
   mon(g) {
-    g.fillStyle = 'rgba(60,50,38,.4)';                                              // her tracks up from the sea: two lines of flipper marks
-    for (let k = 0; k < 14; k++) { const x = 0.9 + 0.06 * Math.sin(k), y = -0.25 - k * 0.1; [-0.42, 0.42].forEach((d) => { g.save(); g.translate(x + d, y); g.rotate(d * 0.6); E(g, 0, 0, 0.12, 0.035); g.restore(); }); }
     g.fillStyle = 'rgba(70,58,42,.45)'; E(g, -1.9, 0.02, 0.38, 0.1);                                                            // last season's nest, where the eggs will hatch
   },
   front(g, S, ph, R) { const w = S.w, h = S.h, x0 = w < 700 ? w * 0.06 : S.px(-2.15); for (let k = 0; k < 4; k++) casuarina(g, x0 + k * S.s * 0.62 + (R() - 0.5) * 10, S.y0 - h * 0.024 + R() * 3, S.s * (2.1 + R() * 1.1), k % 2 ? '#0A1426' : '#0C1830', R, { lean: (R() - 0.5) * 0.4 }); },   // casuarina trees along the beach, dark against the night
@@ -673,7 +706,10 @@ M.hornbill = {
   sky: ['#4A86B8', '#9CC4DC', '#D8E8E8', '#EEF0E4'], light: () => ({ sun: { x: 0.82, y: 0.16, c: '255,246,214' } }),
   sound: 'jungle', music: 'sape', live: ['mist', 'myHorn'], tap: 'myTakeoff', mist: { n: 9, y0: -0.3, span: 0.35, a: 0.18 },
   perch: { x: 0.35, y: 1.36 },
-  say: { kind: 'Hornbills', text: 'You can hear a hornbill coming: its big wings make a loud whooshing sound as it flies. Rhinoceros hornbills love figs, and they spread the seeds all through the forest.', bmKind: 'Burung enggang', bm: 'Anda boleh mendengar burung enggang datang: sayapnya yang besar berbunyi kuat seperti angin ketika terbang. Burung enggang badak suka makan buah ara, dan ia menyebarkan bijinya ke seluruh hutan.' },
+  say: [
+    { kind: 'Hornbills', text: 'You can hear a hornbill coming: its big wings make a loud whooshing sound as it flies.', bmKind: 'Burung enggang', bm: 'Anda boleh mendengar burung enggang datang: sayapnya yang besar berbunyi kuat ketika terbang.' },
+    { kind: 'Hornbills', text: 'Rhinoceros hornbills love figs, and they spread the seeds all through the forest.', bmKind: 'Burung enggang', bm: 'Burung enggang badak suka makan buah ara, dan ia menyebarkan bijinya ke seluruh hutan.' }
+  ],
   far(g, S, ph, R) {
     const w = S.w, h = S.h;
     [['#B8CCD0', 0.0, 0.9], ['#9AB6B0', 0.07, 1.1], ['#7C9E90', 0.15, 1.3], ['#5E8670', 0.25, 1.5]].forEach(([col, dy, k], i) => { treeline(g, w, S.hor + h * dy, S.s * k, col, R, { lit: 0.08 + i * 0.03, texture: i > 1 }); haze(g, w, S.hor + h * (dy - 0.06), S.hor + h * (dy + 0.03), '#E4EEEC', 0.35); });
@@ -691,7 +727,7 @@ M.hornbill = {
 
 /* ---------- The two monsoons on the east coast ---------- */
 M.monsoon = {
-  size: [40, 13], wide: 0.9, wideSm: 1.8, horizon: 0.3, fit: 0.97, phases: ['ne', 'sw'],
+  size: [40, 13], wide: 0.9, wideSm: 1.8, horizon: 0.3, y0Sm: 0.5, fit: 0.97, phases: ['ne', 'sw'],
   sky: (ph) => (ph === 'ne' ? ['#1E2430', '#343E4E', '#56606E', '#77818C'] : ['#2A78C8', '#74B2E4', '#BCDDF2', '#EAF4F6']),
   light: (ph) => (ph === 'ne' ? {} : { sun: { x: 0.74, y: 0.13, disc: 0.026 } }),
   sound: ['storm', 'beach'], music: 'gamelan', live: ['myBoats', 'myBreakers', 'myFront', 'myPalms', 'people', 'myRain'], tap: 'phase',
@@ -700,8 +736,14 @@ M.monsoon = {
   surf: (S) => ({ x0: 0, x1: S.w, y0: S.hor + 4, y1: S.y0 - S.h * 0.018 }),
   bay: (S) => ({ x0: 0, x1: S.w, y0: S.hor + 5, y1: S.hor + (S.y0 - S.hor) * 0.32, L: clamp(S.s * 1.3, 40, 110) }),
   says: {
-    ne: { kind: 'Northeast monsoon', text: 'From about November to March, the northeast monsoon brings strong winds, heavy rain and big waves to the east coast. The sea is too rough, so the fishing boats stay on the beach. Tap again for the southwest monsoon.', bmKind: 'Monsun timur laut', bm: 'Dari kira-kira November hingga Mac, monsun timur laut membawa angin kencang, hujan lebat dan ombak besar ke pantai timur. Laut terlalu bergelora, jadi bot nelayan tinggal di pantai. Ketik lagi untuk monsun barat daya.' },
-    sw: { kind: 'Southwest monsoon', text: 'From about May to September, the southwest monsoon blows. The east coast is drier and the sea is calmer, so the fishing boats go out to sea. Tap again for the northeast monsoon.', bmKind: 'Monsun barat daya', bm: 'Dari kira-kira Mei hingga September, monsun barat daya bertiup. Pantai timur lebih kering dan laut lebih tenang, jadi bot nelayan keluar ke laut. Ketik lagi untuk monsun timur laut.' }
+    ne: [
+      { kind: 'Northeast monsoon', text: 'From about November to March, the northeast monsoon brings strong winds, heavy rain and big waves.', bmKind: 'Monsun timur laut', bm: 'Dari kira-kira November hingga Mac, monsun timur laut membawa angin kencang, hujan lebat dan ombak besar.' },
+      { kind: 'Northeast monsoon', text: 'The sea is too rough, so the fishing boats stay on the beach. Tap again for the southwest monsoon.', bmKind: 'Monsun timur laut', bm: 'Laut terlalu bergelora, jadi bot nelayan tinggal di pantai. Ketik lagi untuk monsun barat daya.' }
+    ],
+    sw: [
+      { kind: 'Southwest monsoon', text: 'From about May to September, the southwest monsoon blows. The east coast is drier.', bmKind: 'Monsun barat daya', bm: 'Dari kira-kira Mei hingga September, monsun barat daya bertiup. Pantai timur lebih kering.' },
+      { kind: 'Southwest monsoon', text: 'The sea is calmer, so the fishing boats go out to sea. Tap again for the northeast monsoon.', bmKind: 'Monsun barat daya', bm: 'Laut lebih tenang, jadi bot nelayan keluar ke laut. Ketik lagi untuk monsun timur laut.' }
+    ]
   },
   far(g, S, ph, R) {
     const w = S.w, h = S.h, ne = ph === 'ne';
@@ -724,11 +766,14 @@ M.monsoon = {
 
 /* ---------- Sang Kancil, the mouse-deer, by a forest stream ---------- */
 M.kancil = {
-  size: [2.4, 1.42], wide: 0.6, wideSm: 1.2, horizon: 0.38, fit: 0.95,
+  size: [2.4, 1.42], wide: 0.6, wideSm: 1.2, horizon: 0.38, y0Sm: 0.5, fit: 0.95,
   sky: ['#18321E', '#28482E', '#3E6A46', '#5A8A60'], light: () => ({}),
   sound: 'river', music: 'gamelan', live: ['rays', 'leaves', 'myKancil'], tap: 'myHop', rays: { x: 0.4, y: -0.1, a: 1.15, k: 0.1, c: '230,255,200' }, leafCols: ['#8A7A2E', '#6A8A2E', '#A0782E'],
   deer: { x: -0.22, pupil: -0.8, crocs: [0.28, 0.62, 0.96], far: 1.32, waterY: -0.04, farY: 0.02 },
-  say: { kind: 'Sang Kancil', text: 'In a famous folk tale, Sang Kancil wants the fruit on the other side of the river. He tricks the crocodiles into lining up so that he can ‘count’ them, then hops across their backs!', bmKind: 'Sang Kancil', bm: 'Dalam cerita rakyat yang terkenal, Sang Kancil mahu makan buah di seberang sungai. Dia memperdaya buaya supaya berbaris untuk ‘dikira’, lalu melompat di atas belakang mereka!' },
+  say: [
+    { kind: 'Sang Kancil', text: 'In a famous folk tale, Sang Kancil wants the fruit on the other side of the river.', bmKind: 'Sang Kancil', bm: 'Dalam cerita rakyat yang terkenal, Sang Kancil mahu makan buah di seberang sungai.' },
+    { kind: 'Sang Kancil', text: 'He tricks the crocodiles into lining up so he can ‘count’ them, then hops across their backs!', bmKind: 'Sang Kancil', bm: 'Dia memperdaya buaya supaya berbaris untuk ‘dikira’, lalu melompat di atas belakang mereka!' }
+  ],
   far(g, S, ph, R) {
     const w = S.w, h = S.h;
     for (let i = 0; i < 14; i++) { const x = R() * w, tw = S.s * (0.12 + R() * 0.45), d = R(); g.fillStyle = lin(g, x - tw / 2, 0, x + tw / 2, 0, [[0, rgba('#1E3626', 0.3 + d * 0.5)], [0.5, rgba('#3A5A42', 0.3 + d * 0.5)], [1, rgba('#18301E', 0.3 + d * 0.5)]]); g.fillRect(x - tw / 2, 0, tw, S.y0); }

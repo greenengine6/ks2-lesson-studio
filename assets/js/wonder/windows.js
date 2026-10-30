@@ -584,7 +584,7 @@ function malaysiaWin(shell) {
   const list = D.MALAYSIA.filter((x) => MALAYSIA_SCENES.includes(x.id));
   const ms = () => shell.lang() === 'ms';
   const scene = makeWonders();
-  let i = 0, ui = null, owned = false;
+  let i = 0, ui = null, owned = false, tap = null;      // tap: the fact the class tapped for, in short parts, while it is on the caption
   const name = (x) => (ms() ? x.bmName : x.name), text = (x) => (ms() ? x.bm : x.text);
   const kick = (x) => (ms() ? 'Keajaiban Malaysia · ' + x.name : 'Wonders of Malaysia · ' + x.bmName);
   const said = (s) => (s ? { kind: ms() ? s.bmKind || s.kind : s.kind, text: ms() ? s.bm || s.text : s.text, lang: ms() ? 'ms' : 'en-GB' } : null);
@@ -600,10 +600,10 @@ function malaysiaWin(shell) {
     if (ui) ui.set(i, { kicker: kick(x), name: name(x), text: text(x) });
     shell.setSub(x.id);
     shell.resound();
-    if (owned) { owned = false; shell.recaption(); }
+    if (owned) { owned = false; tap = null; shell.recaption(); }
     if (user) sfx('whoosh');
   };
-  scene.onPhase = (ph, user) => { shell.resound(); if (!user && owned) { owned = false; shell.recaption(); } };
+  scene.onPhase = (ph, user) => { shell.resound(); if (!user && owned) { owned = false; tap = null; shell.recaption(); } };
   function mountList() {
     ui = stageUI(shell, { label: 'Wonders of Malaysia', go, more, moreText: ms() ? 'Ketahui lagi' : 'Find out more', sayText: ms() ? 'Baca' : 'Read aloud',
       say: (k) => { const x = list[k]; shell.say(name(x) + '. ' + text(x), ms() ? 'ms' : 'en-GB'); } });
@@ -613,17 +613,18 @@ function malaysiaWin(shell) {
     scene, pad: false, bm: true, quiz: 'malaysia', sources: 'malaysia',
     get sound() { return scene.sound; },
     audio(on) { if (on && scene.f) Music.start(scene.f.music); else Music.stop(); },
-    caption: (m) => items(D.CAPTIONS.malaysia.facts, D.CAPTIONS.malaysia.wonders, m),
+    caption: (m) => (tap ? tap.map(said) : []).concat(items(D.CAPTIONS.malaysia.facts, D.CAPTIONS.malaysia.wonders, m)),   // a tapped fact first, a part at a time
     mount() { mountList(); go(i); },
-    setLang() { if (!ui) return; ui.remove(); mountList(); const k = i; go(k); if (owned) { owned = false; shell.recaption(); } },
+    setLang() { if (!ui) return; ui.remove(); mountList(); const k = i; go(k); if (owned) { owned = false; tap = null; shell.recaption(); } },
     unmount() { Music.stop(); if (ui) ui.remove(); ui = null; },
     arrow(d) { go(i + d, true); },
     sub(s) { const k = list.findIndex((x) => x.id === s); if (k >= 0) go(k); return k >= 0; },
     onScene(r) {
       if (!r) return;
       if (!shell.soundOn()) haptic(r.phase ? 'tick' : MY_FEEL[r.tap] || 'tap');      // with the sound off, the tap is still felt
-      const s = said(r.say);
-      if (s) { owned = true; shell.show(s, true); }
+      const parts = r.say ? [].concat(r.say) : [];                                  // each fact comes in parts short enough for two lines
+      if (!parts.length) return;
+      tap = parts; owned = true; shell.recaption(); shell.show(said(parts[0]), true);
     },
     context() { const x = list[i]; return 'The Wonders of Malaysia window shows ' + x.name + ' (' + x.bmName + '), drawn live' + (scene.f && scene.f.phases ? ' (' + scene.phase + ')' : '') + '. Tapping the scene makes something happen there.'; }
   };
