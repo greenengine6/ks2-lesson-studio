@@ -4,6 +4,7 @@
    own devices, and a "For teachers" panel listing where the facts and photos come from.
    play.js is the frame around them: the picker, the top bar, the caption, sound and full screen. */
 import { $, $$, esc, icon } from '../core.js?v=cdc164df';
+import { haptic } from '../fx/haptics.js?v=cdc164df';
 import { sfx } from '../fx/audio.js?v=cdc164df';
 import { Voice } from '../fx/voice.js?v=cdc164df';
 import { leadPicture, creditFor, picURL, creditText } from '../pics.js?v=cdc164df';
@@ -224,18 +225,48 @@ function stageUI(shell, o) {
   return ui;
 }
 /* The camera controls for "How tall?" and "How big?". */
-function scaleUI(shell, sc, hint) {
-  const el = document.createElement('div');
+/* The controls under "How big?" and "How tall?": Smaller, a slider with a stop for each one, Bigger, and Everything.
+   said(stop): the window's caption for where the camera has just been sent. */
+function scaleUI(shell, sc, hint, said) {
+  const el = document.createElement('div'), n = sc.n;
   el.className = 'sz';
-  el.innerHTML = '<div class="sz-row"><button type="button" class="btn small primary" data-sz-go>' + icon('expand') + '<span>Pull back</span></button>' +
-    '<label class="sz-l"><span>Close up</span><input type="range" min="0" max="100" step="1" value="0" data-sz-z aria-label="Zoom: close up to everything"><span>Everything</span></label></div><p class="fine">' + esc(hint) + '</p>';
+  el.innerHTML = '<div class="sz-row"><button type="button" class="pbtn sz-b" data-sz-step="-1" aria-label="Smaller">' + icon('left') + '</button>' +
+    '<label class="sz-track"><span class="sz-sr">Step from the smallest to the biggest</span><input type="range" min="0" max="' + (n - 1) + '" step="1" value="0" data-sz-u>' +
+    '<span class="sz-dots" aria-hidden="true">' + Array.from({ length: n }, (_, i) => '<i style="left:' + (i / Math.max(1, n - 1) * 100).toFixed(3) + '%"></i>').join('') + '</span></label>' +
+    '<button type="button" class="pbtn sz-b" data-sz-step="1" aria-label="Bigger">' + icon('right') + '</button>' +
+    '<button type="button" class="btn small primary sz-all" data-sz-all>' + icon('expand') + '<span>Everything</span></button></div>' +
+    '<p class="sz-now" aria-live="polite"></p><p class="fine">' + esc(hint) + '</p>';
   shell.pane.appendChild(el);
-  const go = $('[data-sz-go]', el), z = $('[data-sz-z]', el);
-  const paint = () => { $('span', go).textContent = sc.goal > 0.5 ? 'Back to the small ones' : 'Pull back'; };
-  go.addEventListener('click', () => { sc.zoomTo(sc.goal > 0.5 ? 0 : 1, true); paint(); });
-  z.addEventListener('input', () => { sc.goal = Number(z.value) / 100; sc.z = sc.goal; paint(); });
-  setTimeout(() => { if (el.isConnected && sc.goal === 0) { sc.zoomTo(1, shell.soundOn()); paint(); } }, 1600);       // the reveal
-  return { tick() { if (document.activeElement !== z) z.value = String(Math.round(sc.z * 100)); }, remove() { el.remove(); } };
+  const u = $('[data-sz-u]', el), now = $('.sz-now', el), dots = $$('.sz-dots i', el), all = $('[data-sz-all]', el);
+  const nameOf = (i) => { const s = sc.stops[i]; return s.id === 'all' ? 'Everything, to scale' : s.it.name + ', ' + s.it.label; };
+  let shown = -1;
+  const paint = (i) => {                                        // where the camera is now (it follows the journey)
+    if (i === shown) return;
+    shown = i;
+    if (document.activeElement !== u) u.value = String(i);
+    u.setAttribute('aria-valuetext', nameOf(i));
+    const s = sc.stops[i];
+    now.innerHTML = s.id === 'all' ? '<b>All ' + (n - 1) + '</b> · side by side, to scale' : '<b>' + (i + 1) + ' of ' + (n - 1) + '</b> · ' + esc(s.it.name);
+    dots.forEach((d, j) => d.classList.toggle('on', j === i));
+    $('[data-sz-step="-1"]', el).disabled = i <= 0; $('[data-sz-step="1"]', el).disabled = i >= n - 1;
+    all.innerHTML = i === n - 1 ? icon('refresh') + '<span>Start again</span>' : icon('expand') + '<span>Everything</span>';
+  };
+  sc.onStop = (i, user) => { if (user && said) said(sc.stops[i]); };
+  const go = (i) => { i = Math.max(0, Math.min(n - 1, i)); if (i === sc.target && !sc.tw) return; sc.go(i, true); haptic('tick'); };
+  el.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-sz-step]'); if (b) { go(sc.target + Number(b.dataset.szStep)); return; }
+    if (e.target.closest('[data-sz-all]')) go(shown === n - 1 ? 0 : n - 1);
+  });
+  u.addEventListener('input', () => go(Number(u.value)));
+  const up = () => sc.release();
+  window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+  paint(Math.round(sc.u));
+  return {
+    el,
+    step(d) { go(sc.target + d); },
+    tick() { const p = shell.pane.getBoundingClientRect(), r = el.getBoundingClientRect(); if (r.height) sc.floor = r.top - p.top; paint(Math.round(sc.u)); },
+    remove() { window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); sc.onStop = null; el.remove(); }
+  };
 }
 const metres = (n) => (n < 1 ? Math.round(n * 100) + ' cm' : String(n).replace(/\.0$/, '') + ' m');
 /* How each place looks and sounds on the photo stage: the weather on top, the soundscape, the colours while the photo loads. */
@@ -438,11 +469,12 @@ function festivalsWin(shell) {
 /* ---------- The Seven Wonders: the ancient seven and the new seven, drawn live, and "How tall?" ---------- */
 function wondersWin(shell) {
   const sets = { ancient: D.WONDERS.filter((x) => x.set === 'ancient'), new: D.WONDERS.filter((x) => x.set === 'new') };
-  const C = { giza: '#E3C08A', pharos: '#E8D2A8', zeus: '#D6B37A', mausoleum: '#CDBB95', colossus: '#C9A15A', petra: '#D98E6A', christ: '#E6E2D8', chichen: '#BFAF84', colosseum: '#D2B48C', taj: '#F4EFE6', wall: '#A9B394' };
-  const tall = makeScale(D.WONDERS.filter((x) => x.h).map((x) => ({ id: x.id, name: x.name, label: 'about ' + x.h + ' m tall', m: x.h, how: 'tall', shape: x.id, c: C[x.id] || '#E3C08A' }))
-    .concat([{ id: 'bigben', name: 'Big Ben’s tower', label: '96 m tall', m: 96, how: 'tall', shape: 'bigben', c: '#9FB6D6', ref: true },
-      { id: 'bus', name: 'A double-decker bus', label: '4.4 m tall', m: 4.4, how: 'tall', shape: 'bus', ref: true },
-      { id: 'pupil', name: 'A Year 4 pupil', label: '1.3 m tall', m: 1.3, how: 'tall', e: '🧒', ref: true }]));
+  const SHORT = { giza: 'Great Pyramid', zeus: 'Statue of Zeus', mausoleum: 'Mausoleum', colossus: 'Colossus', pharos: 'Lighthouse', wall: 'Great Wall', christ: 'Christ the Redeemer', chichen: 'Chichén Itzá', colosseum: 'Colosseum', taj: 'Taj Mahal', petra: 'Petra' };
+  const MINI = { christ: 'Christ', zeus: 'Zeus', giza: 'Pyramid' };          // names for a phone's everything view
+  const tall = makeScale(D.WONDERS.filter((x) => x.h).map((x) => ({ id: x.id, name: x.name, short: SHORT[x.id], mini: MINI[x.id], label: 'about ' + x.h + ' m tall', m: x.h, how: 'tall', art: x.id }))
+    .concat([{ id: 'bigben', name: 'Big Ben’s tower', short: 'Big Ben', label: '96 m tall', m: 96, how: 'tall', art: 'bigben', ref: true },
+      { id: 'bus', name: 'A double-decker bus', short: 'Bus', label: '4.4 m tall', m: 4.4, how: 'tall', art: 'bus', ref: true },
+      { id: 'pupil', name: 'A Year 4 pupil', short: 'Pupil', label: '1.3 m tall', m: 1.3, how: 'tall', art: 'pupil', ref: true }]), { reveal: 8 });
   const scene = makeWonders();
   let tab = 'ancient', i = 0, ui = null, zui = null, owned = false;
   const sw = switcher({ scene, tall }, 'scene');
@@ -484,10 +516,10 @@ function wondersWin(shell) {
       if (owned) { owned = false; shell.recaption(); }
       if (id === 'tall') {
         Music.stop();
-        sw.use('tall'); tall.sel = ''; tall.z = 0; tall.goal = 0;
-        zui = scaleUI(shell, tall, 'Tap a wonder to find out how tall it is. Heights are about, and rounded; the Great Pyramid was about 147 metres when it was built.');
+        sw.use('tall'); tall.start();
+        zui = scaleUI(shell, tall, 'Step from a Year 4 pupil to the Great Pyramid, or tap one to hear what it is. Heights are about, and rounded; the Great Pyramid was about 147 metres when it was built.', (st) => W.onScene(st.id === 'all' ? { all: true } : { size: st.id }));
         shell.setSub('tall');
-        if (shell.pane.clientWidth < 700) shell.show({ kind: 'How tall?', text: 'Drag the picture to slide along the line, from the smallest to the tallest. Tap one to hear what it is.', lang: 'en-GB' }, false);
+        if (shell.pane.clientWidth < 700) shell.show({ kind: 'How tall?', text: 'Press Bigger to step from the smallest to the tallest, or Everything to see them all side by side. Tap one to hear what it is.', lang: 'en-GB' }, false);
         return;
       }
       sw.use('scene');
@@ -496,7 +528,7 @@ function wondersWin(shell) {
       if (shell.soundOn()) Music.start(scene.f.music);
     },
     unmount() { Music.stop(); if (ui) ui.remove(); if (zui) zui.remove(); ui = null; zui = null; },
-    arrow(d) { if (tab !== 'tall') go(i + d, true); },
+    arrow(d) { if (tab !== 'tall') go(i + d, true); else if (zui) zui.step(d); },
     sub(s) {
       if (W.tabs.some((x) => x.id === s)) { shell.tab(s); return; }
       const set = sets.ancient.some((x) => x.id === s) ? 'ancient' : sets.new.some((x) => x.id === s) ? 'new' : '';
@@ -507,6 +539,7 @@ function wondersWin(shell) {
     tick() { if (zui) zui.tick(); },
     onScene(r) {
       if (!r) return;
+      if (r.all) { shell.show({ kind: 'How tall?', text: 'All of them side by side, to scale. The Great Pyramid is more than a hundred times as tall as a Year 4 pupil, and taller than Big Ben’s tower.', lang: 'en-GB' }, true); return; }
       if (r.size) { const x = D.WONDERS.find((y) => y.id === r.size); shell.show(x ? { kind: x.name, text: x.name + ' is about ' + x.h + ' metres tall. ' + x.text, lang: 'en-GB' } : { kind: 'For scale', text: r.size === 'bigben' ? 'Big Ben’s tower in London is 96 metres tall.' : r.size === 'bus' ? 'A London double-decker bus is about 4.4 metres tall.' : 'A Year 4 pupil is about 1.3 metres tall.', lang: 'en-GB' }, true); return; }
       if (r.say) { owned = true; shell.show({ kind: r.say.kind, text: r.say.text, lang: 'en-GB' }, true); }
     },
@@ -518,10 +551,11 @@ function wondersWin(shell) {
 /* ---------- Animal record breakers: on the photo stage, the speed race and "How big?" ---------- */
 function recordsWin(shell) {
   const list = D.RECORDS;
-  const SIL = { whale: ['whale', '#5E7FA6'], croc: ['croc', '#5A6B3A'], python: ['python', '#8A7A4A'], ostrich: ['ostrich', '#2B2420'] };       // drawn from the side, to scale
-  const big = makeScale(list.filter((r) => /^m (long|tall)$/.test(r.unit)).map((r) => ({ id: r.id, name: r.name, label: metres(r.n) + ' ' + r.unit.slice(2), m: r.n, how: r.unit.slice(2), e: r.icon, shape: SIL[r.id] && SIL[r.id][0], c: SIL[r.id] && SIL[r.id][1], aspect: { hummingbird: 0.8 }[r.id], flip: true }))
-    .concat([{ id: 'bus', name: 'A double-decker bus', label: '11 m long', m: 11.2, how: 'long', shape: 'bus', ref: true, aspect: 0.4 },
-      { id: 'pupil', name: 'A Year 4 pupil', label: '1.3 m tall', m: 1.3, how: 'tall', e: '🧒', ref: true }]));
+  const SHORT = { hummingbird: 'Hummingbird', python: 'Python', croc: 'Crocodile', whale: 'Blue whale' };
+  const big = makeScale(list.filter((r) => /^m (long|tall)$/.test(r.unit)).map((r) => ({ id: r.id, name: r.name, short: SHORT[r.id], label: metres(r.n) + ' ' + r.unit.slice(2), m: r.n, how: r.unit.slice(2), art: r.id }))
+    .concat([{ id: 'elephant', name: 'African elephant', short: 'Elephant', label: 'about 3.2 m tall', m: 3.2, how: 'tall', art: 'elephant' },
+      { id: 'bus', name: 'A double-decker bus', short: 'Bus', label: '11 m long', m: 11.2, how: 'long', art: 'bus', ref: true },
+      { id: 'pupil', name: 'A Year 4 pupil', short: 'Pupil', label: '1.3 m tall', m: 1.3, how: 'tall', art: 'pupil', ref: true }]), { trees: true });
   const race = makeRace(D.RACE);
   let tab = 'cards', zui = null, rui = null;
   const cards = stageWin(shell, list, {
@@ -552,17 +586,17 @@ function recordsWin(shell) {
         return;
       }
       if (id === 'big') {
-        sw.use('big'); big.sel = ''; big.z = 0; big.goal = 0;
-        zui = scaleUI(shell, big, 'Tap an animal to hear its record. Lengths and heights are about, and rounded.');
+        sw.use('big'); big.start();
+        zui = scaleUI(shell, big, 'Step from the smallest to the biggest, or tap an animal to hear its record. Lengths and heights are about, and rounded.', (st) => W.onScene(st.id === 'all' ? { all: true } : { size: st.id }));
         shell.setSub('big');
-        if (shell.pane.clientWidth < 700) shell.show({ kind: 'How big?', text: 'Drag the picture to slide along the line, from the smallest to the biggest. Tap an animal to hear its record.', lang: 'en-GB' }, false);
+        if (shell.pane.clientWidth < 700) shell.show({ kind: 'How big?', text: 'Press Bigger to step from the smallest to the biggest, or Everything to see them all side by side. Tap an animal to hear its record.', lang: 'en-GB' }, false);
         return;
       }
       sw.use('stage');
       cards.mount();
     },
     unmount() { cards.unmount(); if (zui) zui.remove(); if (rui) rui.remove(); },
-    arrow(d) { if (tab === 'cards') cards.arrow(d); },
+    arrow(d) { if (tab === 'cards') cards.arrow(d); else if (tab === 'big' && zui) zui.step(d); },
     sub(s) {
       if (W.tabs.some((x) => x.id === s)) { shell.tab(s); return; }
       if (list.some((x) => x.id === s)) { if (tab !== 'cards') shell.tab('cards'); cards.sub(s); }
@@ -570,6 +604,7 @@ function recordsWin(shell) {
     tick() { if (zui) zui.tick(); },
     onScene(r) {
       if (r && r.race) { sfx('whoosh'); return; }
+      if (r && r.all) { shell.show({ kind: 'How big?', text: 'All of them side by side, to scale. The blue whale is about 600 times as long as the bee hummingbird, and longer than two buses.', lang: 'en-GB' }, true); return; }
       if (r && r.size) { const x = list.find((y) => y.id === r.size); shell.show(x ? { kind: x.name, text: x.title + ': ' + x.value + '. ' + x.text, lang: 'en-GB' } : { kind: 'For scale', text: r.size === 'bus' ? 'A London double-decker bus is about 11 metres long.' : 'A Year 4 pupil is about 1.3 metres tall.', lang: 'en-GB' }, true); }
     },
     context() { return tab === 'race' ? 'The record breakers window shows the speed race.' : tab === 'big' ? 'The record breakers window shows how big the record-breaking animals are, next to a bus and a pupil.' : 'The record breakers window shows the ' + list[cards.i].name + ': ' + list[cards.i].title + '.'; }
@@ -674,7 +709,7 @@ function seasonsWin(shell) {
 /* ---------- Extreme weather ---------- */
 function weatherWin(shell) {
   const sc = weather;
-  const SOUND = { hurricane: 'wind', storm: 'rain', monsoon: 'rain', blizzard: 'wind' };
+  const SOUND = { hurricane: 'hurricane', storm: 'rain', monsoon: 'rain', blizzard: 'wind' };
   function paintMonsoon() {
     const el = $('.wx', shell.pane); if (!el) return;
     const m = D.MONSOON[sc.month], S = D.MONSOON_SEASONS[m.s];
@@ -720,6 +755,15 @@ function weatherWin(shell) {
       });
     },
     sub(s) { if (W.tabs.some((x) => x.id === s)) shell.tab(s); },
+    /* the storm keeps clear of the controls and the caption */
+    tick() {
+      const pr = shell.pane.getBoundingClientRect(), cap = document.querySelector('.play-cap'), el = $('.wx', shell.pane);
+      let b = pr.bottom;
+      if (cap && !cap.hidden && cap.offsetHeight) b = Math.min(b, cap.getBoundingClientRect().top);
+      let right = 0;
+      if (el) { const r = el.getBoundingClientRect(); if (r.width > pr.width * 0.6) b = Math.min(b, r.top); else if (r.left > pr.left + pr.width * 0.5) right = r.left - pr.left - 16; }
+      sc.bottom = b - pr.top - 10; sc.right = sc.mode === 'hurricane' ? right : 0;
+    },
     onScene(r) { if (r && r.fact) shell.show({ kind: r.title, text: r.fact, lang: 'en-GB' }, true); }
   };
   return W;
