@@ -407,6 +407,10 @@ kbd{display:inline-grid;place-items:center;min-width:38px;height:34px;padding:0 
 .st-pcard p{margin:0;font-size:calc(18px * var(--t));line-height:1.6}
 .st-ps{padding:12px 14px;border-radius:16px;box-shadow:var(--in-sm)}
 .st-room{border-radius:26px;padding:10px 6px 4px;background:radial-gradient(120% 90% at 50% 0%,#1F2639 0%,#121624 52%,#0D1019 100%)}
+/* the look picker scrolls sideways inside its card on a phone: without these, its row of looks made the whole page
+   three times wider than the screen, so an iPhone had to be pinched out to fit */
+.st-sec{grid-template-columns:minmax(0,1fr)}
+.st-room{min-width:0}
 .st-file{cursor:pointer;position:relative}
 @media (max-width:900px){ .st-read{grid-template-columns:minmax(0,1fr)} .st-prev{position:static} }
 
