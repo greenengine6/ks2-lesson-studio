@@ -169,9 +169,10 @@ function body(id) {
   if (id === 'wonder') return '<p class="howm-lede">Seventeen full-screen windows on the world, with sound: planets, northern lights, the rainforest, the World Explorer, festivals, the Seven Wonders, Wonders of Malaysia, animal record breakers, extreme weather, the seasons and more.</p>' + li([
     'Open it from Explore in the menu, or ask Symphony (“open the festivals”).',
     'Most windows have a quiz that can be a class vote, on pupils’ devices in a live lesson.',
-    'Tap or click things to find out more; the sound button turns the sound on and off.',
+    'Tap or click things to find out more; the sound button turns the sound on and off. The places sound real (rain, waves, birds, crickets, the rainforest’s cicadas), from field recordings.',
+    'On phones that can vibrate, taps, thunder, splashes and roars are felt too (Settings → Feel taps turns it off).',
     'Symphony’s caption at the bottom changes every 18 seconds: a fact, then a question for the class. Press the speaker and each word lights up as she reads it.',
-    'Every animal, bird, fish and racer is drawn by the site itself, not an emoji, so the scenes look the same on every device.',
+    'Everything is drawn by the site itself, never an emoji: the animals, the 12 Wonders of Malaysia scenes, the pictures under each scene and the flags, so they look the same on every device.',
     'It never uses the engine, so it has no limits.'
   ]);
   if (id === 'privacy') return '<p class="howm-lede">What stays in this browser, and what leaves it.</p>' + li([

@@ -138,7 +138,7 @@ function openSources(shell, key, name) {
   const list = D.SOURCES[key] || [], ph = Array.from(seen.values());
   const el = shell.overlay('<section class="wo-card wsrc" data-ctx><button type="button" class="pbtn wo-x" data-wo-x aria-label="Close">' + icon('close') + '</button>' +
     '<small class="wd-k">For teachers</small><h2>' + esc(name) + ': where the facts come from</h2><ul class="wsrc-l">' + list.map((s) => '<li>' + esc(s) + '</li>').join('') + '</ul>' +
-    '<p class="fine">Facts are written for Key Stage 2 and rounded the way a child would say them. “About” means the experts’ figures differ a little. Photos come from Wikipedia and Wikimedia Commons; each one says who took it.</p>' +
+    '<p class="fine">Facts are written for Key Stage 2 and rounded the way a child would say them. “About” means the experts’ figures differ a little. Photos come from Wikipedia and Wikimedia Commons; each one says who took it.</p><p class="fine">The scenes, animals and buildings are drawn by the site itself. Sounds: real field recordings from the Blanket collection (rain, waves, city and storm by alex36917, Luftrum, gezortenplotz and Digifish music, CC BY; wind, stream, birds and water, CC0; crickets, café and fire, public domain) and instrument notes from the FluidR3 GM soundfont by Frank Wen (CC BY 3.0); the rest were made for this site.</p>' +
     (ph.length ? '<h3>Photos in this window</h3><ul class="wsrc-ph"></ul>' : '') + '</section>', 'For teachers');
   const ul = $('.wsrc-ph', el);
   if (ul) ph.forEach((p) => {
