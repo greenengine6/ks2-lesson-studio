@@ -139,6 +139,9 @@ export function makeHurricane() {
       try {
         const cv = document.createElement('canvas'), gl = cv.getContext('webgl', { antialias: false, alpha: false, depth: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' }) || cv.getContext('experimental-webgl');
         if (!gl) return;
+        // drawn by the processor rather than a graphics card (a blocked or missing GPU): far too slow, so the still picture instead
+        const dbg = gl.getExtension('WEBGL_debug_renderer_info'), ren = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '') : '';
+        if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(ren) && !window.__softGL) return;
         const p = gl.createProgram();
         gl.attachShader(p, compile(gl, gl.VERTEX_SHADER, VERT)); gl.attachShader(p, compile(gl, gl.FRAGMENT_SHADER, FRAG));
         gl.bindAttribLocation(p, 0, 'a'); gl.linkProgram(p);
@@ -156,7 +159,7 @@ export function makeHurricane() {
     pace() {
       const now = performance.now(), f = this.frames;
       f.push(now); if (f.length > 40) f.shift();
-      if (f.length === 40) { const fps = 39000 / (f[39] - f[0]); if (fps < 24 && this.scale > 0.36) { this.scale *= 0.8; this.frames = []; } }
+      if (f.length === 40) { const fps = 39000 / (f[39] - f[0]); if (fps < 24 && this.scale > 0.36) { this.scale *= 0.8; this.frames = []; } else if (fps < 12 && !window.__softGL) { this.gl = null; } }   // still too slow at the fewest pixels: the still picture instead
     },
     /* draw the storm over the whole screen: centre cx, cy, radius R (CSS pixels); south: mirrored */
     draw(ctx, w, h, cx, cy, R, t, south) {

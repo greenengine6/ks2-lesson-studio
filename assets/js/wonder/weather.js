@@ -2,9 +2,11 @@
    thunderstorm with the "count to the thunder" game, the monsoon on Malaysia's east coast month by month, and a
    blizzard where the wind makes it feel colder (wind chill). */
 import { MONSOON, MONSOON_SEASONS } from './data.js?v=cdc164df';
-import { TAU, rnd, clamp, noise, layer, view, FONT } from './util.js?v=cdc164df';
+import { TAU, rnd, clamp, noise, view, FONT } from './util.js?v=cdc164df';
 import { Sound } from '../fx/audio.js?v=cdc164df';
 import { makeHurricane } from './hurricane.js?v=cdc164df';
+import { makeSky } from './sky.js?v=cdc164df';
+import { makeCity, makeCoast, makeSnowfield } from './wxart.js?v=cdc164df';
 
 const pill = (ctx, x, y, w, h) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, h / 2); else ctx.rect(x, y, w, h); };
 /* ---------------- thunder, made live (no sound files) ---------------- */
@@ -45,6 +47,15 @@ function drawBolt(ctx, b, wd) {
   ctx.lineWidth = wd; ctx.beginPath(); b.pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
   b.branches.forEach((c) => drawBolt(ctx, c, Math.max(0.8, wd * 0.5)));
 }
+/* the bolt with its glow (no blur filters: wide faint strokes added on top of each other) */
+function glowBolt(ctx, b, a) {
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalCompositeOperation = 'lighter';
+  ctx.strokeStyle = 'rgba(110,130,255,' + (0.09 * a).toFixed(3) + ')'; drawBolt(ctx, b, 22);
+  ctx.strokeStyle = 'rgba(150,170,255,' + (0.22 * a).toFixed(3) + ')'; drawBolt(ctx, b, 8);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.strokeStyle = 'rgba(246,248,255,' + a.toFixed(3) + ')'; drawBolt(ctx, b, 2.4);
+  ctx.restore();
+}
 /* How cold it feels in the wind (the wind chill formula the Met Office uses), in °C. */
 export function feelsLike(T, V) { if (V < 4.8 || T > 10) return T; const p = Math.pow(V, 0.16); return 13.12 + 0.6215 * T - 11.37 * p + 0.3965 * T * p; }
 
@@ -59,6 +70,10 @@ export const weather = {
     this.rain = Array.from({ length: view.small ? 260 : 460 }, () => ({ x: rnd(-w * 0.2, w * 1.2), y: rnd(0, h), v: rnd(0.7, 1.3) }));
     this.snow = Array.from({ length: view.small ? 280 : 520 }, () => ({ x: rnd(0, w), y: rnd(0, h), v: rnd(0.5, 1.5), s: rnd(1, 3.2), p: rnd(0, TAU) }));
     if (this.mode === 'hurricane' && !this.storm) this.storm = makeHurricane();
+    if (this.mode !== 'hurricane' && !this.sky) this.sky = makeSky();
+    if (this.mode === 'storm' && !this.city) this.city = makeCity();
+    if (this.mode === 'monsoon' && !this.coast) this.coast = makeCoast();
+    if (this.mode === 'blizzard' && !this.snowfield) this.snowfield = makeSnowfield();
   },
   /* the storm sits in the middle of the space between the top bar and the controls (windows.js sets bottom) */
   R() { const [cx, cy] = this.centre(), half = Math.min(cy - view.top, this.free() - cy); return Math.max(60, Math.min(cx * (view.small ? 0.92 : 0.86), half * 0.92)); },
@@ -78,8 +93,9 @@ export const weather = {
   },
   /* A flash now; the thunder comes 3 to 15 seconds later (3 seconds for every kilometre). */
   strike() {
-    const w = this.w, h = this.h, x = rnd(w * 0.15, w * 0.85);
-    this.bolt = bolt(x, h * 0.14, x + rnd(-w * 0.12, w * 0.12), h * 0.78, 0.22, 2);
+    const w = this.w, h = this.h, tg = this.city && this.city.key ? this.city.target() : [rnd(w * 0.15, w * 0.85), h * 0.78];
+    const x0 = clamp(tg[0] + rnd(-0.14, 0.14) * w, w * 0.04, w * 0.96), y0 = Math.min(tg[1] - 60, view.top + (view.small ? 118 : 150) + rnd(0, 0.04) * h);   // from the cloud, under the counting
+    this.bolt = bolt(x0, y0, tg[0], tg[1], 0.2, 2);
     this.boltT = 0.45; this.flash = 1;
     const secs = [3, 6, 9, 12, 15][Math.floor(rnd(0, 5))];
     this.count = { at: 0, secs }; this.result = null; this.next = secs + rnd(12, 20);
@@ -149,25 +165,23 @@ export const weather = {
 
   /* ---------- thunderstorm ---------- */
   draw_storm(ctx, w, h, t) {
-    if (!this.bg) {
-      this.bg = layer(w, h); const g = this.bg.getContext('2d');
-      const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#141A26'); gr.addColorStop(0.6, '#2B3446'); gr.addColorStop(1, '#3B4458');
-      g.fillStyle = gr; g.fillRect(0, 0, w, h);
-      for (let i = 0; i < 70; i++) { const x = rnd(-50, w + 50), y = rnd(0, h * 0.3), r = rnd(60, 160); const cg = g.createRadialGradient(x, y, 0, x, y, r); cg.addColorStop(0, 'rgba(70,80,100,.55)'); cg.addColorStop(1, 'rgba(70,80,100,0)'); g.fillStyle = cg; g.fillRect(x - r, y - r, r * 2, r * 2); }
-      const base = h * 0.84;
-      g.fillStyle = '#0E121B';
-      for (let x = 0; x < w;) { const bw = rnd(30, 90), bh = rnd(0.04, 0.16) * h; g.fillRect(x, base - bh, bw - 4, bh + 2); for (let k = 0; k < 6; k++) if (Math.random() < 0.4) { g.fillStyle = 'rgba(255,210,120,.75)'; g.fillRect(x + rnd(4, bw - 14), base - rnd(8, bh - 6), 6, 8); g.fillStyle = '#0E121B'; } x += bw; }
-      g.fillStyle = '#090C12'; g.fillRect(0, base, w, h - base);
-    }
-    ctx.drawImage(this.bg, 0, 0, w, h);
-    if (this.bolt && this.boltT > 0) {
-      ctx.save(); ctx.strokeStyle = 'rgba(190,210,255,.5)'; ctx.shadowColor = 'rgba(170,200,255,1)'; ctx.shadowBlur = 24; drawBolt(ctx, this.bolt, 7); ctx.shadowBlur = 0; ctx.strokeStyle = '#FFFFFF'; drawBolt(ctx, this.bolt, 2.6); ctx.restore();
-    }
-    ctx.strokeStyle = 'rgba(180,200,230,.35)'; ctx.lineWidth = 1; ctx.beginPath();
-    this.rain.forEach((p) => { ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - this.windX * 18 * p.v, p.y + 20 * p.v); }); ctx.stroke();
-    if (this.flash > 0) { ctx.fillStyle = 'rgba(220,230,255,' + (this.flash * 0.45).toFixed(3) + ')'; ctx.fillRect(0, 0, w, h); }
+    const city = this.city, dt = clamp(t - (this.lastT || t), 0, 0.1), f = this.flash, B = this.bolt && this.boltT > 0 ? this.bolt : null;
+    this.lastT = t;
+    city.build(w, h, view.top, this.free());
+    const top = B ? B.pts[0] : [w / 2, view.top];
+    this.sky.draw(ctx, w, h, t, { key: 'storm', hz: city.hz, cover: 0.97, wind: -0.3, scud: 0.75, veil: 0.85, zen: [0.085, 0.1, 0.145], hor: [0.37, 0.34, 0.37], lit: [0.36, 0.38, 0.45], base: [0.1, 0.115, 0.16], flash: [top[0], top[1] + h * 0.05, h * 0.3, f * 0.8] });
+    if (B) glowBolt(ctx, B, clamp(this.boltT / 0.3, 0, 1) * (0.55 + 0.45 * Math.min(1, f * 1.5)));
+    city.draw(ctx, w, h, t, dt, f);
+    // rain: fine and faint further away, longer and brighter close by
+    [[0, 1, 'rgba(170,182,205,.22)', 0.9, 14], [1, 2, 'rgba(200,210,228,.42)', 1.3, 24]].forEach(([lo, hi, col, lw, len]) => {
+      ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath();
+      this.rain.forEach((p, i) => { if ((i & 1) !== lo) return; const L = len * p.v; ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - this.windX * L * 0.9, p.y + L); });
+      ctx.stroke();
+    });
+    if (f > 0) { ctx.fillStyle = 'rgba(215,225,255,' + (f * 0.1).toFixed(3) + ')'; ctx.fillRect(0, 0, w, h); }
     // count to the thunder
     const fs = view.small ? 15 : 19, y0 = view.top + (view.small ? 30 : 46);
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 12;
     ctx.textAlign = 'center';
     if (this.count) {
       const n = Math.floor(this.count.at) + 1;
@@ -181,59 +195,28 @@ export const weather = {
       ctx.fillStyle = '#fff'; ctx.fillText(msg, w / 2, y0 + (view.small ? 25 : 36));
       if (km <= 1) { ctx.font = '800 ' + fs + 'px ' + FONT; ctx.fillStyle = '#FFB4A8'; ctx.fillText(view.small ? 'Close! Go indoors.' : 'That is close! When thunder roars, go indoors.', w / 2, y0 + (view.small ? 72 : 96)); }
     } else {
-      ctx.font = '800 ' + fs + 'px ' + FONT; ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillText(view.small ? 'Watch for the flash, then count!' : 'Watch for the flash, then count to the thunder. Tap the sky to make lightning.', w / 2, y0);
+      ctx.font = '800 ' + fs + 'px ' + FONT; ctx.fillStyle = 'rgba(255,255,255,.82)'; ctx.fillText(view.small ? 'Watch for the flash, then count!' : 'Watch for the flash, then count to the thunder. Tap the sky to make lightning.', w / 2, y0);
     }
-    ctx.textAlign = 'left';
+    ctx.restore();
   },
 
   /* ---------- the monsoon on the east coast ---------- */
   draw_monsoon(ctx, w, h, t) {
-    const m = MONSOON[this.month], S = MONSOON_SEASONS[m.s], rain = m.rain, hy = h * 0.5;
-    if (!this.bg || this.bgMonth !== this.month) {
-      this.bgMonth = this.month;
-      this.bg = layer(w, h); const g = this.bg.getContext('2d'), dark = clamp(rain * 1.1, 0.15, 1);
-      const gr = g.createLinearGradient(0, 0, 0, hy);
-      gr.addColorStop(0, 'rgb(' + Math.round(110 - 70 * dark) + ',' + Math.round(170 - 110 * dark) + ',' + Math.round(225 - 120 * dark) + ')');
-      gr.addColorStop(1, 'rgb(' + Math.round(190 - 90 * dark) + ',' + Math.round(215 - 100 * dark) + ',' + Math.round(235 - 100 * dark) + ')');
-      g.fillStyle = gr; g.fillRect(0, 0, w, hy + 2);
-      for (let i = 0; i < 40 + rain * 60; i++) { const x = rnd(-60, w + 60), y = rnd(0, hy * 0.6), r = rnd(50, 140), c = Math.round(200 - 130 * dark); const cg = g.createRadialGradient(x, y, 0, x, y, r); cg.addColorStop(0, 'rgba(' + c + ',' + c + ',' + (c + 12) + ',' + (0.35 + 0.4 * dark).toFixed(2) + ')'); cg.addColorStop(1, 'rgba(' + c + ',' + c + ',' + c + ',0)'); g.fillStyle = cg; g.fillRect(x - r, y - r, r * 2, r * 2); }
-      // the sea, then the land with a curving beach between them
-      g.fillStyle = 'rgb(' + Math.round(40 - 15 * dark) + ',' + Math.round(110 - 40 * dark) + ',' + Math.round(150 - 40 * dark) + ')'; g.fillRect(0, hy, w, h - hy);
-      g.fillStyle = '#E9D8A6'; g.beginPath(); g.moveTo(w * 0.4, hy); g.lineTo(w * 0.56, hy); g.bezierCurveTo(w * 0.6, hy + h * 0.2, w * 0.66, h * 0.8, w * 0.72, h); g.lineTo(w * 0.22, h); g.closePath(); g.fill();
-      g.fillStyle = '#5E8C3A'; g.beginPath(); g.moveTo(0, hy - 2); g.lineTo(w * 0.42, hy - 2); g.bezierCurveTo(w * 0.42, hy + h * 0.15, w * 0.36, h * 0.8, w * 0.3, h); g.lineTo(0, h); g.closePath(); g.fill();
-      for (let i = 0; i < 3; i++) {   // houses on stilts
-        const x = w * (0.04 + i * 0.11), y = hy + h * (0.12 + i * 0.05), s = Math.min(h * 0.09, w * 0.075);
-        g.fillStyle = '#5A3B22'; for (let k = 0; k < 4; k++) g.fillRect(x + k * s * 0.4, y, 4, s * 0.45);
-        g.fillStyle = '#8B5A33'; g.fillRect(x - 6, y - s * 0.5, s * 1.4, s * 0.52);
-        g.fillStyle = '#6E2C1B'; g.beginPath(); g.moveTo(x - 14, y - s * 0.48); g.lineTo(x + s * 0.64, y - s * 1.0); g.lineTo(x + s * 1.48, y - s * 0.48); g.fill();
-        g.fillStyle = 'rgba(255,214,140,.9)'; g.fillRect(x + s * 0.5, y - s * 0.36, s * 0.2, s * 0.18);
-      }
-    }
-    ctx.drawImage(this.bg, 0, 0, w, h);
-    // waves: bigger in the northeast monsoon
-    const amp = m.s === 'ne' ? 9 + rain * 10 : 3;
-    ctx.strokeStyle = 'rgba(235,245,255,.55)'; ctx.lineWidth = 2;
-    for (let k = 0; k < 6; k++) { const y = hy + 10 + k * h * 0.06, x0 = w * (0.58 + k * 0.03); ctx.beginPath(); for (let x = x0; x <= w; x += 10) { const yy = y + Math.sin(x / 40 + t * (1.5 + k * 0.2) * (m.s === 'ne' ? 2 : 1)) * amp * (0.4 + k * 0.15); if (x === x0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy); } ctx.stroke(); }
-    // palm trees that bend with the wind
-    const bend = this.windX || 0;
-    [[0.47, 0.66], [0.52, 0.74], [0.57, 0.84]].forEach(([px, py], i) => {
-      const x = w * px, base = h * py, s = Math.min(h * 0.24, w * 0.3), sway = bend * 0.35 + Math.sin(t * 1.8 + i) * 0.04 * (1 + rain);
-      ctx.strokeStyle = '#4A3423'; ctx.lineWidth = s * 0.05; ctx.lineCap = 'round';
-      const tx = x + sway * s, ty = base - s;
-      ctx.beginPath(); ctx.moveTo(x, base); ctx.quadraticCurveTo(x + sway * s * 0.3, base - s * 0.55, tx, ty); ctx.stroke();
-      ctx.strokeStyle = '#2F6B2C'; ctx.lineWidth = s * 0.035;
-      for (let k = 0; k < 8; k++) { const a = -Math.PI / 2 + (k / 7 - 0.5) * 2.8 + sway * 1.3; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.quadraticCurveTo(tx + Math.cos(a) * s * 0.3, ty + Math.sin(a) * s * 0.2 - s * 0.06, tx + Math.cos(a) * s * 0.5 + sway * s * 0.3, ty + Math.sin(a) * s * 0.3 + s * 0.12); ctx.stroke(); }
+    const m = MONSOON[this.month], S = MONSOON_SEASONS[m.s], rain = m.rain, ne = m.s === 'ne', coast = this.coast;
+    coast.build(w, h, view.top, this.free(), m);
+    const k = clamp(rain * 1.05, 0, 1), L = (a, b) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
+    this.sky.draw(ctx, w, h, t, {
+      key: 'monsoon' + this.month, hz: coast.hz, cover: 0.36 + 0.62 * k, wind: (this.windX || 0) * 0.8, scud: ne ? k * 0.6 : 0, veil: Math.max(0, k - 0.35) * 1.4,
+      zen: L([0.2, 0.45, 0.82], [0.24, 0.27, 0.32]), hor: L([0.72, 0.83, 0.92], [0.55, 0.58, 0.62]), lit: L([1, 0.99, 0.97], [0.6, 0.63, 0.68]), base: L([0.62, 0.66, 0.74], [0.27, 0.3, 0.35]),
+      sun: k < 0.6 ? [w * 0.74, view.top + (coast.hz - view.top) * 0.28, (0.6 - k) * 1.3] : null,
+      sea: true, wave: ne ? 0.45 + 0.5 * k : 0.12 + 0.25 * k, seaN: L([0.03, 0.32, 0.42], [0.12, 0.24, 0.28]), seaF: L([0.15, 0.45, 0.62], [0.3, 0.37, 0.42])
     });
+    coast.draw(ctx, w, h, t, this.windX || 0, rain);
     // rain: how much depends on the month
     const n = Math.round(this.rain.length * clamp(rain, 0.06, 1));
     ctx.strokeStyle = 'rgba(210,225,245,' + (0.25 + rain * 0.25).toFixed(2) + ')'; ctx.lineWidth = 1.1; ctx.beginPath();
     for (let i = 0; i < n; i++) { const p = this.rain[i]; ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - this.windX * 18 * p.v, p.y + 22 * p.v); }
     ctx.stroke();
-    if (rain > 0.9) {                     // flood water rising over the low land
-      ctx.fillStyle = 'rgba(96,130,150,.72)'; ctx.beginPath(); ctx.moveTo(0, h);
-      for (let x = 0; x <= w * 0.34; x += 10) ctx.lineTo(x, h * 0.86 + Math.sin(x / 30 + t * 2) * 3);
-      ctx.lineTo(w * 0.34, h); ctx.closePath(); ctx.fill();
-    }
     // the wind compass
     const r = view.small ? 30 : 44, cx = r + (view.small ? 22 : 40), cy = view.top + r + (view.small ? 26 : 34);
     ctx.fillStyle = 'rgba(8,16,30,.7)'; ctx.beginPath(); ctx.arc(cx, cy, r + 14, 0, TAU); ctx.fill();
@@ -248,27 +231,27 @@ export const weather = {
 
   /* ---------- blizzard ---------- */
   draw_blizzard(ctx, w, h, t) {
-    const hy = h * 0.6;
-    if (!this.bg) {
-      this.bg = layer(w, h); const g = this.bg.getContext('2d');
-      const gr = g.createLinearGradient(0, 0, 0, hy); gr.addColorStop(0, '#59677D'); gr.addColorStop(1, '#AEB9C9'); g.fillStyle = gr; g.fillRect(0, 0, w, hy + 2);
-      g.fillStyle = '#8D9AAE'; g.beginPath(); g.moveTo(0, hy); for (let x = 0; x <= w; x += 10) g.lineTo(x, hy - h * 0.12 * noise(x / w * 3, 5)); g.lineTo(w, hy); g.fill();
-      const sg = g.createLinearGradient(0, hy, 0, h); sg.addColorStop(0, '#E7EDF5'); sg.addColorStop(1, '#C8D3E2'); g.fillStyle = sg; g.fillRect(0, hy, w, h - hy);
-      for (let i = 0; i < 9; i++) { const x = rnd(0, w), b = hy + rnd(0, h * 0.1), s = h * rnd(0.1, 0.18); g.fillStyle = '#2E4A44'; for (let k = 0; k < 4; k++) { const y = b - s * (0.25 + k * 0.2), wd = s * (0.4 - k * 0.08); g.beginPath(); g.moveTo(x - wd, y); g.lineTo(x, y - s * 0.32); g.lineTo(x + wd, y); g.fill(); g.fillStyle = 'rgba(255,255,255,.85)'; g.beginPath(); g.moveTo(x - wd * 0.7, y - s * 0.06); g.lineTo(x, y - s * 0.3); g.lineTo(x + wd * 0.5, y - s * 0.1); g.fill(); g.fillStyle = '#2E4A44'; } }
-      const hx = w * 0.2, hb = h * 0.8, hs = h * 0.16;
-      g.fillStyle = '#7A4B33'; g.fillRect(hx, hb - hs * 0.6, hs * 1.2, hs * 0.6);
-      g.fillStyle = '#F4F7FB'; g.beginPath(); g.moveTo(hx - hs * 0.15, hb - hs * 0.58); g.lineTo(hx + hs * 0.6, hb - hs * 1.1); g.lineTo(hx + hs * 1.35, hb - hs * 0.58); g.fill();
-      g.fillStyle = 'rgba(255,200,110,.95)'; g.fillRect(hx + hs * 0.2, hb - hs * 0.45, hs * 0.22, hs * 0.18); g.fillRect(hx + hs * 0.75, hb - hs * 0.45, hs * 0.22, hs * 0.18);
-      g.fillStyle = '#5C4033'; for (let k = 0; k < 12; k++) g.fillRect(w * 0.45 + k * w * 0.04, h * 0.78, 6, h * 0.07);
-      g.fillRect(w * 0.45, h * 0.795, w * 0.44, 4); g.fillRect(w * 0.45, h * 0.825, w * 0.44, 4);
+    const sf = this.snowfield, dt = clamp(t - (this.lastB || t), 0, 0.1), k = clamp(this.wind / 90, 0, 1);
+    this.lastB = t;
+    sf.build(w, h, view.top, this.free());
+    this.sky.draw(ctx, w, h, t, { key: 'blizzard', hz: sf.hz, cover: 0.9, wind: 0.15 + k * 1.1, snow: k * 0.6, zen: [0.5, 0.56, 0.64], hor: [0.8, 0.84, 0.89], lit: [0.86, 0.88, 0.92], base: [0.55, 0.6, 0.68] });
+    sf.draw(ctx, w, h, t, dt, this.wind, this.drift);
+    // falling snow: small and faint far away, big close by; streaking sideways in a strong wind
+    const streak = this.wind > 35;
+    [[0, 1.6, 0.5], [1.6, 2.5, 0.72], [2.5, 9, 0.92]].forEach(([lo, hi, a]) => {
+      ctx.fillStyle = ctx.strokeStyle = 'rgba(255,255,255,' + a + ')'; ctx.beginPath();
+      for (const p of this.snow) {
+        if (p.s < lo || p.s >= hi) continue;
+        if (streak) { const L = 0.03 * (0.6 + k); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - this.wind * 9 * p.v * L, p.y - (35 + this.wind * 0.6) * p.v * L); }
+        else { const r = p.s * (0.7 + this.wind / 160); ctx.moveTo(p.x + r, p.y); ctx.arc(p.x, p.y, r, 0, TAU); }
+      }
+      if (streak) { ctx.lineWidth = (lo + Math.min(hi, 3.4)) * 0.45; ctx.lineCap = 'round'; ctx.stroke(); } else ctx.fill();
+    });
+    // the whiteout: thickest in the distance, thinner close by
+    const haze = clamp((this.wind - 15) / 75, 0, 0.6);
+    if (haze > 0) {
+      const hg = ctx.createLinearGradient(0, 0, 0, h); hg.addColorStop(0, 'rgba(232,238,246,' + (haze * 0.85).toFixed(3) + ')'); hg.addColorStop(sf.hz / h, 'rgba(232,238,246,' + haze.toFixed(3) + ')'); hg.addColorStop(1, 'rgba(232,238,246,' + (haze * 0.35).toFixed(3) + ')');
+      ctx.fillStyle = hg; ctx.fillRect(0, 0, w, h);
     }
-    ctx.drawImage(this.bg, 0, 0, w, h);
-    // the snowdrift piling up against the fence
-    const d = this.drift;
-    if (d > 0.01) { ctx.fillStyle = '#F7FAFD'; ctx.beginPath(); ctx.moveTo(w * 0.42, h * 0.86); for (let x = w * 0.42; x <= w * 0.92; x += 10) ctx.lineTo(x, h * 0.86 - d * h * 0.09 * (0.6 + 0.4 * Math.sin(x / 50))); ctx.lineTo(w * 0.92, h * 0.86); ctx.fill(); }
-    ctx.fillStyle = 'rgba(255,255,255,.9)';
-    this.snow.forEach((p) => { ctx.beginPath(); ctx.arc(p.x, p.y, p.s * (0.7 + this.wind / 120), 0, TAU); ctx.fill(); });
-    const haze = clamp((this.wind - 15) / 70, 0, 0.62);
-    if (haze > 0) { ctx.fillStyle = 'rgba(232,238,246,' + haze.toFixed(3) + ')'; ctx.fillRect(0, 0, w, h); }
   }
 };
