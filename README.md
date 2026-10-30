@@ -34,7 +34,7 @@ One calm page at a time (Rabinder's points 1, 2, 4 and 11). On a laptop the menu
 
 **A new version of the site:** a tab that stays open keeps the version it loaded, so the site checks every 15 minutes (and when you come back to the tab) and, when there is a newer one, shows a small bar with **Reload**. It never reloads by itself, and a live class carries on after a reload.
 
-Text is bigger than before: 18px for most words on laptops and 16px on phones, and every size grows with Reading support. Typing boxes stay at 16px or more so iPhones do not zoom in. Each subject has its own colour and its own drawn picture.
+Text is bigger than before: 18px for most words on laptops and 16px on phones, and every size grows with Reading support. Typing boxes stay at 16px or more so iPhones do not zoom in; on iPhones and iPads the page also asks Safari not to zoom by itself (pinch zoom still works), and signing in closes the keyboard first, so the page is never left zoomed in. Short messages drop in at the top of the screen on frosted glass, never over the box you are typing in; Symphony's own (like her hello after you sign in) carry her face. Each subject has its own colour and its own drawn picture.
 
 ## Reading support
 
@@ -157,7 +157,7 @@ Open it from **Explore** or say “Hey Symphony, open Wonder Window”. It start
 | **Planets, Northern lights, Starlings, Fireflies** | The planets at their real relative speeds (tap one to hear about it), the northern lights over snowy mountains (tap for a solar storm), starlings dodging a falcon at dusk, and fireflies that slowly learn to flash together. |
 
 Every window has:
-- **a caption** that changes every 18 seconds: a fact, then a wonder question for the class. The speaker button has Symphony read it; the arrow shows the next one.
+- **Symphony's caption**, on a light glass strip, that changes every 18 seconds (a fine line fills as it goes): a fact, then a wonder question for the class. The speaker button has Symphony read it: her face pulses, small sound bars move and each word lights up like a highlighter pen as she says it. The arrow shows the next one; the next fact waits while she is speaking or a panel is open.
 - **Quiz**: tap an answer (right or wrong shows at once, with the score at the end). **Class vote** puts the question on pupils' own devices in a live lesson, or lets you count hands.
 - **For teachers**: where the facts come from, and who took each photo and its licence. Facts are rounded the way a child would say them; “about” means the experts' figures differ a little.
 - **Sound** (a soundscape, soft music or a festival's own band; thunder in the storm; planes, fireworks and splashes) and **Full screen**. All of it is made live on the device: there are no sound files.

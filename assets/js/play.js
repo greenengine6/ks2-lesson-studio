@@ -4,11 +4,11 @@
    teachers" panel with its sources. This file is the frame: picker, top bar, caption, sound, full screen and voice
    commands. The windows themselves load the first time Wonder Window opens (assets/js/wonder/), so the home page
    stays light. */
-import { $, $$, esc, icon, bus, reduceMotion, toast } from './core.js?v=cdc164df';
+import { $, $$, esc, icon, bus, reduceMotion, toast, SYM_DOT } from './core.js?v=cdc164df';
 import { sfx } from './fx/audio.js?v=cdc164df';
 import { Ambient, Speech } from './fx/sound.js?v=cdc164df';
 import { track } from './track.js?v=cdc164df';
-import { MINI } from './fx/symphony.js?v=cdc164df';
+import { Voice } from './fx/voice.js?v=cdc164df';
 import { settings } from './settings.js?v=cdc164df';
 import { registerScenes } from './commands.js?v=cdc164df';
 import { view } from './wonder/util.js?v=cdc164df';
@@ -80,7 +80,8 @@ function build() {
     '<button type="button" class="pbtn" data-play-src hidden title="For teachers: where the facts come from">' + icon('info') + '<span>For teachers</span></button>' +
     '<button type="button" class="pbtn" data-play-sound aria-pressed="true" title="Sound">' + icon('volume') + '<span>Sound</span></button>' +
     '<button type="button" class="pbtn" data-play-full title="Full screen">' + icon('expand') + '</button></div></div>' +
-    '<div class="play-cap" aria-live="polite" hidden><span class="play-sym">' + MINI() + '</span><div class="play-txt"><small></small><p></p></div><div class="play-nav"><button type="button" class="pbtn" data-cap-say title="Symphony reads it">' + icon('volume') + '</button><button type="button" class="pbtn" data-cap-next title="Next">' + icon('right') + '</button></div></div>' +
+    '<div class="play-cap" aria-live="polite" hidden>' + SYM_DOT + '<div class="play-txt"><small><span class="cap-k"></span><span class="cap-eq" aria-hidden="true"><i></i><i></i><i></i></span></small><p></p></div>' +
+    '<div class="play-nav"><button type="button" class="pbtn" data-cap-say title="Symphony reads it" aria-label="Symphony reads it">' + icon('volume') + '</button><button type="button" class="pbtn" data-cap-next title="Next" aria-label="Next">' + icon('right') + '</button></div><i class="cap-prog" aria-hidden="true"></i></div>' +
     '<div class="play-over" hidden></div><div class="play-load" hidden role="status"><span class="play-spin" aria-hidden="true"></span><b>Opening…</b></div>';
   canvas = $('.play-cv', root); ctx = canvas.getContext('2d');
   loadMod().then((m) => { if (root) m.swapCreatures(root); }).catch(() => {});       // the picker's animals, drawn
@@ -266,26 +267,54 @@ function showPicker() {
 
 /* ---------------- the caption Symphony reads ---------------- */
 function setCaption() { if (!win) return; items = win.caption(lang === 'ms' && !!win.bm) || []; idx = -1; nextItem(false); }
+/* Each word in its own span (the text reads the same), so the word Symphony is saying can light up. */
+function wordsInto(p, text) {
+  p.textContent = '';
+  String(text || '').split(/(\s+)/).forEach((w) => { if (!w) return; if (/^\s+$/.test(w)) p.appendChild(document.createTextNode(w)); else { const s = document.createElement('span'); s.textContent = w; p.appendChild(s); } });
+}
 function show(it) {
   if (!it) return;
-  $('.play-txt small', root).textContent = it.kind || '';
-  $('.play-txt p', root).textContent = it.text || '';
+  stopTalk();
+  $('.cap-k', cap).textContent = it.kind || '';
+  wordsInto($('.play-txt p', cap), it.text || '');
   capLang = it.lang || 'en-GB';
+  cap.style.setProperty('--cap-dur', (18 / (reduceMotion() ? 0.35 : 1)).toFixed(1) + 's');
   cap.classList.remove('in'); void cap.offsetWidth; cap.classList.add('in');
   rotT = 0;
   measureCap();
 }
 /* How much room the caption takes at the bottom (it grows with longer facts): panels and strips sit above it. */
+let capRO = null;
 function measureCap() {
-  if (!root || cap.hidden) return;
+  if (!root || !cap) return;
+  // watch the caption itself: it changes size when it first appears, when a fact wraps onto more lines, and on turning
+  if (!capRO && window.ResizeObserver) { capRO = new ResizeObserver(() => measureCap()); capRO.observe(cap); }
+  if (cap.hidden) return;
   const h = Math.round(root.clientHeight - cap.offsetTop);                  // (offsetTop ignores the caption's slide-in)
   if (h > 0) root.style.setProperty('--cap-h', h + 'px');
 }
 function nextItem(user) { if (!items.length) return; idx = (idx + 1) % items.length; show(items[idx]); if (user) sayCap(false); }
+/* Symphony reads the caption: her mark pulses, the little sound bars move, and each word lights up as she says it. */
+let talking = 0, said = 0;
+function stopTalk() { talking = 0; said = 0; if (cap) { cap.classList.remove('talk'); $$('.play-txt p span.on', cap).forEach((s) => s.classList.remove('on')); } }
 function sayCap(force) {
-  const txt = $('.play-txt p', root).textContent;
+  const p = $('.play-txt p', cap), txt = p ? p.textContent : '';
   if (!txt || (!force && !settings.voice)) return;
-  Speech.stop(); Speech.speak(txt, { lang: capLang, rate: 0.92 });
+  Speech.stop();
+  const me = ++talking, words = $$('span', p), bare = (w) => String(w || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+  said = 0;
+  Voice.say(txt, {
+    lang: capLang, rate: 0.92,
+    onStart: () => { if (talking === me) cap.classList.add('talk'); },
+    onWord: (w) => {
+      if (talking !== me) return;
+      cap.classList.add('talk');
+      const b = bare(w);
+      for (let k = said; k < Math.min(words.length, said + 4); k++) {
+        if (b && bare(words[k].textContent) === b) { words.forEach((s, j) => s.classList.toggle('on', j === k)); said = k + 1; return; }
+      }
+    }
+  }).then(() => { if (talking === me) { talking = 0; cap.classList.remove('talk'); setTimeout(() => { if (!talking) $$('span.on', p).forEach((s) => s.classList.remove('on')); }, 700); } });
 }
 function applySound() {
   if (!win) { Ambient.stop(); padStop(); return; }
@@ -313,8 +342,10 @@ function frame(now) {
   if (idleT > 4 && document.fullscreenElement) root.classList.add('idle');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   if (win) {
-    rotT += dt;
-    if (rotT > 18 && over.hidden) nextItem(false);
+    const hold = !!talking || !over.hidden;                  // the next fact waits while Symphony speaks or a panel is open
+    if (!hold) rotT += dt;
+    if (cap.classList.contains('hold') !== hold) cap.classList.toggle('hold', hold);
+    if (rotT > 18 && !hold) nextItem(false);
     try { win.scene.step(dt, t); win.scene.draw(ctx, W, H, t); if (win.tick) win.tick(dt); } catch (e) { if (!win.err) { win.err = 1; console.error(e); } }
   } else drawStars(dt);
   raf = requestAnimationFrame(frame);

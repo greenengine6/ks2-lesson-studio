@@ -2,6 +2,7 @@
    bar with one search for everything), the sign-in page's Earth, and the Connect dialog.
    Pages load the first time they are opened (LAZY below); each exports mount(view, sub) and maybe leave(). */
 import './security.js?v=cdc164df';
+import './viewport.js?v=cdc164df';
 import { $, $$, esc, icon, str, bus, prefs, hasKey, viaLink, setKey, forgetKey, testConnection, errorCopy, toast, copyOut, conn, reduceMotion, store } from './core.js?v=cdc164df';
 import { Symphony } from './fx/symphony.js?v=cdc164df';
 import './live/alerts.js?v=cdc164df';

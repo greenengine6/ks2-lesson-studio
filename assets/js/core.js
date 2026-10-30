@@ -343,15 +343,25 @@ export function errorCopy(code, what) {
   }
 }
 
-/* ---------------- toast ---------------- */
+/* ---------------- toast ----------------
+   A short message that drops in at the top of the screen and goes by itself, on frosted glass. o.sym: Symphony is
+   the one speaking (her mark shows); o.kind 'ok' or 'info': a small icon; o.ms: how long it stays. */
 let toastTimer;
-export function toast(msg) {
+/* Symphony's mark, crisp at any size: her aurora colours turning slowly inside a sphere, and her face on top. */
+export const SYM_DOT = '<span class="sym-dot" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="dt-l" d="M6.4 8.7q1.9-1.6 3.8-.7M13.8 8q1.9-.9 3.8.7"/>' +
+  '<circle cx="9.1" cy="11.3" r="1.25"/><circle cx="14.9" cy="11.3" r="1.25"/><path class="dt-l dt-s" d="M9.5 14.6q2.5 2.1 5 0"/></svg></span>';
+export function toast(msg, o) {
   const t = $('#toast');
   if (!t) return;
-  t.textContent = msg; t.classList.add('is-on');
+  o = o || {};
+  const lead = o.sym ? SYM_DOT : o.kind === 'ok' || o.kind === 'info' ? '<span class="ts-i ' + o.kind + '" aria-hidden="true">' + icon(o.kind === 'ok' ? 'check' : 'info') + '</span>' : '';
+  t.innerHTML = lead + '<span class="ts-t"></span>';
+  t.lastChild.textContent = msg;
+  t.classList.toggle('has-lead', !!lead);
+  t.classList.remove('is-on'); void t.offsetWidth; t.classList.add('is-on');
   sfx('toast');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('is-on'), 3200);
+  toastTimer = setTimeout(() => t.classList.remove('is-on'), o.ms || 3400);
 }
 
 /* ---------------- copying (rich text for email/Word/Teams, plain text fallback) ---------------- */

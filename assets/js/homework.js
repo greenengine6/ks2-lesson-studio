@@ -5,6 +5,7 @@
    evening before. If the teacher shared them, the class's online lesson times come too, each with a reminder
    10 minutes before. Every field in the link is treated as untrusted: text only, strict limits, real dates,
    https links only. */
+import './viewport.js?v=cdc164df';
 import { unpackLink } from './cal/link.js?v=cdc164df';
 import { icsHomework, icsLessons, homeworkEvent, googleCalLink, downloadText, isDate, isTime, isHttps, subjectLabel, addDays } from './ics.js?v=cdc164df';
 import { fractify } from './fractions.js?v=cdc164df';
