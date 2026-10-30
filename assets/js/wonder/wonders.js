@@ -4,9 +4,9 @@
    The ancient wonders are drawn as they might have looked when they were new; a tap joins in: the Great Pyramid
    gets its polished white casing back, Zeus throws a lightning bolt, a beacon is lit on the Great Wall, the equinox
    serpent slithers down Chichén Itzá, the Taj Mahal changes colour with the time of day. */
-import { TAU, rnd, clamp, layer, view, noise } from './util.js?v=3c9d4698';
-import { Fx } from './music.js?v=3c9d4698';
-import { dotGlow, seeded, hash, tint, hills, ground, houses, palm, tree, cypress, pine, mountain, sky, flame, burstParticles, drawParticles, stepParticles } from './scenery.js?v=3c9d4698';
+import { TAU, rnd, clamp, layer, view, noise } from './util.js?v=49509700';
+import { Fx } from './music.js?v=49509700';
+import { dotGlow, seeded, hash, tint, hills, ground, houses, palm, tree, cypress, pine, mountain, sky, flame, burstParticles, drawParticles, stepParticles } from './scenery.js?v=49509700';
 
 /* ---------------- drawing in metres (x across, y up from the ground) ---------------- */
 const rect = (g, x, y, w, h) => g.fillRect(x, y, w, h);

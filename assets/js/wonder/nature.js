@@ -1,9 +1,9 @@
 /* Wonder Window's first four windows, all drawn live (no pictures to download): starlings that dodge a falcon at
    dusk, fireflies that slowly learn to flash together, the planets at their real relative speeds, and the northern
    lights over snowy mountains. Plus Pad, a soft "music of the spheres" for the calmer windows. */
-import { Sound } from '../fx/audio.js?v=3c9d4698';
-import { Samples } from '../fx/samples.js?v=3c9d4698';
-import { TAU, rnd, clamp, noise, view } from './util.js?v=3c9d4698';
+import { Sound } from '../fx/audio.js?v=49509700';
+import { Samples } from '../fx/samples.js?v=49509700';
+import { TAU, rnd, clamp, noise, view } from './util.js?v=49509700';
 
 /* ---------- 1. Starling murmuration at dusk ---------- */
 const birds = {

@@ -7,8 +7,8 @@
    iPhones mute Web Audio when the ring/silent switch is on, so there the sound is rendered once and played as an
    ordinary audio file, which the switch does not silence (the audio element is unlocked by the tap that starts the
    timer or tests a sound). */
-import { Sound } from '../fx/audio.js?v=3c9d4698';
-import { bus } from '../core.js?v=3c9d4698';
+import { Sound } from '../fx/audio.js?v=49509700';
+import { bus } from '../core.js?v=49509700';
 
 export const SOUNDS = [
   { id: 'bell', name: 'School bell', tint: '#3730A3' },

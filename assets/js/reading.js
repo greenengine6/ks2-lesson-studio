@@ -4,9 +4,9 @@
    Lexend is the default for everyone. No single font suits every dyslexic reader, so the others are a choice; the
    British Dyslexia Association's style guide asks for larger text, more spacing and a cream or pastel background,
    so those can all be changed here. */
-import { store, bus } from './core.js?v=3c9d4698';
-import { who } from './people.js?v=3c9d4698';
-import { Voice } from './fx/voice.js?v=3c9d4698';
+import { store, bus } from './core.js?v=49509700';
+import { who } from './people.js?v=49509700';
+import { Voice } from './fx/voice.js?v=49509700';
 
 const KEY = 'ks2-engine.reading.v1', LAST = 'ks2-engine.reading.last.v1';
 export const FONTS = [

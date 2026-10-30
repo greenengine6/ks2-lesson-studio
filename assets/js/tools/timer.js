@@ -4,10 +4,10 @@
    every page while no timer is on screen. At zero: her chosen end sound at her volume (Whole-hall loud plays it three
    times at full volume), a soft colour pulse (none with reduced motion), Symphony says "Time's up" if she wants, and
    it can ring again until she stops it. A running timer survives a reload of the page (this tab only). */
-import { $, $$, esc, icon, bus } from '../core.js?v=3c9d4698';
-import { Voice } from '../fx/voice.js?v=3c9d4698';
-import { Alarm, SOUNDS, SOUND_ICON } from './alarm.js?v=3c9d4698';
-import { prefs, setPrefs, layer, presentHost, flash, fmt, ti, liveCall, boardOverlay } from './shared.js?v=3c9d4698';
+import { $, $$, esc, icon, bus } from '../core.js?v=49509700';
+import { Voice } from '../fx/voice.js?v=49509700';
+import { Alarm, SOUNDS, SOUND_ICON } from './alarm.js?v=49509700';
+import { prefs, setPrefs, layer, presentHost, flash, fmt, ti, liveCall, boardOverlay } from './shared.js?v=49509700';
 
 const SS = 'ks2-engine.tools.timer.v1', MAXS = 99 * 60 + 59, CIRC = 2 * Math.PI * 86;
 export const T = { total: 0, ends: 0, left: 0, running: false, paused: false, done: false, whole: -1 };
@@ -151,7 +151,7 @@ function paintPill() {
       if (!b) return;
       if (b.dataset.tlPill === 'x') { reset(); return; }
       const ph = presentHost();
-      if (presenting || ph || document.fullscreenElement) import('./dock.js?v=3c9d4698').then((m) => m.openPanel('timer', ph || layer())).catch(() => {});
+      if (presenting || ph || document.fullscreenElement) import('./dock.js?v=49509700').then((m) => m.openPanel('timer', ph || layer())).catch(() => {});
       else location.hash = '#/tools/timer';
     });
   }

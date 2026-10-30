@@ -11,13 +11,13 @@
    with a buzz, a soft chime and a little bounce, and the screen is kept awake (where the browser allows it) so the
    line to the teacher's screen does not drop. If it does drop, a bar says so and the page reconnects by itself,
    at once when the screen comes back on; "Reconnect" tries straight away. */
-import { settleViewport } from '../viewport.js?v=3c9d4698';
-import * as R from './relay.js?v=3c9d4698';
-import { Ink, COLOURS, packStrokes } from '../draw.js?v=3c9d4698';
-import { initFractions } from '../fractions.js?v=3c9d4698';
-import { SHAPES, shapeSVG, STICKERS, REACTIONS, reactSVG, FACE_NAMES, faceSVG } from './shapes.js?v=3c9d4698';
-import { haptic } from '../fx/haptics.js?v=3c9d4698';
-import { warmUI, playUI } from '../fx/minisprite.js?v=3c9d4698';
+import { settleViewport } from '../viewport.js?v=49509700';
+import * as R from './relay.js?v=49509700';
+import { Ink, COLOURS, packStrokes } from '../draw.js?v=49509700';
+import { initFractions } from '../fractions.js?v=49509700';
+import { SHAPES, shapeSVG, STICKERS, REACTIONS, reactSVG, FACE_NAMES, faceSVG } from './shapes.js?v=49509700';
+import { haptic } from '../fx/haptics.js?v=49509700';
+import { warmUI, playUI } from '../fx/minisprite.js?v=49509700';
 
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -718,7 +718,7 @@ function gameScreen(tk) {
   frame('<section class="jn-card jn-game-c"><div class="jn-mo-top"><h1>' + esc(tk.title || 'Game') + '</h1><span class="jn-score" aria-live="polite"></span></div><div class="jn-game" id="jn-game"></div></section>', { leave: false });
   P.game = { id: tk.id, best: 0, sentBest: -1, at: 0, t: 0, ctl: null };
   const G = P.game;
-  import('../games/player.js?v=3c9d4698').then((m) => {
+  import('../games/player.js?v=49509700').then((m) => {
     if (P.game !== G || !$('#jn-game')) return;
     const host = $('#jn-game');
     G.ctl = m.playGame(host, b.data, {
@@ -1008,7 +1008,7 @@ async function addToCalendar() {
   if (!hw) return;
   const name = 'Homework - ' + (hw.subject || 'class').replace(/[^\w ]+/g, '') + ' - ' + new Date(hw.due + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + '.ics';
   let text = '', dl = null;
-  try { const m = await import('../ics.js?v=3c9d4698'); if (m.icsHomework) text = m.icsHomework(hw, { name: P.name }); if (m.downloadText) dl = m.downloadText; } catch (e) { /* the small one below */ }
+  try { const m = await import('../ics.js?v=49509700'); if (m.icsHomework) text = m.icsHomework(hw, { name: P.name }); if (m.downloadText) dl = m.downloadText; } catch (e) { /* the small one below */ }
   if (!text) text = icsFallback(hw, P.name);
   if (dl) { try { dl(text, name, 'text/calendar'); return; } catch (e) { /* the plain way */ } }
   const url = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' }));

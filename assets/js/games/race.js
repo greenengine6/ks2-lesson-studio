@@ -3,7 +3,7 @@
    1 to 4), then Move: those rockets fly forward. First to the finish wins; when the questions run out, the team in
    front wins. On a device (one player): you race the clock rocket. Pick an answer (tap or keys 1 to 4); right moves
    you on, and the clock rocket moves by itself as time passes. */
-import { el, txt, TEAM_COLOURS, makeHud, makeClock, floatText, say, icon, confetti } from './common.js?v=3c9d4698';
+import { el, txt, TEAM_COLOURS, makeHud, makeClock, floatText, say, icon, confetti } from './common.js?v=49509700';
 
 const ROCKET = (c) => '<svg class="kg-rocket-svg" viewBox="0 0 120 60" aria-hidden="true">' +
   '<path class="kg-flame" d="M18 30c-10-7-16-6-18 0 2 6 8 7 18 0z" fill="#FFB443"/><path class="kg-flame" d="M18 30c-6-4-10-3-11 0 1 3 5 4 11 0z" fill="#FFF3B0"/>' +

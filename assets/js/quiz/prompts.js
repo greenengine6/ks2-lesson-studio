@@ -1,8 +1,8 @@
 /* What the quiz maker asks the engine for: a whole quiz from a topic or from a lesson, more questions like the
    ones she has, and one question changed in her own words. Every reply is JSON, checked again by model.js. */
-import { HOUSE_WORDS, str, arr } from '../core.js?v=3c9d4698';
-import { match, SUBJECT_BY_ID } from '../lkie/curriculum.js?v=3c9d4698';
-import { subjectName } from '../library.js?v=3c9d4698';
+import { HOUSE_WORDS, str, arr } from '../core.js?v=49509700';
+import { match, SUBJECT_BY_ID } from '../lkie/curriculum.js?v=49509700';
+import { subjectName } from '../library.js?v=49509700';
 
 export const QUIZ_SYSTEM = [
   'You write quizzes for Key Stage 2 pupils (Years 3 to 6, ages 7 to 11) at an international school in Ipoh, Malaysia, that follows the National Curriculum in England.',

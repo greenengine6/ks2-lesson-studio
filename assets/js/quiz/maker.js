@@ -7,16 +7,16 @@
      (practise.js), or turn it into a worksheet.
    Everything saves by itself to My subjects (library.js), filed under its subject and year, in the folder she picks.
    Every engine press goes through the guard (guard.js). */
-import { $, $$, esc, str, icon, store, bus, toast, hasKey, askJSON, errorCopy, AiError, CONFIG, YEARS } from '../core.js?v=3c9d4698';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, watch, waitText, repaint } from '../guard.js?v=3c9d4698';
-import { track } from '../track.js?v=3c9d4698';
-import { sfx } from '../fx/audio.js?v=3c9d4698';
-import { searchPictures, creditFor, keepPic, picURL, creditText } from '../pics.js?v=3c9d4698';
-import { SUBJECT_LIST, subjectOf, subjectName, subjectColor, yearOf, mineKey, listAll, putItem, getItem, removeItem, folders, folderById, addFolder, moveItem, placeOf, pickItem, startMaking, takeMaking, openItem, onLibrary, dayLabel } from '../library.js?v=3c9d4698';
-import { TYPES, TYPE_NAME, SECS, PTS, LETTERS, MAXQ, blankQuestion, normQuestion, normQuiz, problems, notes, playable, sameText, compactOpts } from './model.js?v=3c9d4698';
-import { QUIZ_SYSTEM, draftRequest, lessonText, lessonRequest, moreRequest, editRequest } from './prompts.js?v=3c9d4698';
-import { openBoardGame } from './board.js?v=3c9d4698';
-import { openPractise } from './practise.js?v=3c9d4698';
+import { $, $$, esc, str, icon, store, bus, toast, hasKey, askJSON, errorCopy, AiError, CONFIG, YEARS } from '../core.js?v=49509700';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, watch, waitText, repaint } from '../guard.js?v=49509700';
+import { track } from '../track.js?v=49509700';
+import { sfx } from '../fx/audio.js?v=49509700';
+import { searchPictures, creditFor, keepPic, picURL, creditText } from '../pics.js?v=49509700';
+import { SUBJECT_LIST, subjectOf, subjectName, subjectColor, yearOf, mineKey, listAll, putItem, getItem, removeItem, folders, folderById, addFolder, moveItem, placeOf, pickItem, startMaking, takeMaking, openItem, onLibrary, dayLabel } from '../library.js?v=49509700';
+import { TYPES, TYPE_NAME, SECS, PTS, LETTERS, MAXQ, blankQuestion, normQuestion, normQuiz, problems, notes, playable, sameText, compactOpts } from './model.js?v=49509700';
+import { QUIZ_SYSTEM, draftRequest, lessonText, lessonRequest, moreRequest, editRequest } from './prompts.js?v=49509700';
+import { openBoardGame } from './board.js?v=49509700';
+import { openPractise } from './practise.js?v=49509700';
 
 const SPARK = '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15v4M17 17h4"/>';
 const ICO = {
@@ -76,7 +76,7 @@ async function openSaved(id) {
 async function checkLive() {
   if (M.live !== undefined) return;
   M.live = null;
-  try { const m = await import('../live/tasks.js?v=3c9d4698'); M.live = m && typeof m.startQuizLive === 'function' ? m : null; } catch (e) { M.live = null; }
+  try { const m = await import('../live/tasks.js?v=49509700'); M.live = m && typeof m.startQuizLive === 'function' ? m : null; } catch (e) { M.live = null; }
   paintPlay();
 }
 
@@ -750,7 +750,7 @@ async function toSheet() {
   const k = await ensureSaved();
   const q = M.quiz;
   let fn = null;
-  try { const m = await import('../worksheet/maker.js?v=3c9d4698'); fn = m && typeof m.quizToSheet === 'function' ? m.quizToSheet : null; } catch (e) { fn = null; }
+  try { const m = await import('../worksheet/maker.js?v=49509700'); fn = m && typeof m.quizToSheet === 'function' ? m.quizToSheet : null; } catch (e) { fn = null; }
   if (fn) {
     try {
       const { quiz: p } = playable(q);
