@@ -2,6 +2,7 @@
    dusk, fireflies that slowly learn to flash together, the planets at their real relative speeds, and the northern
    lights over snowy mountains. Plus Pad, a soft "music of the spheres" for the calmer windows. */
 import { Sound } from '../fx/audio.js?v=cdc164df';
+import { Samples } from '../fx/samples.js?v=cdc164df';
 import { TAU, rnd, clamp, noise, view } from './util.js?v=cdc164df';
 
 /* ---------- 1. Starling murmuration at dusk ---------- */
@@ -367,11 +368,14 @@ export const Pad = {
       if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
       this.on = true;
       this.out.gain.cancelScheduledValues(this.ctx.currentTime); this.out.gain.linearRampToValueAtTime(0.11, this.ctx.currentTime + 2.5);
+      Samples.load('kit', 'pad');
       if (!this.timer) { this.chord(); this.timer = setInterval(() => this.chord(), 7000); }
     } catch (e) { /* no audio */ }
   },
   chord() {
-    if (!this.on || !this.ctx) return;
+    if (!this.on || !this.ctx || !Sound.on) return;
+    // a recorded pad chord when it is here (soft, slow and wide); the live-made one until then
+    if (Samples.sprite('pad', 'cdega'[Math.floor(Math.random() * 5)], { out: this.out, gain: 1.6 })) return;
     const c = this.ctx, base = [261.63, 293.66, 329.63, 392, 440][Math.floor(Math.random() * 5)], ratios = [1, 1.25, 1.5, 2, 2.5];
     ratios.forEach((r, i) => {
       const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + i * 0.35;

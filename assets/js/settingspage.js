@@ -6,6 +6,7 @@ import { paintSwitches } from './settings.js?v=cdc164df';
 import { FONTS, SIZES, BACKS, getReading, setReading, loadFonts, fontStack } from './reading.js?v=cdc164df';
 import { pupils, setPupils, namesIn } from './pupils.js?v=cdc164df';
 import { makeBackup, restoreBackup, download } from './backup.js?v=cdc164df';
+import { Haptics } from './fx/haptics.js?v=cdc164df';
 
 const LIGHT = '<div class="lc-light"><div class="lc-slit"></div><div class="lc-lumen"><i class="lc-min"></i><i class="lc-mid"></i><i class="lc-hi"></i></div><div class="lc-dark"><i class="lc-sl"></i><i class="lc-ll"></i><i class="lc-slt"></i><i class="lc-srt"></i></div></div>';
 const CARDS = [
@@ -14,6 +15,7 @@ const CARDS = [
   ['violet', 'pointer', 'Magic pointer', 'Glowing ribbons follow your mouse when you present.', 'M4.6 2.8l14.2 6.9-6.3 2-2.7 6.5zM18.4 14.6l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z'],
   ['teal', 'online', 'Teaching online', 'Prompts say “type in the chat”. Off: classroom wording.', 'M2.5 4.5h19v12.2h-19zM9 19h6v1.8H9zM12 7.4a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 0 1 0-4.6zM8.4 15.4c.5-1.9 1.9-2.9 3.6-2.9s3.1 1 3.6 2.9z']
 ];
+const FEEL_ROW = ['feel', 'Feel taps (vibration)', 'A light vibration as you tap, answer or play, on a phone or tablet that can vibrate. iPhones give a softer tick.'];
 const ROWS = [['sound', 'Sound effects', 'Little sounds as you work. Class-tool alarms have their own volume.'], ['wake', 'Hey Symphony', 'She listens for her name, and ignores everything else.'], ['patient', 'Patient listening', 'She waits for a longer pause before answering.']];
 let view = null;
 
@@ -40,7 +42,7 @@ function switchesHTML() {
     '<div class="st-room tone-dark"><div class="lgrid">' + CARDS.map(([tone, k, h, p, d]) => '<div class="lcell"><div class="lcard" data-tone="' + tone + '">' + LIGHT +
       '<div class="lc-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#lc-grad)" filter="url(#lc-inner)" d="' + d + '"/></svg></div>' +
       '<div class="lc-bottom"><h4>' + esc(h) + '</h4><p>' + esc(p) + '</p><button type="button" class="lsw ' + tone + '" role="switch" aria-checked="false" data-switch="' + k + '" aria-label="' + esc(h) + '"><span class="lsw-handle"></span></button></div></div></div>').join('') + '</div></div>' +
-    ROWS.map(([k, h, p]) => '<div class="lsw-row st-row"><span>' + esc(h) + '<small>' + esc(p) + '</small></span><button type="button" class="lsw teal" role="switch" aria-checked="false" data-switch="' + k + '" aria-label="' + esc(h) + '"><span class="lsw-handle"></span></button></div>').join('') +
+    ROWS.slice(0, 1).concat(Haptics.supported ? [FEEL_ROW] : [], ROWS.slice(1)).map(([k, h, p]) => '<div class="lsw-row st-row"><span>' + esc(h) + '<small>' + esc(p) + '</small></span><button type="button" class="lsw teal" role="switch" aria-checked="false" data-switch="' + k + '" aria-label="' + esc(h) + '"><span class="lsw-handle"></span></button></div>').join('') +
     '<p class="fine">Her voice and how fast she speaks: open Symphony and tap the voice button next to Voice.</p></section>';
 }
 function classHTML() {

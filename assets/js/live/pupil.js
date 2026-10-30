@@ -15,6 +15,8 @@ import * as R from './relay.js?v=cdc164df';
 import { Ink, COLOURS, packStrokes } from '../draw.js?v=cdc164df';
 import { initFractions } from '../fractions.js?v=cdc164df';
 import { SHAPES, shapeSVG, STICKERS, REACTIONS, reactSVG, FACE_NAMES, faceSVG } from './shapes.js?v=cdc164df';
+import { haptic } from '../fx/haptics.js?v=cdc164df';
+import { warmUI, playUI } from '../fx/minisprite.js?v=cdc164df';
 
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -137,11 +139,15 @@ function paintNet() {
   b.hidden = !t;
   $('span', b).textContent = t;
 }
-/* A new question: a buzz, a soft chime and a bounce, and the tab's title says so if the page is behind another. */
+/* A new question: a soft vibraphone cue, a feel on a phone that can vibrate, and a bounce; the tab's title says so if
+   the page is behind another. The sounds are the site's recorded interface sounds (minisprite.js); until they have
+   arrived the little live-made notes below play instead. */
 let ac = null;
 function soundReady() {
   try { if (!ac) { const A = window.AudioContext || window.webkitAudioContext; if (A) ac = new A(); } if (ac && ac.state === 'suspended') ac.resume(); } catch (e) { ac = null; }
+  if (ac && !P.mute) warmUI(ac);
 }
+const ui = (name, fallback) => { if (!ac || P.mute) return; if (!playUI(ac, name, null, { gain: 0.9 })) fallback(); };
 function notes(list, vol) {
   if (!ac || P.mute) return;
   try {
@@ -154,13 +160,14 @@ function notes(list, vol) {
     });
   } catch (e) { /* no sound: fine */ }
 }
-const chime = () => notes([[784, 0], [1047, 0.13]]);
-const ding = () => notes([[880, 0, 0.3], [1175, 0.1, 0.35], [1568, 0.2, 0.5]], 0.1);
-const soft = () => notes([[392, 0, 0.3], [330, 0.14, 0.4]], 0.07);
-const fanfare = () => notes([[523, 0, 0.25], [659, 0.12, 0.25], [784, 0.24, 0.25], [1047, 0.38, 0.6]], 0.1);
-function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p || [90, 60, 90]); } catch (e) { /* fine */ } }
+const chime = () => ui('cue', () => notes([[784, 0], [1047, 0.13]]));
+const ding = () => ui('success', () => notes([[880, 0, 0.3], [1175, 0.1, 0.35], [1568, 0.2, 0.5]], 0.1));
+const soft = () => ui('error', () => notes([[392, 0, 0.3], [330, 0.14, 0.4]], 0.07));
+const fanfare = () => ui('win', () => notes([[523, 0, 0.25], [659, 0.12, 0.25], [784, 0.24, 0.25], [1047, 0.38, 0.6]], 0.1));
+/* a feel on a phone that can vibrate (iPhones get a light tick); things the teacher sends are felt without a touch */
+const feel = (kind) => haptic(kind, { force: true });
 function cue() {
-  buzz();
+  feel('pop');
   chime();
   const c = $('.jn-mo');
   if (c) { c.classList.remove('new'); void c.offsetWidth; c.classList.add('new'); }
@@ -391,7 +398,7 @@ function apply() {
   showEyes(!!st.eyes);
   lockDevice(!!st.dl);
   paintDock();
-  if (st.hw && st.hw.id !== P.hwSeen) { P.hwSeen = st.hw.id; setTimeout(() => openHomework(), 300); buzz([60, 40, 60]); chime(); }
+  if (st.hw && st.hw.id !== P.hwSeen) { P.hwSeen = st.hw.id; setTimeout(() => openHomework(), 300); feel('pop'); chime(); }
   // Only redraw when what is on the device itself changes, so a pupil typing, drawing or playing never loses their
   // work when someone else joins or the board moves on.
   const sig = sigOf(st);
@@ -565,7 +572,7 @@ function quizScreen(tk) {
       (!ok && rightText ? '<p class="jn-q jn-right-a"><small>The answer</small>' + esc(rightText) + '</p>' : '') +
       (tk.why ? '<p class="jn-why">' + icon('bulb') + '<span>' + esc(tk.why) + '</span></p>' : '') +
       (Array.isArray(mine) ? '<p class="jn-place">' + fmtN(mine[2]) + ' points so far' + (place ? ' · you are <b>' + ordinal(place) + '</b>' : '') + '</p>' : '');
-    if (sent != null) { if (ok) { ding(); buzz([40, 30, 40]); } else soft(); }
+    if (sent != null) { if (ok) { ding(); feel('success'); } else { soft(); feel('error'); } }
   } else if (tk.type === 'type') {
     body = sent != null ? '<p class="jn-res ok">' + icon('check') + 'Answer sent: “' + esc(sent) + '”. Wait for the others…</p>'
       : '<form class="jn-form" id="jn-qtype" novalidate><label class="jn-fld"><span>Your answer</span><input id="jn-qt" maxlength="80" autocomplete="off" enterkeyhint="send"></label><button class="jn-btn" type="submit">' + icon('send') + 'Send</button></form>';
@@ -589,7 +596,7 @@ async function quizAnswer(v, btn) {
   if (btn) btn.disabled = true;
   P.quiz.set(tk.id, v);
   render();
-  try { await send({ t: 'ans', m: tk.id, k: 'quiz', v }); buzz(30); }
+  try { await send({ t: 'ans', m: tk.id, k: 'quiz', v }); haptic('pop'); }
   catch (e) { P.quiz.delete(tk.id); render(); status(sendError(e)); }
 }
 
@@ -775,7 +782,7 @@ function paintTimer() {
     b.textContent = left ? Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0') : 'Time’s up';
     b.parentElement.classList.toggle('low', left > 0 && left <= 10);
     b.parentElement.classList.toggle('up', !left);
-    if (!left && !P.timerPaused && P.timerDone !== String(P.timerEnds)) { P.timerDone = String(P.timerEnds); chime(); buzz([120, 80, 120]); }
+    if (!left && !P.timerPaused && P.timerDone !== String(P.timerEnds)) { P.timerDone = String(P.timerEnds); chime(); feel('heartbeat'); }
     if (!left || P.timerPaused) clearInterval(timerTick);
   };
   draw();
@@ -1010,9 +1017,9 @@ async function addToCalendar() {
 /* ---------------- what the teacher sends to me only ---------------- */
 function onPM(m) {
   const k = String(m.k || ''), text = str(m.text, 300);
-  if (k === 'ack') { P.coming = true; paintDock(); toastOne('Your teacher is on the way!', 'hand', true); buzz([80, 50, 80]); chime(); }
+  if (k === 'ack') { P.coming = true; paintDock(); toastOne('Your teacher is on the way!', 'hand', true); feel('success'); chime(); }
   else if (k === 'lower') { P.hand = false; P.coming = false; paintDock(); }
-  else if (k === 'praise') { toastOne(text || 'Well done!', 'star', true); ding(); buzz(60); }
+  else if (k === 'praise') { toastOne(text || 'Well done!', 'star', true); ding(); feel('success'); }
   else if (k === 'note') { toastOne(text, 'chat', true); chime(); }
   else if (k === 'reply') {
     const q = str(m.q, 120), a = P.asks.slice().reverse().find((x) => !x.reply && (!q || x.text.slice(0, 120) === q)) || null;
@@ -1039,7 +1046,7 @@ function showSticker(id) {
     '<circle cx="100" cy="100" r="64" class="jn-stk-o"/><circle cx="100" cy="100" r="52" class="jn-stk-i"/><g transform="translate(70 70) scale(2.5)" class="jn-stk-g">' + (ICON[s[2]] || ICON.star) + '</g></svg>' +
     '<b>' + esc(s[0]) + '</b><span>A sticker from your teacher</span><button type="button" class="jn-btn">' + icon('check') + 'Thank you!</button></div>';
   document.body.appendChild(o);
-  fanfare(); buzz([60, 40, 60, 40, 120]);
+  fanfare(); feel('success');
   o.addEventListener('click', (e) => { if (e.target.closest('button') || e.target === o) o.remove(); });
   setTimeout(() => { if (o.isConnected) o.remove(); }, 9000);
 }
@@ -1053,7 +1060,7 @@ function showEyes(on) {
   e.innerHTML = '<div class="jn-eyes-in"><svg viewBox="0 0 220 120" aria-hidden="true"><g class="jn-eye"><ellipse cx="60" cy="60" rx="48" ry="40" fill="#fff"/><circle cx="66" cy="62" r="20" fill="#1B2440"/><circle cx="72" cy="55" r="7" fill="#fff"/></g>' +
     '<g class="jn-eye"><ellipse cx="160" cy="60" rx="48" ry="40" fill="#fff"/><circle cx="166" cy="62" r="20" fill="#1B2440"/><circle cx="172" cy="55" r="7" fill="#fff"/></g></svg><b>Eyes on the board</b><span>Look up at your teacher</span></div>';
   document.body.appendChild(e);
-  buzz([150]);
+  feel('thud');
 }
 
 /* ---------------- taps ---------------- */
