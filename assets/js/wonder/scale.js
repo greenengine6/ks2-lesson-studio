@@ -150,6 +150,7 @@ export function makeScale(items, o) {
     },
     /* go to a stop: glide there (straight there for anyone who prefers less motion) */
     go(i, user) {
+      if (user) this.startAt = 0;                       // a teacher's tap, button or slider wins over the opening journey
       i = clamp(Math.round(i), 0, this.n - 1);
       const d = Math.abs(i - this.u);
       if (reduceMotion() || d < 0.01) { this.u = i; this.tw = null; this.pan = 0; }
@@ -197,7 +198,7 @@ export function makeScale(items, o) {
     click(x, y) { this.down = { x, y, moved: false }; return null; },
     pointer(x, y, buttons) {
       if (!(buttons & 1) || !this.down) { this.drag = null; return; }
-      if (!this.down.moved && Math.hypot(x - this.down.x, y - this.down.y) > 8) { this.down.moved = true; this.drag = { x }; this.tw = null; }
+      if (!this.down.moved && Math.hypot(x - this.down.x, y - this.down.y) > 8) { this.down.moved = true; this.drag = { x }; this.tw = null; this.startAt = 0; }
       if (this.drag) {
         const F = this.free(), C = this.cam(F), want = this.pan + (this.drag.x - x) / C.k;
         const half = (F.r - F.l) / 2 / C.k, base = C.cx - this.pan, lo = this.span[0] - half * 0.6 - base, hi = this.span[1] + half * 0.6 - base;
