@@ -170,6 +170,7 @@ function body(id) {
     'Open it from Explore in the menu, or ask Symphony (“open the festivals”).',
     'Most windows have a quiz that can be a class vote, on pupils’ devices in a live lesson.',
     'Tap or click things to find out more; the sound button turns the sound on and off.',
+    'Symphony’s caption at the bottom changes every 18 seconds: a fact, then a question for the class. Press the speaker and each word lights up as she reads it.',
     'Every animal, bird, fish and racer is drawn by the site itself, not an emoji, so the scenes look the same on every device.',
     'It never uses the engine, so it has no limits.'
   ]);
