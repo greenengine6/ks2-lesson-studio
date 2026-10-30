@@ -11,16 +11,17 @@
    with a buzz, a soft chime and a little bounce, and the screen is kept awake (where the browser allows it) so the
    line to the teacher's screen does not drop. If it does drop, a bar says so and the page reconnects by itself,
    at once when the screen comes back on; "Reconnect" tries straight away. */
-import * as R from './relay.js?v=de4f9a51';
-import { Ink, COLOURS, packStrokes } from '../draw.js?v=de4f9a51';
-import { initFractions } from '../fractions.js?v=de4f9a51';
-import { SHAPES, shapeSVG, STICKERS, REACTIONS, reactSVG, FACE_NAMES, faceSVG } from './shapes.js?v=de4f9a51';
+import * as R from './relay.js?v=cdc164df';
+import { Ink, COLOURS, packStrokes } from '../draw.js?v=cdc164df';
+import { initFractions } from '../fractions.js?v=cdc164df';
+import { SHAPES, shapeSVG, STICKERS, REACTIONS, reactSVG, FACE_NAMES, faceSVG } from './shapes.js?v=cdc164df';
 
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ICON = {
   lock: '<rect x="5" y="11" width="14" height="10" rx="2.2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  moon: '<path d="M19.5 14.6A7.9 7.9 0 0 1 9.4 4.5a7.9 7.9 0 1 0 10.1 10.1z"/>',
   check: '<path d="M4.5 12.5 9.5 17.5 19.5 7"/>', send: '<path d="M4.5 11.8 20 4.5l-4.6 15.2-3.7-6.4z"/><path d="M11.7 13.3 20 4.5"/>', undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
   trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', eraser: '<path d="M8.5 20H20"/><path d="M5.2 15.2 14.4 6a2 2 0 0 1 2.8 0l2.8 2.8a2 2 0 0 1 0 2.8L12 19.6H8.6z"/><path d="M9.6 10.8l4.6 4.6"/>',
   eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -708,7 +709,7 @@ function gameScreen(tk) {
   frame('<section class="jn-card jn-game-c"><div class="jn-mo-top"><h1>' + esc(tk.title || 'Game') + '</h1><span class="jn-score" aria-live="polite"></span></div><div class="jn-game" id="jn-game"></div></section>', { leave: false });
   P.game = { id: tk.id, best: 0, sentBest: -1, at: 0, t: 0, ctl: null };
   const G = P.game;
-  import('../games/player.js?v=de4f9a51').then((m) => {
+  import('../games/player.js?v=cdc164df').then((m) => {
     if (P.game !== G || !$('#jn-game')) return;
     const host = $('#jn-game');
     G.ctl = m.playGame(host, b.data, {
@@ -855,7 +856,7 @@ function boardCardHTML(st, under) {
 
 /* ---------------- Lock devices ----------------
    No website can stop a phone or tablet opening another app or tab (only school device management can: Guided
-   Access, App pinning, a Chromebook's locked mode). So, while the teacher has locked devices, this page does what a page
+   Access, App pinning, kiosk mode on school Chromebooks). So, while the teacher has locked devices, this page does what a page
    can: it asks to go full screen (a tap, where the browser allows it), blocks its own links, stops selecting and
    dragging, shows a small "Stay on this page" bar, and tells the teacher when the pupil leaves the page for more than
    2 seconds and for how long. One message when they go and one when they come back, one pair every 10 seconds at
@@ -868,7 +869,7 @@ function lockDevice(on) {
   if (on) {
     let bar = $('#jn-staybar');
     if (!bar) { bar = document.createElement('div'); bar.id = 'jn-staybar'; bar.className = 'jn-staybar'; bar.setAttribute('role', 'status'); bar.innerHTML = icon('lock') + '<span>Stay on this page</span>'; document.body.appendChild(bar); }
-    if (fullOK() && !document.fullscreenElement) askFull();
+    if (fullOK() && !document.fullscreenElement) askFull(); else setTimeout(silenceCard, 300);
     toastOne('Your teacher has locked this page for the class. Stay on this page.', 'lock', true);
   } else {
     const bar = $('#jn-staybar'); if (bar) bar.remove();
@@ -891,7 +892,25 @@ function askFull() {
   o.addEventListener('click', () => {
     o.remove();
     if (fullOK() && !document.fullscreenElement) { try { document.documentElement.requestFullscreen().then(() => { AWAY.fs = true; awayCheck(); }).catch(() => {}); } catch (e) { /* not allowed here */ } }
+    setTimeout(silenceCard, 400);
   });
+}
+/* A web page cannot silence calls, messages or other apps' pop-ups, so while the class is locked it asks, once per
+   lesson, for Do Not Disturb, with the steps for this kind of device. The page cannot check it is on. */
+function silenceCard() {
+  if (!P.locked) return;
+  const k = 'ks2-live.dnd.' + (P.info ? P.info.sid : '');
+  if (store.get(k)) return;
+  store.set(k, 1);
+  const ua = navigator.userAgent || '', ios = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const how = ios ? 'Swipe down from the top-right corner to open Control Centre, tap Focus, then tap Do Not Disturb.' :
+    /CrOS/.test(ua) ? 'Click the time at the bottom right of the screen, then Do not disturb.' :
+    /Android/i.test(ua) ? 'Swipe down from the top of the screen (twice on some devices) and tap Do Not Disturb.' :
+    /Macintosh/.test(ua) ? 'Click Control Centre at the top right of the screen, then Focus, then Do Not Disturb.' :
+    /Windows/.test(ua) ? 'Click the date and time at the bottom right of the screen, then Do not disturb.' :
+    'Turn on Do Not Disturb in this device’s settings.';
+  sheetModal('<h2>' + icon('moon') + 'Silence this device</h2><p>Calls, messages and pop-ups from other apps can interrupt the class. Turn on <b>Do Not Disturb</b> now. If it is not your device, ask a grown-up.</p>' +
+    '<p class="jn-dnd-how">' + esc(how) + '</p><button type="button" class="jn-btn" data-mx>' + icon('check') + 'Done</button>', 'dnd');
 }
 /* Has the pupil left the page? (another tab or app, the window behind another one, or out of full screen) */
 function isAway() {
@@ -980,7 +999,7 @@ async function addToCalendar() {
   if (!hw) return;
   const name = 'Homework - ' + (hw.subject || 'class').replace(/[^\w ]+/g, '') + ' - ' + new Date(hw.due + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + '.ics';
   let text = '', dl = null;
-  try { const m = await import('../ics.js?v=de4f9a51'); if (m.icsHomework) text = m.icsHomework(hw, { name: P.name }); if (m.downloadText) dl = m.downloadText; } catch (e) { /* the small one below */ }
+  try { const m = await import('../ics.js?v=cdc164df'); if (m.icsHomework) text = m.icsHomework(hw, { name: P.name }); if (m.downloadText) dl = m.downloadText; } catch (e) { /* the small one below */ }
   if (!text) text = icsFallback(hw, P.name);
   if (dl) { try { dl(text, name, 'text/calendar'); return; } catch (e) { /* the plain way */ } }
   const url = URL.createObjectURL(new Blob([text], { type: 'text/calendar;charset=utf-8' }));

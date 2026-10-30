@@ -1,12 +1,12 @@
 /* Class tools over the slides: a small dock in Present mode (Timer, Pick a name, Groups, Work signs, Class points,
    Noise meter). Each opens as a floating panel over the slides; Full screen puts it on the whole board; the timer can
    shrink to a small pill. Also the one place that knows how to draw each tool and open it full screen. */
-import { $, esc, icon, bus } from '../core.js?v=de4f9a51';
-import { ti, TOOL_BY_ID, boardOverlay } from './shared.js?v=de4f9a51';
-import { timerView, timerBoard, stopwatchView } from './timer.js?v=de4f9a51';
-import { namesView, groupsView } from './names.js?v=de4f9a51';
-import { noiseView, noiseBoard } from './noise.js?v=de4f9a51';
-import { signsView, signBoard, pointsView, trafficView, diceView, nownextView } from './visual.js?v=de4f9a51';
+import { $, esc, icon, bus } from '../core.js?v=cdc164df';
+import { ti, TOOL_BY_ID, boardOverlay } from './shared.js?v=cdc164df';
+import { timerView, timerBoard, stopwatchView } from './timer.js?v=cdc164df';
+import { namesView, groupsView } from './names.js?v=cdc164df';
+import { noiseView, noiseBoard } from './noise.js?v=cdc164df';
+import { signsView, signBoard, pointsView, trafficView, diceView, nownextView } from './visual.js?v=cdc164df';
 
 export const RENDER = { timer: timerView, stopwatch: stopwatchView, noise: noiseView, names: namesView, groups: groupsView, signs: signsView, points: pointsView, traffic: trafficView, dice: diceView, nownext: nownextView };
 /* Draw tool `id` into a fresh element inside `slot`; returns its cleanup. */

@@ -1,7 +1,7 @@
 /* Explore: the Wonder Window's 17 live windows for the whole class, out of the way of everyday teaching (Rabinder's
    point 4) but one tap from the menu. Each tile opens that window full screen (#/play/<id>). */
-import { esc, icon } from './core.js?v=de4f9a51';
-import { WINDOWS } from './play.js?v=de4f9a51';
+import { esc, icon } from './core.js?v=cdc164df';
+import { WINDOWS } from './play.js?v=cdc164df';
 
 const GROUPS = [['world', 'Our world', 'globe'], ['weather', 'Weather and seasons', 'sun'], ['living', 'The living world', 'heart'], ['sky', 'Sky and space', 'star'], ['dark', 'Nature at dusk and night', 'moon']];
 let view = null;

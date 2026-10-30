@@ -2,13 +2,13 @@
    National Curriculum for that subject and year and carrying on from each class's recent topics. She checks each one
    (use it, change it or skip it) and only then are they saved as the lessons' plans. No pupil names are ever sent:
    only subjects, year groups, class names such as "4 Amber" and topics. */
-import { $, $$, esc, icon, toast, bus, askJSON, HOUSE_WORDS, CONFIG, hasKey, errorCopy, str } from '../core.js?v=de4f9a51';
-import { makeState, makeStart, makeEnd, deliberate, watch, waitText, repaint } from '../guard.js?v=de4f9a51';
-import { objectivesFor, fits, yearNum } from '../lkie/curriculum.js?v=de4f9a51';
-import { subjectName, subjectColor } from '../library.js?v=de4f9a51';
-import { addDays } from '../ics.js?v=de4f9a51';
-import { data, daySchedule, weekStart, setPlan, lessonById, fmtTime, DAY_SHORT, isoDay } from './store.js?v=de4f9a51';
-import { closeSheet } from './sheet.js?v=de4f9a51';
+import { $, $$, esc, icon, toast, bus, askJSON, HOUSE_WORDS, CONFIG, hasKey, errorCopy, str } from '../core.js?v=cdc164df';
+import { makeState, makeStart, makeEnd, deliberate, watch, waitText, repaint } from '../guard.js?v=cdc164df';
+import { objectivesFor, fits, yearNum } from '../lkie/curriculum.js?v=cdc164df';
+import { subjectName, subjectColor } from '../library.js?v=cdc164df';
+import { addDays } from '../ics.js?v=cdc164df';
+import { data, daySchedule, weekStart, setPlan, lessonById, fmtTime, DAY_SHORT, isoDay } from './store.js?v=cdc164df';
+import { closeSheet } from './sheet.js?v=cdc164df';
 
 export const PLAN_NAME = 'cal:plan';
 export const SPARK = '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>';

@@ -1,6 +1,6 @@
 /* What every game shares: building blocks, stacked fractions, the score bar, the clock, celebrations and the
    start and end panels. Imports nothing from the main site except fractions.js (the pupils' page uses it too). */
-import { fractify } from '../fractions.js?v=de4f9a51';
+import { fractify } from '../fractions.js?v=cdc164df';
 
 export const COLOURS = ['#FF5C8A', '#FFB443', '#2EC4B6', '#6C63FF', '#3A86FF', '#43AA8B', '#F3722C', '#9B5DE5', '#E84855', '#1FA2FF'];
 export const TEAM_COLOURS = ['#F25F5C', '#3A86FF', '#2EC4B6', '#FFB443'];

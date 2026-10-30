@@ -1,10 +1,10 @@
 /* Engine 6: Unplugged Code. A robot grid the class programs live (pupils type F, L, R in the chat; the teacher
    runs it), a buggy algorithm to debug, and an unplugged activity for home. The grid is checked: the goal is
    always reachable, and the "fixed" algorithm is proven to work by running it. */
-import { esc, str, arr, strs, num, clamp, icon } from '../core.js?v=de4f9a51';
-import { B } from './shared.js?v=de4f9a51';
-import { buildPrompt } from './prompt.js?v=de4f9a51';
-import { confetti } from '../fx/particles.js?v=de4f9a51';
+import { esc, str, arr, strs, num, clamp, icon } from '../core.js?v=cdc164df';
+import { B } from './shared.js?v=cdc164df';
+import { buildPrompt } from './prompt.js?v=cdc164df';
+import { confetti } from '../fx/particles.js?v=cdc164df';
 
 const DIRS = { N: [-1, 0], E: [0, 1], S: [1, 0], W: [0, -1] };
 const ORDER = ['N', 'E', 'S', 'W'];

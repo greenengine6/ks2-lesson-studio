@@ -430,3 +430,29 @@ kbd{display:inline-grid;place-items:center;min-width:38px;height:34px;padding:0 
   .pg .seg[role="tablist"]{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);width:100%;border-radius:22px}
   .pg .seg[role="tablist"] button{white-space:normal;line-height:1.2;padding:8px 6px;min-height:46px;border-radius:17px;text-align:center}
 }
+
+/* ---------- pop-ups for the teacher: a pupil left the class page while devices are locked (live/alerts.js) ---------- */
+.lv-alerts{position:fixed;top:84px;right:20px;z-index:2147483000;display:grid;gap:10px;width:min(380px,calc(100vw - 32px));pointer-events:none}
+.lv-alert{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:14px 12px 14px 16px;border-radius:18px;background:var(--surface,#E8ECF2);color:var(--fg,#1F2937);
+  box-shadow:0 18px 40px -16px rgb(31 41 55 / .45),0 2px 6px rgb(31 41 55 / .12);font-family:var(--f-body);font-size:calc(16.5px * var(--t,1));line-height:1.35;animation:lvin .35s var(--ease,ease) both}
+.lv-alert > .i{flex:none;width:24px;height:24px}
+.lv-alert span{flex:1;min-width:0}
+.lv-alert small{color:var(--muted,#4B5563)}
+.lv-alert.gone{box-shadow:inset 4px 0 0 #D92D20,0 18px 40px -16px rgb(31 41 55 / .45)}
+.lv-alert.gone > .i{color:#D92D20}
+.lv-alert.back > .i{color:#1F7A4D}
+.lv-alert-x{flex:none;display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--muted,#4B5563);cursor:pointer}
+.lv-alert-x .i{width:16px;height:16px}
+.lv-alert.out{opacity:0;transform:translateX(16px);transition:opacity .3s,transform .3s}
+@keyframes lvin{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.lv-alert{animation:none}.lv-alert.out{transition:none}}
+@media (max-width:640px){.lv-alerts{top:auto;bottom:calc(92px + env(safe-area-inset-bottom,0px));right:16px}}
+
+/* ---------- a new version of the site is ready (update.js) ---------- */
+.upd{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2147482000;display:flex;align-items:center;gap:12px;width:min(640px,calc(100vw - 32px));padding:12px 12px 12px 16px;border-radius:20px;
+  background:var(--surface,#E8ECF2);color:var(--fg,#1F2937);box-shadow:0 18px 44px -14px rgb(31 41 55 / .45);font-size:calc(16px * var(--t,1));line-height:1.35}
+.upd-i{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:13px;color:#fff;background:linear-gradient(135deg,var(--accent-2),var(--accent))}
+.upd-i .i{width:20px;height:20px}
+.upd-t{flex:1;min-width:0}
+@media (max-width:640px){.upd{flex-wrap:wrap;bottom:calc(92px + env(safe-area-inset-bottom,0px))}.upd-t{flex-basis:calc(100% - 56px)}}
+

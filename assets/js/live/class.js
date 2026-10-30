@@ -11,15 +11,15 @@
    - End class: a summary with no names (how many came, what was covered, the quiz average, what Symphony spotted,
      the class mood, the homework set, and Symphony's idea for the next lesson's starter), saved in My subjects and
      shown at #/class/<id>. */
-import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, askJSON, CONFIG, HOUSE_WORDS, YEARS } from '../core.js?v=de4f9a51';
-import { sfx } from '../fx/audio.js?v=de4f9a51';
-import { confetti } from '../fx/particles.js?v=de4f9a51';
-import { chatState, chatStart, chatEnd } from '../guard.js?v=de4f9a51';
-import { SUBJECT_LIST, subjectName, subjectColor, yearOf, subjectOf, takeClass, pickItem, getItem, openItem, findItem, putItem, startMaking, startClass } from '../library.js?v=de4f9a51';
-import { Live, startLive, endLive, onLive, allPupils, setLock, setEyes, asks, setDeviceLock, awayAll, awayCount } from './session.js?v=de4f9a51';
-import { openJoin } from './panel.js?v=de4f9a51';
-import { startQuizLive, sendSheetLive, sendGameLive, sendHomework, taskLog, logStep, pushGroups, pushTimer, stopTimerLive, classPupils } from './tasks.js?v=de4f9a51';
-import { openMoment } from '../moments.js?v=de4f9a51';
+import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, askJSON, CONFIG, HOUSE_WORDS, YEARS } from '../core.js?v=cdc164df';
+import { sfx } from '../fx/audio.js?v=cdc164df';
+import { confetti } from '../fx/particles.js?v=cdc164df';
+import { chatState, chatStart, chatEnd } from '../guard.js?v=cdc164df';
+import { SUBJECT_LIST, subjectName, subjectColor, yearOf, subjectOf, takeClass, pickItem, getItem, openItem, findItem, putItem, startMaking, startClass } from '../library.js?v=cdc164df';
+import { Live, startLive, endLive, onLive, allPupils, setLock, setEyes, asks, setDeviceLock, awayAll, awayCount } from './session.js?v=cdc164df';
+import { openJoin } from './panel.js?v=cdc164df';
+import { startQuizLive, sendSheetLive, sendGameLive, sendHomework, taskLog, logStep, pushGroups, pushTimer, stopTimerLive, classPupils } from './tasks.js?v=cdc164df';
+import { openMoment } from '../moments.js?v=cdc164df';
 
 const SS = 'ks2-engine.class.v1';
 let C = null, view = null, tick = 0, unsub = null, picked = new Set();
@@ -186,8 +186,8 @@ function renderRun() {
     '</div></div>';
 }
 const roomSeen = new Set();
-const LOCK_NOTE = 'Devices are locked: the class page stays full screen where the browser allows it, its links are blocked, and you see here who leaves it. ' +
-  'A website cannot stop a phone or tablet opening other apps. Your school’s device settings can: Guided Access on iPads, App pinning on Android, or a Chromebook’s locked mode.';
+const LOCK_NOTE = 'Devices are locked: the class page stays full screen where the browser allows it, its links are blocked, pupils are asked to turn on Do Not Disturb, and a pop-up tells you whenever someone leaves the page. ' +
+  'A website cannot stop a phone or tablet opening other apps, see which app a pupil opened, or silence calls and messages. The device can: Do Not Disturb silences calls and pop-ups, and Guided Access on iPads (App pinning on Android, kiosk mode on school Chromebooks) keeps it on one page.';
 const clockS = (ms) => { const x = Math.max(0, Math.round(ms / 1000)); return Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0'); };
 /* Who has left the class page while devices are locked (a live line in Who's here), and who came back lately. */
 function awayHTML() {
@@ -347,7 +347,7 @@ function makeGroups() {
   logStep({ kind: 'check', title: 'Groups of ' + size });
 }
 async function tryDock() {
-  try { const m = await import('../tools/tools.js?v=de4f9a51'); if (m.openToolDock) { m.openToolDock(document.body); return; } } catch (e) { /* not there yet */ }
+  try { const m = await import('../tools/tools.js?v=cdc164df'); if (m.openToolDock) { m.openToolDock(document.body); return; } } catch (e) { /* not there yet */ }
   location.hash = '#/tools';
 }
 function copyRegister() {
@@ -459,7 +459,7 @@ async function onClick(e) {
   else if (a === 'start') begin();
   else if (a === 'join') openJoin(document.body, C.title);
   else if (a === 'lock') { setLock(!Live.locked); toast(Live.locked ? 'The door is locked. Nobody new can join.' : 'The door is open again.'); }
-  else if (a === 'cv') import('./classview.js?v=de4f9a51').then((m) => m.openClassView({ host: document.body }));
+  else if (a === 'cv') import('./classview.js?v=cdc164df').then((m) => m.openClassView({ host: document.body }));
   else if (a === 'end') endClass(b);
   else if (a === 'register') copyRegister();
   else if (a === 'pick') pickName();
@@ -468,7 +468,7 @@ async function onClick(e) {
   else if (a === 'dock') tryDock();
   else if (a === 'eyes') { setEyes(!Live.eyes); toast(Live.eyes ? 'Every pupil’s screen says “Eyes on the board”.' : 'Pupils can see their screens again.'); }
   else if (a === 'dlock') { setDeviceLock(!Live.dl); paintToggles(); toast(Live.dl ? 'Devices locked. You will see here who leaves the class page.' : 'Devices unlocked.'); }
-  else if (a === 'readq') { const q = Live.tk && Live.tk.q ? Live.tk.q : Live.mo && Live.mo.q ? Live.mo.q : ''; if (q) import('../fx/voice.js?v=de4f9a51').then((m) => m.Voice.say(q, { lang: 'en-GB', style: 'chat' })); else toast('There is no question on pupils’ devices right now.'); }
+  else if (a === 'readq') { const q = Live.tk && Live.tk.q ? Live.tk.q : Live.mo && Live.mo.q ? Live.mo.q : ''; if (q) import('../fx/voice.js?v=cdc164df').then((m) => m.Voice.say(q, { lang: 'en-GB', style: 'chat' })); else toast('There is no question on pupils’ devices right now.'); }
   else if (a === 'step-done') { if (C.cur >= 0 && !C.done.includes(C.cur)) C.done.push(C.cur); C.cur = -1; save(); renderRun(); confetti(view, { count: 40, y: 0.2 }); }
   else if (a === 'again') { const o = JSON.parse(view.dataset.sum || '{}'); startClass({ title: o.title, subject: o.subject, year: o.year }); }
 }

@@ -1,7 +1,7 @@
 /* The quiz games' look and sound: the four answer shapes (as on pupils' phones), six drawn team animals, the surprise
    tiles' pictures, and small sounds made live with Web Audio through the site's sound engine (so the site's Sound
    switch turns them off, and they go quiet while Symphony speaks). Nothing here is an emoji. */
-import { Sound } from '../fx/audio.js?v=de4f9a51';
+import { Sound } from '../fx/audio.js?v=cdc164df';
 
 /* ---------------- answer shapes (white, on the option's colour) ---------------- */
 export function shapeSVG(i, cls) {

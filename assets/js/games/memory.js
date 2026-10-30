@@ -1,6 +1,6 @@
 /* Memory: cards lie face down. Turn two at a time; if they belong together they stay face up, otherwise they turn
    back. Fewer turns and less time score more. Touch, mouse and keyboard (the cards are buttons). */
-import { el, txt, shuffle, makeHud, makeClock, floatText, say, icon } from './common.js?v=de4f9a51';
+import { el, txt, shuffle, makeHud, makeClock, floatText, say, icon } from './common.js?v=cdc164df';
 
 export function run(root, g, h) {
   const c = g.content, set = g.settings, total = c.pairs.length;

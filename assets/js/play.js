@@ -4,14 +4,14 @@
    teachers" panel with its sources. This file is the frame: picker, top bar, caption, sound, full screen and voice
    commands. The windows themselves load the first time Wonder Window opens (assets/js/wonder/), so the home page
    stays light. */
-import { $, $$, esc, icon, bus, reduceMotion, toast } from './core.js?v=de4f9a51';
-import { sfx } from './fx/audio.js?v=de4f9a51';
-import { Ambient, Speech } from './fx/sound.js?v=de4f9a51';
-import { track } from './track.js?v=de4f9a51';
-import { MINI } from './fx/symphony.js?v=de4f9a51';
-import { settings } from './settings.js?v=de4f9a51';
-import { registerScenes } from './commands.js?v=de4f9a51';
-import { view } from './wonder/util.js?v=de4f9a51';
+import { $, $$, esc, icon, bus, reduceMotion, toast } from './core.js?v=cdc164df';
+import { sfx } from './fx/audio.js?v=cdc164df';
+import { Ambient, Speech } from './fx/sound.js?v=cdc164df';
+import { track } from './track.js?v=cdc164df';
+import { MINI } from './fx/symphony.js?v=cdc164df';
+import { settings } from './settings.js?v=cdc164df';
+import { registerScenes } from './commands.js?v=cdc164df';
+import { view } from './wonder/util.js?v=cdc164df';
 
 /* ---------------- the windows, in their groups ---------------- */
 const GROUPS = [['world', 'Our world'], ['weather', 'Weather and seasons'], ['living', 'The living world'], ['sky', 'Sky and space'], ['dark', 'Nature at dusk and night']];
@@ -57,7 +57,7 @@ let win = null, winId = '', want = '', def = null, startedAt = 0, items = [], id
 let mod = null, modP = null, stars = null;
 const playing = () => document.body.classList.contains('playing');
 function loadMod() {
-  if (!modP) modP = import('./wonder/windows.js?v=de4f9a51').then((m) => { mod = m; return m; }).catch((e) => { modP = null; throw e; });
+  if (!modP) modP = import('./wonder/windows.js?v=cdc164df').then((m) => { mod = m; return m; }).catch((e) => { modP = null; throw e; });
   return modP;
 }
 const padStop = () => { if (mod) mod.Pad.stop(); };

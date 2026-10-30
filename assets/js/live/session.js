@@ -19,9 +19,9 @@
    hours, and everything the pupils sent is read again from the relay. Pupils' names and answers stay on this
    screen only; nothing is saved to the device or sent to Rabinder's reports.
    One live lesson at a time for each teacher (activity.js): starting one here ends one left running elsewhere. */
-import { CONFIG, bus, store, toast } from '../core.js?v=de4f9a51';
-import * as R from './relay.js?v=de4f9a51';
-import { hold, release, blocker, check, onLost } from '../activity.js?v=de4f9a51';
+import { CONFIG, bus, store, toast } from '../core.js?v=cdc164df';
+import * as R from './relay.js?v=cdc164df';
+import { hold, release, blocker, check, onLost } from '../activity.js?v=cdc164df';
 
 const SS = 'ks2-engine.live.v1', TTL = 4 * 3600e3, AUTO_KEY = 'ks2-engine.live-auto.v1';
 const LIVE_KINDS = new Set(['react', 'vote', 'chat', 'waterfall', 'show', 'talk', 'think', 'cloud', 'traffic']);

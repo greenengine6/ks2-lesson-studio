@@ -1,14 +1,14 @@
 /* The engine framework: every engine is a small definition (fields, prompt, normaliser, class screens, notes).
    This file renders the engine page, talks to Claude, keeps saved activities, and runs Present mode. */
-import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=de4f9a51';
-import { Ribbons } from '../fx/ribbons.js?v=de4f9a51';
-import { sfx } from '../fx/audio.js?v=de4f9a51';
-import { Ambient, Speech } from '../fx/sound.js?v=de4f9a51';
-import { track } from '../track.js?v=de4f9a51';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=de4f9a51';
-import { presentKit } from '../presentkit.js?v=de4f9a51';
-import { coverFor, picURL, creditText } from '../pics.js?v=de4f9a51';
-import { timesUp } from '../fx/timesup.js?v=de4f9a51';
+import { $, $$, esc, str, icon, store, bus, prefs, YEARS, hasKey, askJSON, errorCopy, toast, copyOut, sectionsToCopy, fitText, uid, AiError, CONFIG, houseFix } from '../core.js?v=cdc164df';
+import { Ribbons } from '../fx/ribbons.js?v=cdc164df';
+import { sfx } from '../fx/audio.js?v=cdc164df';
+import { Ambient, Speech } from '../fx/sound.js?v=cdc164df';
+import { track } from '../track.js?v=cdc164df';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from '../guard.js?v=cdc164df';
+import { presentKit } from '../presentkit.js?v=cdc164df';
+import { coverFor, picURL, creditText } from '../pics.js?v=cdc164df';
+import { timesUp } from '../fx/timesup.js?v=cdc164df';
 const ENG_OPEN = 'ks2-engine.eng.open';          // library.js: open this saved activity
 
 /* ---------------- how pupils respond (online or in class) ---------------- */

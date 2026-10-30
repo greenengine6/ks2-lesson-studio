@@ -1,10 +1,10 @@
 /* How it works: every rule on the site in one place, in plain words. It opens from the header's "How it works",
    Help page, the "?" next to Online / In class, and the Join screen. The numbers come
    from the same settings the rules themselves use (guard.js), so they are always right. */
-import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=de4f9a51';
-import { LIMITS } from './guard.js?v=de4f9a51';
-import { ENGINES } from './engines/registry.js?v=de4f9a51';
-import { RESPOND } from './engines/shared.js?v=de4f9a51';
+import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=cdc164df';
+import { LIMITS } from './guard.js?v=cdc164df';
+import { ENGINES } from './engines/registry.js?v=cdc164df';
+import { RESPOND } from './engines/shared.js?v=cdc164df';
 
 const SCRIPT = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/;
 const schoolOn = () => SCRIPT.test(String(CONFIG.inbox || ''));
@@ -43,7 +43,8 @@ function body(id) {
     b('On a laptop') + ' the menu is on the left: Today, Calendar, My subjects, Create, Classroom, Class tools and Explore, then Settings, Help and Start class.',
     b('On a phone') + ' the tabs are at the bottom: Today, Calendar, Subjects, Create and More.',
     b('Search') + ' at the top finds anything you made (lessons, worksheets, quizzes, games, activities) and any page. Press / to start typing.',
-    b('Explore') + ' holds the Wonder Window, away from everyday teaching. ' + b('Help') + ' has short guides for the jobs you do most.'
+    b('Explore') + ' holds the Wonder Window, away from everyday teaching. ' + b('Help') + ' has short guides for the jobs you do most.',
+    b('A new version:') + ' when the site has been updated, a small bar offers Reload. A tab left open keeps its old version until then.'
   ]);
   if (id === 'make') return '<p class="howm-lede">Create has a maker for each thing. Each one takes about a minute and files what it makes by itself.</p>' + li([
     b('Lesson slides') + ' (lkie.like): one topic in, a whole lesson out, for any KS2 subject: slides with a picture or an exact diagram on every slide, key words, activities, teacher notes and a worksheet in three levels. Five themes for younger classes (Space, Under the Sea, Jungle, Superhero and Rainbow). PowerPoint and Word.',
@@ -69,7 +70,7 @@ function body(id) {
   if (id === 'class') return '<p class="howm-lede">Each class is a live session on pupils’ own devices. Start it in one tap: Start class on Today, in the calendar or in the menu.</p>' + li([
     b('Joining:') + ' a QR code, a short address and a 6-digit code. Pupils type a first name; no accounts. ' + b('Who’s here') + ' is your register (Copy register); it is never saved.',
     b('Lesson flow:') + ' tap a lesson and it opens on the board in Present mode; close Present to come back to your class. Every pupil’s device shows what is on the board: the slide’s words and its picture, with Read it to me. Answers you have not revealed stay hidden.',
-    b('Lock devices:') + ' the class page stays full screen where the browser allows it and its links are blocked; you see who leaves the page and for how long. A website cannot stop a phone or tablet opening other apps: your school’s device settings can (Guided Access on iPads, App pinning on Android, a Chromebook’s locked mode).',
+    b('Lock devices:') + ' the class page stays full screen where the browser allows it, its links are blocked, and each device is asked to turn on Do Not Disturb. A pop-up tells you, on any screen, when a pupil leaves the page and when they come back (on the board it says “A pupil”, never the name). A website cannot see which app a pupil opened, stop other apps, or silence calls and messages: the device can (Do Not Disturb; Guided Access on iPads, App pinning on Android, kiosk mode on school Chromebooks).',
     b('Quick checks:') + ' thumbs, traffic light, a vote, a word cloud or mini whiteboards, answers face down until you Reveal.',
     b('Class view:') + ' a tile for every pupil: who is right, who is stuck, who has finished, hands up, and private questions you can answer privately. Mark or change marks, give praise or a sticker, put a pupil on a level. Show on the board puts one answer or question big on your screen and on every device, never with a name.',
     b('On their devices:') + ' a quiz played live with a podium, a worksheet with marks given back, a game with a leaderboard, the timer, work signs, groups and class points.',

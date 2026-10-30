@@ -7,7 +7,7 @@
      same order with many of the same words).
    - answerIssues(): answers that are missing, not one of the options, or (for simple sums and missing numbers in
      fractions) worked out wrongly. */
-import { str, arr, HOUSE_WORDS, ages } from '../core.js?v=de4f9a51';
+import { str, arr, HOUSE_WORDS, ages } from '../core.js?v=cdc164df';
 
 export const TYPES = {
   calc: 'Calculations', fill: 'Missing numbers or words', choice: 'Multiple choice', write: 'Short written answers',

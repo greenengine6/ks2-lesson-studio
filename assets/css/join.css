@@ -321,3 +321,7 @@ html.jn-locked .jn-top{padding-top:max(46px,calc(env(safe-area-inset-top) + 40px
 @media (prefers-reduced-motion:reduce){ .jn-full{animation:none} }
 .jn-in{margin:2vh 0 -4px;display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--card);box-shadow:var(--ex-sm);font-family:var(--f-display);font-weight:700;font-size:calc(15px * var(--t));color:var(--ok,#2E7D4F)}
 .jn-in .i{width:18px;height:18px;stroke-width:2.6}
+/* Do Not Disturb, asked for when the teacher locks devices */
+.jn-modal[data-kind="dnd"] h2{display:flex;align-items:center;gap:10px}
+.jn-modal[data-kind="dnd"] h2 .i{width:26px;height:26px;color:var(--accent)}
+.jn-dnd-how{margin:14px 0 18px;padding:14px 16px;border-radius:16px;background:var(--surface,#E0E5EC);box-shadow:inset 3px 3px 7px rgb(163 177 198 / .55),inset -3px -3px 7px rgb(255 255 255 / .7);font-size:calc(17px * var(--t,1));line-height:1.5}

@@ -2,13 +2,13 @@
    Add to my calendar. No names and no accounts: the link carries only the homework (and, if she ticks it, the class's
    online lesson times for the next two weeks, with the join link only if she ticks that too). While a live class is
    running, "Send to the class now" puts it on every pupil's device as well (live/tasks.js). */
-import { $, esc, icon, toast, copyOut } from '../core.js?v=de4f9a51';
-import { qrSVG } from '../live/qr.js?v=de4f9a51';
-import { subjectName, subjectColor } from '../library.js?v=de4f9a51';
-import { addDays, toMin } from '../ics.js?v=de4f9a51';
-import { data, daySchedule, today, dateWords, weekStart, nowMin } from './store.js?v=de4f9a51';
-import { packLink, homeworkPage } from './link.js?v=de4f9a51';
-import { ci } from './views.js?v=de4f9a51';
+import { $, esc, icon, toast, copyOut } from '../core.js?v=cdc164df';
+import { qrSVG } from '../live/qr.js?v=cdc164df';
+import { subjectName, subjectColor } from '../library.js?v=cdc164df';
+import { addDays, toMin } from '../ics.js?v=cdc164df';
+import { data, daySchedule, today, dateWords, weekStart, nowMin } from './store.js?v=cdc164df';
+import { packLink, homeworkPage } from './link.js?v=cdc164df';
+import { ci } from './views.js?v=cdc164df';
 
 const short = (hw) => ({ i: hw.id, s: hw.subject, c: hw.cls, y: hw.year, t: hw.title, d: hw.details, a: hw.set, u: hw.due, m: hw.dueTime, l: hw.link });
 /* The class's online lessons in the next 14 days (same class as the homework, or the same year group). */
@@ -41,7 +41,7 @@ export function dueThisWeek(date) {
 let tasks = null;
 async function liveTasks() {
   if (tasks !== null) return tasks;
-  try { tasks = await import('../live/tasks.js?v=de4f9a51'); } catch (e) { tasks = false; }
+  try { tasks = await import('../live/tasks.js?v=cdc164df'); } catch (e) { tasks = false; }
   return tasks;
 }
 
