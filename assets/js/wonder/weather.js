@@ -4,18 +4,9 @@
 import { MONSOON, MONSOON_SEASONS } from './data.js?v=cdc164df';
 import { TAU, rnd, clamp, noise, layer, view, FONT } from './util.js?v=cdc164df';
 import { Sound } from '../fx/audio.js?v=cdc164df';
+import { makeHurricane } from './hurricane.js?v=cdc164df';
 
 const pill = (ctx, x, y, w, h) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, h / 2); else ctx.rect(x, y, w, h); };
-let puffSprite = null;
-function puff() {
-  if (puffSprite) return puffSprite;
-  const c = layer(64, 64), g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.45, 'rgba(250,252,255,.55)'); r.addColorStop(1, 'rgba(240,245,255,0)');
-  g.fillStyle = r; g.fillRect(0, 0, 64, 64);
-  puffSprite = c;
-  return c;
-}
-
 /* ---------------- thunder, made live (no sound files) ---------------- */
 let noiseBuf = null;
 function thunder(km) {
@@ -67,14 +58,12 @@ export const weather = {
     this.bg = null; this.flash = 0; this.bolt = null; this.boltT = 0; this.count = null; this.result = null; this.next = rnd(4, 8); this.drift = 0;
     this.rain = Array.from({ length: view.small ? 260 : 460 }, () => ({ x: rnd(-w * 0.2, w * 1.2), y: rnd(0, h), v: rnd(0.7, 1.3) }));
     this.snow = Array.from({ length: view.small ? 280 : 520 }, () => ({ x: rnd(0, w), y: rnd(0, h), v: rnd(0.5, 1.5), s: rnd(1, 3.2), p: rnd(0, TAU) }));
-    if (this.mode === 'hurricane') {
-      const R = this.R();
-      this.puffs = Array.from({ length: view.small ? 520 : 900 }, (_, i) => ({ arm: i % 4, off: rnd(-0.32, 0.32), r: R * rnd(0.16, 1.02), vr: rnd(0.012, 0.03), s: rnd(0.07, 0.15), a: rnd(0.12, 0.32) }));
-      this.wall = Array.from({ length: 160 }, () => ({ th: rnd(0, TAU), r: R * rnd(0.085, 0.16), s: rnd(0.05, 0.09), a: rnd(0.35, 0.6) }));
-    }
+    if (this.mode === 'hurricane' && !this.storm) this.storm = makeHurricane();
   },
-  R() { return Math.min(this.w * 0.46, this.h * 0.4); },
-  centre() { return [this.w / 2, this.h * 0.5]; },
+  /* the storm sits in the middle of the space between the top bar and the controls (windows.js sets bottom) */
+  R() { const [cx, cy] = this.centre(), half = Math.min(cy - view.top, this.free() - cy); return Math.max(60, Math.min(cx * (view.small ? 0.92 : 0.86), half * 0.92)); },
+  free() { return this.bottom > view.top + 120 ? this.bottom : this.h - (view.small ? 230 : 140); },
+  centre() { return [Math.round((this.right > this.w * 0.5 ? this.right : this.w) / 2), Math.round((view.top + this.free()) / 2)]; },
   /* Tap: in the hurricane, what you tapped; in the storm, a flash of lightning. */
   click(x, y) {
     if (this.mode === 'hurricane') {
@@ -97,12 +86,7 @@ export const weather = {
   },
   step(dt, t) {
     const w = this.w, h = this.h;
-    if (this.mode === 'hurricane') {
-      const R = this.R();
-      this.puffs.forEach((p) => { p.r -= p.vr * R * dt; if (p.r < R * 0.15) { p.r = R * rnd(0.9, 1.05); p.off = rnd(-0.32, 0.32); } });
-      this.wall.forEach((p) => { p.th -= dt * 0.9; });
-      this.spin = (this.spin || 0) + dt * 0.12;
-    }
+    if (this.mode === 'hurricane') this.spin = (this.spin || 0) + dt;
     if (this.mode === 'storm') {
       this.boltT -= dt; this.flash = Math.max(0, this.flash - dt * 2.2);
       if (this.boltT > 0 && Math.random() < dt * 10) this.flash = Math.max(this.flash, rnd(0.3, 0.8));   // flicker
@@ -129,37 +113,38 @@ export const weather = {
 
   /* ---------- hurricane ---------- */
   draw_hurricane(ctx, w, h, t) {
-    if (!this.bg) {
-      this.bg = layer(w, h); const g = this.bg.getContext('2d');
-      const gr = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.7); gr.addColorStop(0, '#0F4C81'); gr.addColorStop(1, '#06223F');
-      g.fillStyle = gr; g.fillRect(0, 0, w, h);
-      for (let i = 0; i < 1400; i++) { g.fillStyle = 'rgba(120,180,230,' + rnd(0.02, 0.08).toFixed(3) + ')'; g.fillRect(rnd(0, w), rnd(0, h), rnd(2, 8), rnd(1, 3)); }
-    }
-    ctx.drawImage(this.bg, 0, 0, w, h);
-    const [cx, cy] = this.centre(), R = this.R(), sp = puff(), dir = this.south ? -1 : 1;
-    ctx.save(); ctx.translate(cx, cy); ctx.scale(dir, 1);
-    this.puffs.forEach((p) => {
-      const th = p.arm * TAU / 4 + 1.5 * Math.log(p.r / R) + p.off - this.spin, s = p.s * R * (0.6 + 0.6 * p.r / R);
-      const edge = clamp((R * 1.05 - p.r) / (R * 0.25), 0, 1);
-      ctx.globalAlpha = p.a * edge; ctx.drawImage(sp, Math.cos(th) * p.r - s / 2, Math.sin(th) * p.r - s / 2, s, s);
+    if (!this.storm) this.storm = makeHurricane();
+    const [cx, cy] = this.centre(), R = this.R(), dir = this.south ? -1 : 1, sm = view.small;
+    this.storm.draw(ctx, w, h, cx, cy, R, this.spin || 0, this.south);
+    // which way it spins: two curved arrows around the storm
+    ctx.save(); ctx.translate(cx, cy); ctx.scale(dir, 1); ctx.lineCap = 'round';
+    [0, Math.PI].forEach((off) => {
+      const r = R * 1.1, a0 = off - Math.PI * 0.62, a1 = off - Math.PI * 0.86;
+      ctx.strokeStyle = 'rgba(255,214,102,.28)'; ctx.lineWidth = 9; ctx.beginPath(); ctx.arc(0, 0, r, a0, a1, true); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,214,102,.95)'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(0, 0, r, a0, a1, true); ctx.stroke();
+      const ax = Math.cos(a1) * r, ay = Math.sin(a1) * r, tx = Math.sin(a1), ty = -Math.cos(a1);         // the arrow head points along the turn
+      ctx.fillStyle = 'rgba(255,214,102,.95)'; ctx.beginPath(); ctx.moveTo(ax + tx * 13, ay + ty * 13); ctx.lineTo(ax - ty * 8 - tx * 3, ay + tx * 8 - ty * 3); ctx.lineTo(ax + ty * 8 - tx * 3, ay - tx * 8 - ty * 3); ctx.closePath(); ctx.fill();
     });
-    this.wall.forEach((p) => { const th = p.th - this.spin, s = p.s * R; ctx.globalAlpha = p.a; ctx.drawImage(sp, Math.cos(th) * p.r - s / 2, Math.sin(th) * p.r - s / 2, s, s); });
-    ctx.globalAlpha = 1;
     ctx.restore();
-    // labels and which way it spins
-    const fs = view.small ? 12 : 14.5;
-    ctx.font = '800 ' + fs + 'px ' + FONT;
-    const tag = (txt, x, y, tx, ty) => { ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(tx, ty); ctx.stroke(); const tw = ctx.measureText(txt).width + 18; ctx.fillStyle = 'rgba(6,20,40,.78)'; pill(ctx, tx - (tx < x ? tw : 0), ty - 13, tw, 26); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillText(txt, tx - (tx < x ? tw : 0) + 9, ty + 5); };
-    tag('The eye', cx, cy, cx + R * 0.55, cy - R * 0.75);
-    tag('Eyewall', cx - R * 0.12, cy + R * 0.06, cx - R * 0.7, cy + R * 0.82);
-    const arrowR = R * 1.08, a0 = -Math.PI * 0.85, a1 = -Math.PI * 0.55;
-    ctx.save(); ctx.translate(cx, cy); ctx.scale(dir, 1); ctx.strokeStyle = 'rgba(255,214,102,.95)'; ctx.lineWidth = 4; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.arc(0, 0, arrowR, a1, a0, true); ctx.stroke();
-    const ax = Math.cos(a0) * arrowR, ay = Math.sin(a0) * arrowR; ctx.fillStyle = 'rgba(255,214,102,.95)'; ctx.beginPath(); ctx.moveTo(ax - 2, ay + 14); ctx.lineTo(ax - 12, ay - 4); ctx.lineTo(ax + 10, ay - 2); ctx.fill();
-    ctx.restore();
+    // labels with lines to what they name
+    const fs = sm ? 12.5 : 15;
+    ctx.font = '800 ' + fs + 'px ' + FONT; ctx.textBaseline = 'middle';
+    const tag = (txt, x, y, tx, ty) => {
+      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(tx, ty); ctx.stroke();
+      ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(x, y, 3, 0, TAU); ctx.fill();
+      const tw = ctx.measureText(txt).width + 22, bx = clamp(tx - (tx < x ? tw : 0), 6, w - tw - 6);
+      ctx.fillStyle = 'rgba(6,20,40,.82)'; pill(ctx, bx, ty - 15, tw, 30); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 1; pill(ctx, bx, ty - 15, tw, 30); ctx.stroke();
+      ctx.fillStyle = '#F4F7FC'; ctx.fillText(txt, bx + 11, ty + 1);
+    };
+    const er = R * 0.108, a = -Math.PI * 0.25;
+    tag('The eye', cx, cy, cx + R * (sm ? 0.42 : 0.55) * dir, cy - R * 0.72);
+    tag('Eyewall', cx - er * Math.cos(a) * dir, cy + er * Math.sin(-a), cx - R * (sm ? 0.5 : 0.7) * dir, cy + R * 0.78);
+    tag('Rain bands', cx + R * 0.62 * dir, cy + R * 0.3, cx + R * (sm ? 0.58 : 0.86) * dir, cy + R * 0.86);
+    ctx.textBaseline = 'alphabetic';
     const msg = this.south ? 'South of the equator: spinning clockwise' : 'North of the equator: spinning anticlockwise';
-    ctx.font = '800 ' + (fs + 1) + 'px ' + FONT; const tw = ctx.measureText(msg).width + 26;
-    ctx.fillStyle = 'rgba(6,20,40,.8)'; pill(ctx, (w - tw) / 2, view.top + 16, tw, 34); ctx.fill(); ctx.fillStyle = '#FFD666'; ctx.fillText(msg, (w - tw) / 2 + 13, view.top + 38);
+    ctx.font = '800 ' + (fs + 1) + 'px ' + FONT; const tw = ctx.measureText(msg).width + 28;
+    ctx.fillStyle = 'rgba(6,20,40,.82)'; pill(ctx, (w - tw) / 2, view.top + 14, tw, 36); ctx.fill(); ctx.fillStyle = '#FFD666'; ctx.textBaseline = 'middle'; ctx.fillText(msg, (w - tw) / 2 + 14, view.top + 32.5); ctx.textBaseline = 'alphabetic';
   },
 
   /* ---------- thunderstorm ---------- */

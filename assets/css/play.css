@@ -168,11 +168,11 @@ body.playing .top,body.playing .dock,body.playing .sym-fab,body.playing .symc,bo
 .sn-bar{grid-area:bar;display:block;height:12px;border-radius:999px;background:rgb(255 255 255 / .1);overflow:hidden}
 .sn-bar i{display:block;height:100%;width:0;background:var(--c,#7CC4FF);border-radius:inherit;transition:width .3s}
 .sn-h{grid-area:h;text-align:right;font-variant-numeric:tabular-nums}
-.wx{display:grid;gap:8px;width:auto;max-width:min(440px,40vw)}
+.wx{display:grid;gap:8px;width:auto;max-width:min(440px,40vw);bottom:calc(var(--cap-h,110px) + 18px)}
 .wx.wx-wide{width:min(440px,40vw)}
 .wx-k{font-weight:800;color:#FFD08A}
-.wseg{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:999px;background:rgb(255 255 255 / .08);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .14)}
-.wseg button{flex:1;border:0;background:transparent;color:#C3CBDB;font:inherit;font-weight:800;padding:9px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.wseg{display:flex;gap:4px;padding:4px;border-radius:999px;background:rgb(255 255 255 / .08);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .14)}
+.wseg button{flex:1;min-width:0;border:0;background:transparent;color:#C3CBDB;font:inherit;font-weight:800;padding:9px 12px;border-radius:999px;cursor:pointer;line-height:1.2}
 .wseg button[aria-pressed="true"]{background:#FFD666;color:#1A1405}
 .wx-row{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .wx-m{font-family:var(--f-display);font-weight:800;font-size:max(9px,calc(24px * var(--m,1)))}
@@ -187,11 +187,16 @@ body.playing .top,body.playing .dock,body.playing .sym-fab,body.playing .symc,bo
 .wx-feel{margin:4px 0 0;font-size:max(9px,calc(17px * var(--m,1)))}
 .wx-feel b{font-family:var(--f-display);font-size:max(9px,calc(28px * var(--m,1)));color:#7CC4FF}
 .wx-what{margin:0;font-weight:800;color:#FFD08A}
+@media (max-width:760px){
+  .wseg{border-radius:18px}
+  .wseg button{padding:8px;line-height:1.15;border-radius:14px}
+}
 
 @media (max-width:980px){
   .ex-ctl{left:8px;right:auto;bottom:auto;top:var(--map-b,300px)}
   .pcd{left:8px;right:8px;width:auto;top:calc(var(--map-b,300px) + 54px);bottom:104px}
   .sn,.wx,.wx.wx-wide{left:8px;right:8px;width:auto;max-width:none;bottom:100px}
+  .wx,.wx.wx-wide{bottom:calc(var(--cap-h,96px) + 8px)}
 }
 @media (max-width:760px){
   .play-top{flex-wrap:wrap;gap:8px;padding:10px 10px 8px;padding-top:calc(10px + env(safe-area-inset-top,0px))}
@@ -253,9 +258,17 @@ body.playing .top,body.playing .dock,body.playing .sym-fab,body.playing .symc,bo
 .sg-chip[aria-current="true"] em{color:#9D174D}
 /* the camera and the race controls */
 .sz{position:absolute;left:24px;bottom:calc(var(--cap-h,110px) + 24px);transition:bottom .3s var(--ease);width:min(560px,calc(100% - 48px));display:grid;gap:8px;padding:12px 14px;border-radius:20px;background:rgb(8 10 20 / .6);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .14);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
-.sz-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
-.sz-l{display:flex;align-items:center;gap:8px;flex:1;min-width:220px;font-weight:700;font-size:max(9px,calc(12.5px * var(--m,1)));color:#C9D2E3}
-.sz-l input{flex:1}
+.sz-row{display:flex;align-items:center;gap:10px}
+.sz .sz-b{flex:none;min-width:44px;min-height:44px;padding:0}
+.sz-track{position:relative;flex:1;min-width:110px;display:block;padding:8px 0 12px}
+.sz-track input{display:block;width:100%;margin:0;min-height:26px}
+.sz-dots{position:absolute;left:10px;right:10px;bottom:2px;height:6px;pointer-events:none}
+.sz-dots i{position:absolute;top:0;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:rgb(255 255 255 / .32);transition:transform .2s,background .2s}
+.sz-dots i.on{background:#FFD666;transform:scale(1.5)}
+.sz-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sz-all{flex:none}
+.sz-now{margin:0;font-weight:700;font-size:max(9px,calc(13px * var(--m,1)));color:#DCE3F0}
+.sz-now b{color:#FFD666}
 .sz .fine{margin:0}
 .pcd-fly{display:flex;gap:8px;align-items:baseline;margin:10px 0 0;padding:8px 12px;border-radius:14px;background:rgb(124 196 255 / .12);box-shadow:inset 0 0 0 1px rgb(124 196 255 / .3);color:#DCE9FA}
 @media (max-width:1100px){ .sg-strip{width:196px} .sg-info{width:calc(100% - 250px)} }
@@ -269,9 +282,12 @@ body.playing .top,body.playing .dock,body.playing .sym-fab,body.playing .symc,bo
   .sg-chip{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 9px;max-width:104px}
   .sg-chip b{font-size:max(9px,calc(11px * var(--m,1)));max-width:86px}
   .sg-chip em{display:none}
-  .sz{left:10px;right:10px;width:auto;bottom:calc(var(--cap-h,96px) + 8px);padding:10px 12px}
-  .sz-l{min-width:0}
-  .sz .fine{display:none}
+  .sz{left:10px;right:10px;width:auto;bottom:calc(var(--cap-h,96px) + 8px);padding:8px 10px;gap:4px}
+  .sz-row{gap:6px}
+  .sz .sz-b{min-width:40px;min-height:40px}
+  .sz-track{min-width:0}
+  .sz-all{padding-left:10px;padding-right:12px}
+  .sz-now,.sz .fine{display:none}
 }
 
 /* ---------- drawn creatures where an emoji used to be (fauna.js) ---------- */
