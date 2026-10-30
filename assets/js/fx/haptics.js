@@ -7,7 +7,7 @@
    pupil's phone does not buzz by itself. One setting on this device turns them off (Settings → Sound and touch). */
 const KEY = 'ks2-engine.haptics.v1';
 const read = () => { try { return localStorage.getItem(KEY) !== 'off'; } catch (e) { return true; } };
-let on = read(), lastTouch = 0, lastBuzz = 0, sw = null;
+let on = read(), lastTouch = -1e9, lastBuzz = -1e9, sw = null;          // (no touch yet when the page opens)
 
 const coarse = (() => { try { return window.matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } })();
 const canVibrate = coarse && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';   // desktop browsers have the call but no motor
@@ -57,7 +57,12 @@ export function haptic(kind, o) {
   if (now - lastBuzz < 45) return;
   lastBuzz = now;
   const p = P[kind] || P.tap;
-  if (canVibrate) { try { navigator.vibrate(p); } catch (e) { /* ignore */ } return; }
+  if (canVibrate) {
+    const ua2 = navigator.userActivation;
+    if (ua2 && !ua2.hasBeenActive) return;                           // the browser only allows it once the page has been touched
+    try { navigator.vibrate(p); } catch (e) { /* ignore */ }
+    return;
+  }
   // iPhone: one tick for each "on", at least 70 ms apart, three at most
   let t = 0;
   for (let k = 0, n = 0; k < p.length && n < 3; k += 2, n++) {
