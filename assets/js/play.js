@@ -65,7 +65,7 @@ const padStop = () => { if (mod) mod.Pad.stop(); };
 function pickerHTML() {
   return '<div class="pk-in"><header class="pk-h"><h1>Wonder Window</h1><p>Choose a window for the whole class. You can also say “Hey Symphony, show the rainforest”.</p></header>' +
     GROUPS.map(([g, name]) => '<section class="pk-g"><h2>' + esc(name) + '</h2><div class="pk-grid">' +
-      WINDOWS.filter((w) => w.group === g).map((w) => '<a class="pk-c" href="#/play/' + w.id + '" data-win="' + w.id + '" style="--a:' + w.a + ';--b:' + w.b + '"><span class="pk-e cre" aria-hidden="true" data-name="' + esc(w.name) + '">' + w.e + '</span><b>' + esc(w.name) + '</b><small>' + esc(w.label) + '</small></a>').join('') +
+      WINDOWS.filter((w) => w.group === g).map((w) => '<a class="pk-c" href="#/play/' + w.id + '" data-win="' + w.id + '" style="--a:' + w.a + ';--b:' + w.b + '"><span class="pk-e" aria-hidden="true" data-icon="' + w.id + '"></span><b>' + esc(w.name) + '</b><small>' + esc(w.label) + '</small></a>').join('') +
       '</div></section>').join('') + '</div>';
 }
 function build() {
@@ -84,7 +84,7 @@ function build() {
     '<div class="play-nav"><button type="button" class="pbtn" data-cap-say title="Symphony reads it" aria-label="Symphony reads it">' + icon('volume') + '</button><button type="button" class="pbtn" data-cap-next title="Next" aria-label="Next">' + icon('right') + '</button></div><i class="cap-prog" aria-hidden="true"></i></div>' +
     '<div class="play-over" hidden></div><div class="play-load" hidden role="status"><span class="play-spin" aria-hidden="true"></span><b>Opening…</b></div>';
   canvas = $('.play-cv', root); ctx = canvas.getContext('2d');
-  loadMod().then((m) => { if (root) m.swapCreatures(root); }).catch(() => {});       // the picker's animals, drawn
+  loadMod().then((m) => { if (root) m.swapIcons(root); }).catch(() => {});           // each window's picture on the picker, drawn
   paneHost = $('.play-pane', root); over = $('.play-over', root); pick = $('.play-pick', root); cap = $('.play-cap', root);
   root.addEventListener('click', (e) => {
     const tb = e.target.closest('[data-tab]'); if (tb) { setTab(tb.dataset.tab, true); return; }

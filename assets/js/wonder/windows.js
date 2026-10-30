@@ -14,14 +14,18 @@ import { explorer, distanceKm, flightHours } from './map.js?v=cdc164df';
 import { makeStage, switcher } from './stage.js?v=cdc164df';
 import { makeFestival, FEST_SCENES } from './festive.js?v=cdc164df';
 import { makeWonders, WONDER_SCENES } from './wonders.js?v=cdc164df';
-import { swapCreatures } from './fauna.js?v=cdc164df';
-export { swapCreatures };
+import { MALAYSIA_SCENES } from './malaysia.js?v=cdc164df';
+import { fillThumbs, sceneShot, copyOf } from './thumbs.js?v=cdc164df';
+import { swapCreatures, creatureOf } from './fauna.js?v=cdc164df';
+import { swapIcons, flagCanvas, isoOf, GLYPH } from './art.js?v=cdc164df';
+export { swapCreatures, swapIcons };
 import { makeScale, makeRace } from './scale.js?v=cdc164df';
 import { Music, Fx } from './music.js?v=cdc164df';
+import { haptic } from '../fx/haptics.js?v=cdc164df';
 import { makeBiome } from './biomes.js?v=cdc164df';
 import { weather, feelsLike } from './weather.js?v=cdc164df';
 import { seasons, PLACES, MONTHS, dateOf, dayOfYear, seasonOf, daylight } from './seasons.js?v=cdc164df';
-import { flag, hm } from './util.js?v=cdc164df';
+import { hm } from './util.js?v=cdc164df';
 
 export { Pad };
 const T = (x, ms) => (x == null ? '' : typeof x === 'string' ? x : ms && x.bm ? x.bm : x.text);
@@ -60,12 +64,13 @@ function openCard(shell, c) {
   const rows = (c.rows || []).filter((r) => r && r[1]).map(([k, v]) => '<div><dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd></div>').join('');
   const el = shell.overlay('<article class="wo-card wd" data-ctx>' +
     '<button type="button" class="pbtn wo-x" data-wo-x aria-label="' + (ms ? 'Tutup' : 'Close') + '">' + icon('close') + '</button>' +
-    '<figure class="wd-ph"' + (c.wiki ? ' data-wiki="' + esc(c.wiki) + '"' : '') + '><span class="wd-e cre" aria-hidden="true" data-name="' + esc(c.title || '') + '">' + esc(c.e || '✨') + '</span><figcaption class="ph-cr" hidden></figcaption></figure>' +
+    '<figure class="wd-ph"' + (c.wiki ? ' data-wiki="' + esc(c.wiki) + '"' : '') + '>' + (c.art ? '<span class="wd-art" aria-hidden="true"></span>' : creatureOf({ name: c.title || '', e: c.e }) ? '<span class="wd-e cre" aria-hidden="true" data-name="' + esc(c.title || '') + '">' + esc(c.e || '') + '</span>' : '') + '<figcaption class="ph-cr" hidden></figcaption></figure>' +
     '<div class="wd-b"><small class="wd-k">' + esc(c.sub || '') + '</small><h2>' + esc(c.title) + '</h2>' + (rows ? '<dl class="wd-rows">' + rows + '</dl>' : '') +
     (c.text ? '<p class="wd-t">' + esc(c.text) + '</p>' : '') +
     '<div class="wd-btns"><button type="button" class="btn small" data-wd-say>' + icon('volume') + (ms ? 'Baca' : 'Read aloud') + '</button>' + (c.extra || '') +
     (c.nav ? '<span class="wd-nav"><button type="button" class="pbtn" data-wd-nav="-1" aria-label="' + (ms ? 'Sebelumnya' : 'Previous') + '">' + icon('left') + '</button><button type="button" class="pbtn" data-wd-nav="1" aria-label="' + (ms ? 'Seterusnya' : 'Next') + '">' + icon('right') + '</button></span>' : '') +
     '</div></div></article>', c.title);
+  if (c.art) { try { const a = c.art(); if (a) $('.wd-art', el).appendChild(a); } catch (e) { /* the photo still comes */ } }
   if (c.wiki) photoInto($('.wd-ph', el), c.wiki, 960, true);
   swapCreatures(el);
   el.addEventListener('click', (e) => {
@@ -79,6 +84,7 @@ function openCard(shell, c) {
 }
 
 /* ---------------- the quiz: tap an answer, or let the class vote on their devices ---------------- */
+const STAR = '<svg class="wq-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.8l3.1 6.4 7 1-5.1 5 1.2 7L12 17.9l-6.2 3.3 1.2-7-5.1-5 7-1z" fill="#FFC83D" stroke="#C98A12" stroke-width="1" stroke-linejoin="round"/><path d="M12 4.6l2.2 4.5 4.9.7-.9.9-4.6-.6L12 5.7z" fill="#FFE59A"/></svg>';
 function openQuiz(shell, key, ms, name) {
   const list = (D.QUIZ[key] || []).map((x) => (ms && x.bm ? { q: x.bm.q, opts: x.bm.opts, a: x.a } : x));
   if (!list.length) return;
@@ -95,7 +101,7 @@ function openQuiz(shell, key, ms, name) {
     $('[data-q-vote]', el).hidden = done;
     if (done) {
       $('.wq-q', el).textContent = L.end(score, list.length);
-      $('.wq-opts', el).innerHTML = '<p class="wq-stars" aria-hidden="true">' + '⭐'.repeat(score) + '</p>';
+      $('.wq-opts', el).innerHTML = '<p class="wq-stars" aria-hidden="true">' + STAR.repeat(score) + '</p>';
       $('.wq-msg', el).textContent = '';
       nx.hidden = false; $('span', nx).textContent = L.again;
       if (score === list.length) sfx('success');
@@ -186,8 +192,11 @@ function stageUI(shell, o) {
     },
     list(list) {
       if (!el) return;
-      $('.sg-strip', el).innerHTML = list.map((x, k) => '<button type="button" class="sg-chip' + (x.hot ? ' hot' : '') + '" data-sg-i="' + k + '" aria-current="false"><span class="cre" aria-hidden="true" data-name="' + esc(x.name) + '">' + x.e + '</span><b>' + esc(x.name) + '</b>' + (x.hot ? '<em>' + esc(x.hot) + '</em>' : '') + '</button>').join('');
+      $('.sg-strip', el).innerHTML = list.map((x, k) => '<button type="button" class="sg-chip' + (x.hot ? ' hot' : '') + (x.th ? ' th' : '') + '" data-sg-i="' + k + '" aria-current="false">' +
+        (x.th ? '<span class="sg-th" aria-hidden="true" data-th="' + esc(x.th) + '"></span>' : '<span class="cre" aria-hidden="true" data-name="' + esc(x.name) + '">' + (creatureOf({ name: x.name, e: x.e }) ? esc(x.e || '') : '') + '</span>') +
+        '<b>' + esc(x.name) + '</b>' + (x.hot ? '<em>' + esc(x.hot) + '</em>' : '') + '</button>').join('');
       swapCreatures($('.sg-strip', el));
+      fillThumbs($('.sg-strip', el), 52, 34);
       i = -1;
     },
     set(k, x) {
@@ -231,10 +240,6 @@ function scaleUI(shell, sc, hint) {
 const metres = (n) => (n < 1 ? Math.round(n * 100) + ' cm' : String(n).replace(/\.0$/, '') + ' m');
 /* How each place looks and sounds on the photo stage: the weather on top, the soundscape, the colours while the photo loads. */
 const LOOK = {
-  kinabalu: ['mist', 'wind', '#1C2A3A', '#7E93B0'], tamannegara: ['mist leaves', 'forest', '#0F2416', '#3E7A44'], rafflesia: ['leaves', 'forest', '#2A1414', '#B8433A'],
-  orangutan: ['leaves', 'forest', '#2A1A0E', '#C46A2E'], proboscis: ['mist', 'river', '#1A2A1E', '#A8784A'], tiger: ['leaves', 'night', '#1E1A0E', '#D98A2B'],
-  mulu: ['bats', 'night', '#14161E', '#5A5E6E'], fireflies: ['sparkle', 'night', '#060E0A', '#2E5A3A'], turtle: ['bubbles', 'ocean', '#08263A', '#2E7DA6'],
-  hornbill: ['leaves rays', 'forest', '#14240E', '#E2A33A'], monsoon: ['rain', 'rain', '#141E2A', '#5E6E82'], kancil: ['leaves', 'forest', '#1E2414', '#9A7A4A'],
   cheetah: ['speed dust', 'wind', '#3A2A10', '#D9A44A'], falcon: ['speed', 'wind', '#1E2A3E', '#8EA6C6'], whale: ['bubbles', 'ocean', '#06203A', '#2E6EA6'],
   giraffe: ['dust rays', 'birds', '#3A2A12', '#D9A65A'], elephant: ['dust', 'wind', '#2E2A26', '#9A8E82'], python: ['leaves', 'forest', '#1A2412', '#6E8A3E'],
   croc: ['mist', 'river', '#1A2216', '#6E7A4A'], ostrich: ['dust', 'wind', '#3A2E1A', '#C9A26A'], hummingbird: ['sparkle leaves', 'birds', '#0E2A1A', '#3EA67A'],
@@ -293,16 +298,15 @@ export function flightWords(from, to) {
   return { km: (Math.round(km / 10) * 10).toLocaleString('en-GB') + ' km', time: 'about ' + String(r).replace('.5', '½') + (r === 1 ? ' hour' : ' hours') };
 }
 function postcardHTML(c, from) {
-  const f = flag(c.flag);
-  return '<header class="pcd-top">' + (f ? '<span class="pcd-flag" aria-hidden="true">' + f + '</span>' : '<span class="pcd-flag" aria-hidden="true">📍</span>') +
+  return '<header class="pcd-top"><span class="pcd-flag" aria-hidden="true" data-flag="' + esc(isoOf(c.flag)) + '"></span>' +
     '<div class="pcd-name"><h2>' + esc(c.name) + '</h2><small>' + esc(c.country) + '</small></div><button type="button" class="pbtn" data-pc-x aria-label="Close the postcard">' + icon('close') + '</button></header>' +
-    (from ? (() => { const f2 = flightWords(from, c); return '<p class="pcd-fly"><span aria-hidden="true">✈️</span><span>From ' + esc(from.name) + ': <b>' + esc(f2.km) + '</b>, ' + esc(f2.time) + ' by plane</span></p>'; })() : '') +
+    (from ? (() => { const f2 = flightWords(from, c); return '<p class="pcd-fly">' + GLYPH.plane + '<span>From ' + esc(from.name) + ': <b>' + esc(f2.km) + '</b>, ' + esc(f2.time) + ' by plane</span></p>'; })() : '') +
     '<p class="pcd-time"><b class="pcd-clock"></b><span class="pcd-dn"></span><span class="pcd-diff"></span></p>' +
     '<div class="pcd-hello"><small>Say hello</small><b lang="' + esc(c.hello.lang) + '">' + esc(c.hello.text) + '</b><span>Say it like <i>' + esc(c.hello.say) + '</i>. It means “' + esc(c.hello.means) + '”.</span>' +
     '<button type="button" class="btn small" data-pc-hear>' + icon('volume') + 'Hear it</button></div>' +
     '<div class="pcd-two">' +
-    '<div class="pcd-col"><figure class="pcd-ph" data-wiki="' + esc(c.famous.wiki) + '"><span class="wd-e" aria-hidden="true">📍</span><figcaption class="ph-cr" hidden></figcaption></figure><small>Famous for</small><b>' + esc(c.famous.name) + '</b><p>' + esc(c.famous.text) + '</p></div>' +
-    '<div class="pcd-col"><figure class="pcd-ph" data-wiki="' + esc(c.food.wiki) + '"><span class="wd-e" aria-hidden="true">🍽️</span><figcaption class="ph-cr" hidden></figcaption></figure><small>Food to try</small><b>' + esc(c.food.name) + '</b><p>' + esc(c.food.text) + '</p></div>' +
+    '<div class="pcd-col"><figure class="pcd-ph" data-wiki="' + esc(c.famous.wiki) + '"><span class="wd-e" aria-hidden="true">' + GLYPH.pin + '</span><figcaption class="ph-cr" hidden></figcaption></figure><small>Famous for</small><b>' + esc(c.famous.name) + '</b><p>' + esc(c.famous.text) + '</p></div>' +
+    '<div class="pcd-col"><figure class="pcd-ph" data-wiki="' + esc(c.food.wiki) + '"><span class="wd-e" aria-hidden="true">' + GLYPH.plate + '</span><figcaption class="ph-cr" hidden></figcaption></figure><small>Food to try</small><b>' + esc(c.food.name) + '</b><p>' + esc(c.food.text) + '</p></div>' +
     '</div><p class="pcd-fact"><b>Did you know?</b> ' + esc(c.fact) + '</p>' +
     '<footer class="pcd-foot"><button type="button" class="pbtn" data-pc-nav="-1" aria-label="Previous city">' + icon('left') + '</button><button type="button" class="btn small" data-pc-say>' + icon('volume') + 'Read the postcard</button><button type="button" class="pbtn" data-pc-nav="1" aria-label="Next city">' + icon('right') + '</button></footer>';
 }
@@ -318,7 +322,8 @@ function explorerWin(shell) {
     try {
       $('.pcd-clock', pcd).textContent = new Intl.DateTimeFormat('en-GB', { timeZone: city.tz, hour: 'numeric', minute: '2-digit', hour12: true }).format(now) + ', ' + new Intl.DateTimeFormat('en-GB', { timeZone: city.tz, weekday: 'long' }).format(now);
       const hr = Number(new Intl.DateTimeFormat('en-GB', { timeZone: city.tz, hour: 'numeric', hourCycle: 'h23' }).format(now)), lt = sc.light(city);
-      $('.pcd-dn', pcd).textContent = lt > 0.05 ? '☀️ Daytime there' : lt < -0.1 ? '🌙 Night time there' : hr < 12 ? '🌅 Sunrise there' : '🌇 Sunset there';
+      const dn = lt > 0.05 ? ['sun', 'Daytime there'] : lt < -0.1 ? ['moon', 'Night time there'] : hr < 12 ? ['sunrise', 'Sunrise there'] : ['sunset', 'Sunset there'], el = $('.pcd-dn', pcd);
+      if (el.dataset.dn !== dn[0]) { el.dataset.dn = dn[0]; el.innerHTML = GLYPH[dn[0]] + '<span>' + dn[1] + '</span>'; }
       $('.pcd-diff', pcd).textContent = diffText(aheadBy(city.tz, now));
     } catch (e) { $('.pcd-clock', pcd).textContent = ''; }
   }
@@ -335,6 +340,7 @@ function explorerWin(shell) {
       if (fly !== flying || city !== c) return;
       last = c;
       pcd.innerHTML = postcardHTML(c, from); pcd.hidden = false; pcd.scrollTop = 0;
+      $$('[data-flag]', pcd).forEach((f) => f.appendChild(flagCanvas(f.dataset.flag, 54, 36)));
       $$('[data-wiki]', pcd).forEach((f) => photoInto(f, f.dataset.wiki, 500, true));
       clock(); sc.setDock(dock());
       shell.show({ kind: c.name + ', ' + c.country, text: c.fact, lang: 'en-GB' }, false);
@@ -357,7 +363,7 @@ function explorerWin(shell) {
     mount() {
       shell.pane.innerHTML = '<div class="ex-ctl"><label class="ex-l"><span>Choose a city</span><select class="ex-sel" aria-label="Choose a city"><option value="">All 24 cities…</option>' +
         order.map((c) => '<option value="' + c.id + '">' + esc(c.name + ', ' + c.country) + '</option>').join('') + '</select></label>' +
-        '<button type="button" class="btn small" data-ex-rnd aria-label="Surprise me: fly to a city at random">🎲<span class="ex-w"> Surprise me</span></button></div><aside class="pcd" hidden aria-label="City postcard" data-ctx></aside>';
+        '<button type="button" class="btn small" data-ex-rnd aria-label="Surprise me: fly to a city at random">' + GLYPH.dice + '<span class="ex-rw"> Surprise me</span></button></div><aside class="pcd" hidden aria-label="City postcard" data-ctx></aside>';
       pcd = $('.pcd', shell.pane);
       mapB();
       $('.ex-sel', shell.pane).addEventListener('change', (e) => { if (e.target.value) pick(e.target.value, true); else close(); });
@@ -388,7 +394,7 @@ function festivalsWin(shell) {
   let i = now >= 0 ? now : 0, ui = null;
   const card = (k, go) => {
     const f = list[k];
-    openCard(shell, { title: f.name, sub: 'Festivals', e: f.icon, wiki: f.wiki, text: f.what, rows: [['Where', f.where], ['When', f.when], ['Food', f.food], ['Greeting', f.hello]],
+    openCard(shell, { title: f.name, sub: 'Festivals', art: () => copyOf(sceneShot('festival', f.id, 480, 300), 480, 300), wiki: f.wiki, text: f.what, rows: [['Where', f.where], ['When', f.when], ['Food', f.food], ['Greeting', f.hello]],
       extra: '<button type="button" class="btn small" data-hear data-say="' + esc(f.hello) + '" data-lang="' + esc(f.hl || 'en-GB') + '">' + icon('chat') + 'Say the greeting</button>',
       nav: (d) => { const j = (k + d + list.length) % list.length; go(j, true); card(j, go); } });
   };
@@ -413,7 +419,7 @@ function festivalsWin(shell) {
         extra: '<button type="button" class="btn small" data-fs-hello>' + icon('chat') + '<span>Say the greeting</span></button>',
         say: (k) => shell.say(list[k].name + '. ' + list[k].what, 'en-GB'),
         click(e) { if (e.target.closest('[data-fs-hello]')) { const f = list[i]; shell.say(f.hello, f.hl || 'en-GB'); } } });
-      ui.mount(list.map((f) => ({ e: f.icon, name: f.name, hot: D.FESTIVAL_MONTHS[f.id] === month ? 'This month' : '' })));
+      ui.mount(list.map((f) => ({ th: 'festival:' + f.id, name: f.name, hot: D.FESTIVAL_MONTHS[f.id] === month ? 'This month' : '' })));
       ui.el.classList.add('sg-fest');
       go(i);
     },
@@ -443,7 +449,7 @@ function wondersWin(shell) {
   const list = () => sets[tab] || sets.ancient;
   function more(k) {
     const l = list(), x = l[k];
-    openCard(shell, { title: x.name, sub: tab === 'ancient' ? 'Seven Wonders of the Ancient World' : 'New Seven Wonders of the World', e: x.icon, wiki: x.wiki, text: x.text,
+    openCard(shell, { title: x.name, sub: tab === 'ancient' ? 'Seven Wonders of the Ancient World' : 'New Seven Wonders of the World', art: () => copyOf(sceneShot('wonders', x.id, 480, 300), 480, 300), wiki: x.wiki, text: x.text,
       rows: [['Where', x.where], ['Built', x.built], ['Height', x.h ? 'About ' + x.h + ' metres' : ''], ['Still standing?', x.standing ? 'Yes' : 'No']],
       nav: (d) => { const j = (k + d + l.length) % l.length; go(j, true); more(j); } });
   }
@@ -461,7 +467,7 @@ function wondersWin(shell) {
   scene.onPhase = (ph, user) => { shell.resound(); if (!user && owned) { owned = false; shell.recaption(); } };
   function mountList() {
     ui = stageUI(shell, { label: tab === 'ancient' ? 'The ancient seven' : 'The new seven', go, more, say: (k) => { const x = list()[k]; shell.say(x.name + '. ' + x.text, 'en-GB'); } });
-    ui.mount(list().map((x) => ({ e: x.icon, name: x.name })));
+    ui.mount(list().map((x) => ({ th: 'wonders:' + x.id, name: x.name })));
     ui.el.classList.add('sg-fest');
   }
   const W = {
@@ -571,22 +577,58 @@ function recordsWin(shell) {
   return W;
 }
 
-/* ---------- Wonders of Malaysia, in English or Bahasa Melayu ---------- */
+/* ---------- Wonders of Malaysia, in English or Bahasa Melayu: twelve live scenes drawn on the wonders engine ---------- */
+/* what each tap in the Wonders of Malaysia feels like, when it makes no sound */
+const MY_FEEL = { myRoar: 'roar', myLeap: 'splash', myBatsWave: 'buzz', myGlow: 'buzz', myFliesCome: 'buzz', myNest: 'thud', myTakeoff: 'whoosh', myCanopy: 'whoosh', myHatch: 'tap', myHop: 'tap' };
 function malaysiaWin(shell) {
-  const list = D.MALAYSIA;
+  const list = D.MALAYSIA.filter((x) => MALAYSIA_SCENES.includes(x.id));
   const ms = () => shell.lang() === 'ms';
-  const W = stageWin(shell, list, {
-    label: 'Wonders of Malaysia', bm: true,
-    kick: (x) => (ms() ? 'Keajaiban Malaysia · ' + x.name : 'Wonders of Malaysia · ' + x.bmName),
-    name: (x) => (ms() ? x.bmName : x.name), text: (x) => (ms() ? x.bm : x.text),
-    more: function more(k, go) { const m = list[k]; openCard(shell, { title: ms() ? m.bmName : m.name, sub: ms() ? 'Keajaiban Malaysia' : 'Wonders of Malaysia', e: m.icon, wiki: m.wiki, text: ms() ? m.bm : m.text, lang: ms() ? 'ms' : 'en', nav: (d) => { const j = (k + d + list.length) % list.length; go(j, true); more(j, go); } }); }
-  });
-  return Object.assign(W, {
-    scene: W.stage, pad: true, bm: true, quiz: 'malaysia', sources: 'malaysia',
-    caption: (m) => items(D.CAPTIONS.malaysia.facts, D.CAPTIONS.malaysia.wonders, m),
-    setLang() { W.relabel(); },
-    context() { const x = list[W.i]; return 'The Wonders of Malaysia window shows ' + x.name + ' (' + x.bmName + ').'; }
-  });
+  const scene = makeWonders();
+  let i = 0, ui = null, owned = false, tap = null;      // tap: the fact the class tapped for, in short parts, while it is on the caption
+  const name = (x) => (ms() ? x.bmName : x.name), text = (x) => (ms() ? x.bm : x.text);
+  const kick = (x) => (ms() ? 'Keajaiban Malaysia · ' + x.name : 'Wonders of Malaysia · ' + x.bmName);
+  const said = (s) => (s ? { kind: ms() ? s.bmKind || s.kind : s.kind, text: ms() ? s.bm || s.text : s.text, lang: ms() ? 'ms' : 'en-GB' } : null);
+  function more(k) {
+    const x = list[k];
+    openCard(shell, { title: name(x), sub: ms() ? 'Keajaiban Malaysia' : 'Wonders of Malaysia', art: () => copyOf(sceneShot('wonders', x.id, 480, 300), 480, 300), wiki: x.wiki, text: text(x), lang: ms() ? 'ms' : 'en',
+      nav: (d) => { const j = (k + d + list.length) % list.length; go(j, true); more(j); } });
+  }
+  const go = (k, user) => {
+    const n = list.length; i = ((k % n) + n) % n;
+    const x = list[i];
+    scene.set(x.id);
+    if (ui) ui.set(i, { kicker: kick(x), name: name(x), text: text(x) });
+    shell.setSub(x.id);
+    shell.resound();
+    if (owned) { owned = false; tap = null; shell.recaption(); }
+    if (user) sfx('whoosh');
+  };
+  scene.onPhase = (ph, user) => { shell.resound(); if (!user && owned) { owned = false; tap = null; shell.recaption(); } };
+  function mountList() {
+    ui = stageUI(shell, { label: 'Wonders of Malaysia', go, more, moreText: ms() ? 'Ketahui lagi' : 'Find out more', sayText: ms() ? 'Baca' : 'Read aloud',
+      say: (k) => { const x = list[k]; shell.say(name(x) + '. ' + text(x), ms() ? 'ms' : 'en-GB'); } });
+    ui.mount(list.map((x) => ({ th: 'wonders:' + x.id, name: name(x) })));
+  }
+  const W = {
+    scene, pad: false, bm: true, quiz: 'malaysia', sources: 'malaysia',
+    get sound() { return scene.sound; },
+    audio(on) { if (on && scene.f) Music.start(scene.f.music); else Music.stop(); },
+    caption: (m) => (tap ? tap.map(said) : []).concat(items(D.CAPTIONS.malaysia.facts, D.CAPTIONS.malaysia.wonders, m)),   // a tapped fact first, a part at a time
+    mount() { mountList(); go(i); },
+    setLang() { if (!ui) return; ui.remove(); mountList(); const k = i; go(k); if (owned) { owned = false; tap = null; shell.recaption(); } },
+    unmount() { Music.stop(); if (ui) ui.remove(); ui = null; },
+    arrow(d) { go(i + d, true); },
+    sub(s) { const k = list.findIndex((x) => x.id === s); if (k >= 0) go(k); return k >= 0; },
+    onScene(r) {
+      if (!r) return;
+      if (!shell.soundOn()) haptic(r.phase ? 'tick' : MY_FEEL[r.tap] || 'tap');      // with the sound off, the tap is still felt
+      const parts = r.say ? [].concat(r.say) : [];                                  // each fact comes in parts short enough for two lines
+      if (!parts.length) return;
+      tap = parts; owned = true; shell.recaption(); shell.show(said(parts[0]), true);
+    },
+    context() { const x = list[i]; return 'The Wonders of Malaysia window shows ' + x.name + ' (' + x.bmName + '), drawn live' + (scene.f && scene.f.phases ? ' (' + scene.phase + ')' : '') + '. Tapping the scene makes something happen there.'; }
+  };
+  return W;
 }
 
 /* ---------- Seasons ---------- */
