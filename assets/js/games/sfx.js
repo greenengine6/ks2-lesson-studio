@@ -1,7 +1,12 @@
-/* Game sounds, made live with the Web Audio API (there are no sound files): a balloon pop, a bright "right" ding, a
-   soft "not that one" buzz, a card flip, a whoosh, a tick, a start beep, a step forward and a fanfare.
+/* Game sounds: a bubble pop, a bright "right" marimba run, a soft "not that one", a card flip, a whoosh, a tick, a start
+   cue, a step forward and a fanfare. They are the site's recorded interface sounds (minisprite.js); until those
+   have arrived (or offline) the live-made versions below play. Each is also felt on a phone that can vibrate.
    One AudioContext, made on the first sound (browsers only allow sound after a tap); a host page may pass its own
-   (o.ctx) so the main site shares the one it already has. Imports nothing, so the pupils' page can use it. */
+   (o.ctx) so the main site shares the one it already has. Imports only small modules, so the pupils' page can use it. */
+import { haptic } from '../fx/haptics.js?v=cdc164df';
+import { warmUI, playUI } from '../fx/minisprite.js?v=cdc164df';
+const REC = { pop: 'pop', right: 'success', wrong: 'error', flip: 'flip', whoosh: 'whoosh', tick: 'tick', go: 'go', step: 'step', win: 'win', lose: 'lose' };
+const FEEL = { pop: 'pop', right: 'success', wrong: 'error', flip: 'tick', whoosh: 'whoosh', go: 'tick', step: 'tick', win: 'success', lose: 'error' };
 export function makeSfx(o) {
   o = o || {};
   let ctx = o.ctx || null, out = null, on = o.sound !== false, noiseBuf = null;
@@ -19,6 +24,7 @@ export function makeSfx(o) {
       const comp = ctx.createDynamicsCompressor();
       comp.threshold.value = -12; comp.knee.value = 10; comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.2;
       out.connect(comp); comp.connect(ctx.destination);
+      warmUI(ctx);
     }
     return ctx;
   }
@@ -69,9 +75,10 @@ export function makeSfx(o) {
   };
   return {
     play(name) {
+      if (FEEL[name]) haptic(FEEL[name]);
       const c = ensure();
       if (!c || !FX[name] || c.state !== 'running' && c.state !== 'suspended') return;
-      try { FX[name](c.currentTime + 0.01); } catch (e) { /* a sound never stops a game */ }
+      try { if (playUI(c, REC[name], out, { gain: 1.1 })) return; FX[name](c.currentTime + 0.01); } catch (e) { /* a sound never stops a game */ }
     },
     get sound() { return on; },
     set sound(v) { on = !!v; },

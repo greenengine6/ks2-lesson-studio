@@ -1,7 +1,11 @@
-/* Ambient soundscapes made live with the Web Audio API (no audio files), plus read-aloud in Symphony's voice.
-   Scenes: rain, ocean, wind, river, forest, birds, night, city, market. Crossfades between scenes. */
+/* Ambient soundscapes, plus read-aloud in Symphony's voice. Each place's sound is real field recordings layered and
+   looped (samples.js: rain, waves, wind, a stream, birds, crickets, cicadas, frogs, a cave's drips…). Until its
+   files have arrived (the first time, or offline) a live-made version plays, and the recording fades in over it.
+   Scenes: rain, ocean, beach, wind, river, forest, birds, night, city, market, jungle, mangrove, cave, storm,
+   mountain, hurricane, fire. Crossfades between scenes. */
 import { Voice } from './voice.js?v=cdc164df';
 import { Sound } from './audio.js?v=cdc164df';
+import { Samples } from './samples.js?v=cdc164df';
 
 let ctx = null;
 function ac() { ctx = Sound.ctx(); return ctx; }          // the site's one sound engine (audio.js): one switch, quiet while Symphony speaks
@@ -131,24 +135,47 @@ const SCENES = {
     return () => { stopCity(); bell(); };
   }
 };
-export const SOUND_KINDS = Object.keys(SCENES);
+/* the live-made stand-in for a place that only has recordings */
+const STAND_IN = { beach: 'ocean', jungle: 'forest', mangrove: 'night', cave: 'wind', storm: 'rain', mountain: 'wind', hurricane: 'wind', fire: '' };
+export const SOUND_KINDS = Object.keys(SCENES).concat(Object.keys(STAND_IN));
+const REC = 0.85;                                          // the recordings' level (they are mixed to one loudness)
 
 export const Ambient = {
-  kind: 'none', vol: 0.55, layers: [],
+  kind: 'none', vol: 0.55, layers: [], token: 0,
   supported: !!(window.AudioContext || window.webkitAudioContext),
   play(kind) {
     const c = ac();
     if (!c) return;
-    if (!SCENES[kind]) kind = 'none';
+    if (!SCENES[kind] && !(kind in STAND_IN)) kind = 'none';
     if (kind === this.kind) return;
     this.fadeOutAll(1.2);
     this.kind = kind;
-    if (kind === 'none') return;
+    const token = ++this.token;
+    if (kind === 'none' || !Sound.on) return;              // with sound off nothing plays (or loads); it starts when sound comes back
     const g = gain(c, 0); g.connect(Sound.ambience());
-    const stop = SCENES[kind](c, g);
     g.gain.setValueAtTime(0, c.currentTime);
-    g.gain.linearRampToValueAtTime(this.vol, c.currentTime + 1.6);
-    this.layers.push({ g, stop });
+    g.gain.linearRampToValueAtTime(1, c.currentTime + 1.6);
+    const rec = gain(c, REC); rec.connect(g);
+    let stopRec = Samples.bed(kind, rec), stopLive = null;
+    const layer = { g, stop: () => { if (stopRec) stopRec(); if (stopLive) stopLive(); } };
+    this.layers.push(layer);
+    if (stopRec) return;
+    // not here yet: the live-made sound now, and the recording fades in over it when it arrives
+    const fake = SCENES[kind] || SCENES[STAND_IN[kind]];
+    const lg = gain(c, this.vol); lg.connect(g);
+    if (fake) stopLive = fake(c, lg);
+    rec.gain.value = 0;
+    Samples.loadBed(kind).then((ok) => {
+      if (!ok || token !== this.token || !this.layers.includes(layer)) return;
+      const c2 = ac(); if (!c2) return;
+      stopRec = Samples.bed(kind, rec);
+      if (!stopRec) return;
+      const t = c2.currentTime;
+      rec.gain.cancelScheduledValues(t); rec.gain.setValueAtTime(0, t); rec.gain.linearRampToValueAtTime(REC, t + 2.5);
+      lg.gain.cancelScheduledValues(t); lg.gain.setValueAtTime(lg.gain.value, t); lg.gain.linearRampToValueAtTime(0, t + 2.5);
+      const old = stopLive; stopLive = null;
+      setTimeout(() => { try { if (old) old(); lg.disconnect(); } catch (e) { /* already stopped */ } }, 2700);
+    });
   },
   fadeOutAll(sec) {
     const c = ctx; if (!c) return;
@@ -160,6 +187,11 @@ export const Ambient = {
   },
   stop() { this.fadeOutAll(0.8); this.kind = 'none'; }
 };
+Sound.onChange((on) => {
+  const k = Ambient.kind;
+  if (!on) { Ambient.fadeOutAll(0.3); return; }
+  if (k !== 'none') { Ambient.kind = 'none'; Ambient.play(k); }
+});
 
 /* ---------------- read aloud: always Symphony's voice (see voice.js) ---------------- */
 export const Speech = {

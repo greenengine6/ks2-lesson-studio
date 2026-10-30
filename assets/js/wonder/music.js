@@ -1,18 +1,27 @@
-/* Wonder Window's music and sound effects, made live with the Web Audio API (no audio files) and played through the
-   site's one sound engine (audio.js), so the Sound switches and Symphony's quiet-while-she-speaks all apply.
+/* Wonder Window's music and sound effects, played through the site's one sound engine (audio.js), so the Sound
+   switches and Symphony's quiet-while-she-speaks all apply.
 
-   Music: a small band for each festival, in that festival's own style: gongs and a lion-dance drum, a dhol beat,
-   tabla and a plucked raga, samba drums, sleigh bells, a guzheng, a sape, temple chimes… Each style is a tempo, a
-   drum pattern and a scale the melody wanders through, so it never plays the same tune twice.
-   Effects: fireworks, firecrackers, a water splash, a lantern lifting off, a puff of colour, a jet plane, galloping
-   hooves, a cheering crowd, and a deep swell for when the camera pulls back. */
+   Music: a small band for each festival and wonder, in its own style: gongs and a lion-dance drum, a dhol beat,
+   tabla and a sitar raga, samba drums, sleigh bells, a koto for the guzheng, a sape, temple bells, a qanun for the
+   oud, a harp for the lyre, pan pipes, an ocarina… Each style is a tempo, a drum pattern and a scale the melody
+   wanders through, so it never plays the same tune twice. The notes are recorded instruments (the FluidR3 GM
+   soundfont, CC BY 3.0) with a shared hall reverb; the drums are recorded and designed hits. The music waits a
+   moment for its instrument to arrive; offline it plays the old live-made instruments.
+   Effects: recorded or designed offline (samples.js, assets/sounds/fx-*.mp3): fireworks, firecrackers, a splash, a
+   lantern lifting off, a jet, hooves, a cheering crowd, thunder, a tiger, a hornbill, bats, fireflies… Each one is
+   also felt on a phone that can vibrate, when it follows a touch (haptics.js). */
 import { Sound } from '../fx/audio.js?v=cdc164df';
+import { Samples } from '../fx/samples.js?v=cdc164df';
+import { haptic } from '../fx/haptics.js?v=cdc164df';
+import { FX as BANK } from '../fx/soundbank.js?v=cdc164df';
 
 const live = () => { const c = Sound.ctx(); return c && c.state === 'running' ? c : null; };
 let musicBus = null, fxBus = null, noiseBuf = null;
+let wetBus = null;
 function buses(c) {
   if (!musicBus) { musicBus = c.createGain(); musicBus.gain.value = 0.85; musicBus.connect(Sound.ambience()); }
   if (!fxBus) { fxBus = c.createGain(); fxBus.gain.value = 1; fxBus.connect(Sound.effects()); }
+  if (!wetBus) wetBus = Samples.reverb(musicBus);
 }
 function noise(c) {
   if (noiseBuf) return noiseBuf;
@@ -126,32 +135,64 @@ const STYLES = {
   none: null
 };
 
+/* ---------------- recorded instruments for each style ---------------- */
+const KIT = { gamelan: 'i-vibraphone', sape: 'i-guitar-steel', gongs: 'i-glockenspiel', guzheng: 'i-koto', chimes: 'i-tubular', dhol: 'i-banjo', tabla: 'i-sitar',
+  bells: 'i-glockenspiel', klezmer: 'i-clarinet', samba: 'i-marimba', waltz: 'i-guitar-nylon', thai: 'i-xylophone', oud: 'i-dulcimer', lyre: 'i-harp',
+  bossa: 'i-guitar-nylon', andes: 'i-pan-flute', maya: 'i-ocarina' };
+const HELD = { 'i-clarinet': 0.42, 'i-pan-flute': 0.5, 'i-ocarina': 0.48 };       // wind instruments: notes are cut short, with a soft release
+const TRIM = { 'i-tubular': 1.8, 'i-clarinet': 1.4, 'i-ocarina': 1.15 };                // a few instruments sit a little low in the mix
+let curKit = '';
+/* one note on the style's recorded instrument; false if it is not ready (the live-made one plays instead) */
+function noteOn(c, t, midi, v) {
+  if (!curKit) return false;
+  return Samples.note(curKit, midi, { out: musicBus, send: wetBus, when: t, gain: Math.min(0.6, v * 3.6 * (TRIM[curKit] || 1)), dur: HELD[curKit] });
+}
+/* a drum hit from the recorded kit; the style decides which drum each part plays */
+function drumOn(c, t, k, f, v, style) {
+  let name = k, rate = 1, g = Math.min(0.5, v * 2.4);
+  if (k === 'kick') { if (style === 'tabla') { name = 'bayan'; rate = f / 72; } else { name = f < 60 ? 'kick' : 'kick2'; rate = Math.max(0.8, Math.min(1.25, f / (f < 60 ? 55 : 66))); } }
+  else if (k === 'slap') { name = style === 'tabla' ? 'dayan' : 'slap'; rate = style === 'tabla' ? 1 : Math.max(0.8, Math.min(1.3, f / 2400)); }
+  else if (k === 'shake') { name = style === 'bells' ? 'sleigh' : 'shake'; g *= 0.8; }
+  else if (k === 'wood') { name = f >= 1000 ? 'wood' : 'wood2'; rate = Math.max(0.8, Math.min(1.3, f / (f >= 1000 ? 1400 : 700))); }
+  else if (k === 'clap' || k === 'crash') { name = k; }
+  else return false;
+  return Samples.sprite('drums', name, { out: musicBus, when: t, gain: g, rate });
+}
+
 /* ---------------- the music player ---------------- */
 export const Music = {
-  style: '', timer: 0, next: 0, step: 0, deg: 0, bar: 0, motif: null, droneAt: 0,
+  style: '', timer: 0, next: 0, step: 0, deg: 0, bar: 0, motif: null, droneAt: 0, wait: 0,
   start(style) {
-    if (style === this.style && this.timer) return;
+    if (style === this.style && (this.timer || this.wait)) return;
     this.stop();
     if (!STYLES[style]) return;
     this.style = style; this.step = 0; this.bar = 0; this.deg = 0; this.next = 0; this.motif = null;
-    this.timer = setInterval(() => this.tick(), 90);
-    this.tick();
+    curKit = KIT[style] || '';
+    // wait (a moment at most) for the recorded instrument and drums, so the tune does not change voice half way
+    const go = () => { if (this.style !== style || this.timer) return; clearTimeout(this.wait); this.wait = 0; this.timer = setInterval(() => this.tick(), 90); this.tick(); };
+    if (curKit && Sound.on && !(Samples.isReady('kit', curKit) && Samples.isReady('kit', 'drums'))) {
+      this.wait = setTimeout(go, 1600);
+      Promise.all([Samples.load('kit', curKit), Samples.load('kit', 'drums')]).then(go);
+    } else go();
   },
-  stop() { clearInterval(this.timer); this.timer = 0; this.style = ''; },
+  stop() { clearInterval(this.timer); clearTimeout(this.wait); this.timer = 0; this.wait = 0; this.style = ''; },
   tick() {
     const c = live(), S = STYLES[this.style];
-    if (!c || !S) return;
+    if (!c || !S || !Sound.on) return;
     buses(c);
     const sec = 60 / S.bpm / 4;                          // one 16th note
     if (!this.next || this.next < c.currentTime) this.next = c.currentTime + 0.06;
     while (this.next < c.currentTime + 0.3) { this.play(c, S, this.next); this.next += sec; this.step = (this.step + 1) % S.steps; if (!this.step) this.bar += 1; }
   },
   play(c, S, t) {
-    const i = this.step, out = musicBus;
-    S.drums.forEach(([k, f, v, pat]) => { if (pat[i]) INST[k](c, t, f, v * pat[i] * (0.85 + Math.random() * 0.3), out); });
-    if (S.gong && (this.bar * S.steps + i) % S.gong === 0) INST.gong(c, t, hz(S.root - 24), 0.09, out);
-    if (S.drone && i === 0 && this.bar % 2 === 0) { INST.pluck(c, t, hz(S.root - 12), 0.05, out); INST.pluck(c, t + 0.01, hz(S.root - 5), 0.035, out); }
-    if (S.whistle && i === 0 && this.bar % 4 === 3) [0, 2, 4].forEach((k) => INST.whistle(c, t + k * 60 / S.bpm / 4, 2200, 0.03, out));
+    const i = this.step, out = musicBus, st = this.style;
+    S.drums.forEach(([k, f, v, pat]) => { if (pat[i]) { const vv = v * pat[i] * (0.85 + Math.random() * 0.3); if (!drumOn(c, t, k, f, vv, st)) INST[k](c, t, f, vv, out); } });
+    if (S.gong && (this.bar * S.steps + i) % S.gong === 0 && !Samples.sprite('drums', 'gong', { out, when: t, gain: 0.2, rate: hz(S.root - 24) / 72, send: wetBus })) INST.gong(c, t, hz(S.root - 24), 0.09, out);
+    if (S.drone && i === 0 && this.bar % 2 === 0) {
+      if (!noteOn(c, t, S.root - 12, 0.05)) INST.pluck(c, t, hz(S.root - 12), 0.05, out);
+      if (!noteOn(c, t + 0.01, S.root - 5, 0.035)) INST.pluck(c, t + 0.01, hz(S.root - 5), 0.035, out);
+    }
+    if (S.whistle && i === 0 && this.bar % 4 === 3 && !Samples.sprite('drums', 'whistle', { out, when: t, gain: 0.18 })) [0, 2, 4].forEach((k) => INST.whistle(c, t + k * 60 / S.bpm / 4, 2200, 0.03, out));
     if (!S.mel[i]) return;
     // the melody: an ostinato repeats a short figure with small changes; otherwise a gentle random walk
     let deg;
@@ -168,23 +209,53 @@ export const Music = {
     const n = S.scale.length, base = S.oct[this.bar % S.oct.length] || 0;
     const noteOf = (d) => S.root + base + 12 * Math.floor(d / n) + S.scale[((d % n) + n) % n];
     const note = noteOf(deg), v = S.vol * S.mel[i] * (0.8 + Math.random() * 0.4);
-    INST[S.inst](c, t, hz(note), v, out);
-    if (S.gliss && Math.random() < 0.18) [1, 2, 3].forEach((k) => INST.pluck(c, t + k * 0.045, hz(noteOf(deg + k)), v * 0.5, out));     // a little run up the strings
-    if (S.chord && i % 8 === 0) { INST[S.inst](c, t, hz(note - 8), v * 0.5, out); INST[S.inst](c, t, hz(note - 5), v * 0.4, out); }
+    const play = (tt, m, vv) => { if (!noteOn(c, tt, m, vv)) INST[S.inst](c, tt, hz(m), vv, out); };
+    play(t, note, v);
+    if (S.gliss && Math.random() < 0.18) [1, 2, 3].forEach((k) => play(t + k * 0.045, noteOf(deg + k), v * 0.5));     // a little run up the strings
+    if (S.chord && i % 8 === 0) { play(t, note - 8, v * 0.5); play(t, note - 5, v * 0.4); }
   }
 };
 
 /* ---------------- one-off sound effects ---------------- */
+/* What each effect feels like on a phone (only when it follows a touch). */
+const FEEL = { firework: 'boom', burst: 'boom', crackle: 'buzz', splash: 'splash', lantern: 'whoosh', poof: 'pop', sparkle: 'tick', petals: 'tick', bell: 'tap', gong: 'thud',
+  candle: 'tap', plane: 'whoosh', land: 'success', hooves: 'gallop', cheer: 'success', swell: 'whoosh', pop: 'pop', tick: 'tick', thunder: 'rumble', drum: 'steps',
+  gust: 'whoosh', chime: 'tick', rattle: 'buzz', flare: 'boom', hornbill: 'pop', roar: 'roar', bats: 'buzz', glow: 'tick', monkeys: 'pop', orangutan: 'heartbeat',
+  rustle: 'buzz', frogs: 'pop', hatch: 'buzz', trumpet: 'roar', wings: 'whoosh', waves: 'splash' };
+const TUNED = new Set(['chime', 'sparkle', 'land', 'glow', 'petals', 'lantern', 'candle', 'bell', 'gong']);
+/* the recorded or designed version; false if it is not ready yet */
+function recorded(c, name, a) {
+  const o = { out: fxBus, rate: TUNED.has(name) ? 1 : 0.97 + Math.random() * 0.06 };
+  if (name === 'bell') return Samples.note('i-tubular', a || 84, { out: fxBus, gain: 0.8 });
+  if (name === 'firework') return Samples.fx(a ? 'fireworkbig' : 'firework', o);
+  if (name === 'thunder') return Samples.fx(Math.random() < 0.5 ? 'thunder' : 'thunder2', o);
+  if (name === 'plane' && a) return Samples.fx('plane', Object.assign(o, { rate: Math.max(0.7, Math.min(1.3, 2.8 / a)) }));
+  if (name === 'hooves' && a > 10) {                                   // a long gallop: the recording again, a stride later
+    let ok = false; const n = Math.ceil(a * 0.18 / 2.0);
+    for (let k = 0; k < n; k++) ok = Samples.fx('hooves', Object.assign({}, o, { when: c.currentTime + k * 1.92, fade: k === n - 1 ? 0.4 : 0 })) || ok;
+    return ok;
+  }
+  return Samples.fx(name, o);
+}
 export const Fx = {
   on: true,
   play(name, a) {
-    if (!this.on) return;
+    if (FEEL[name]) haptic(FEEL[name]);
+    if (!this.on || !Sound.on) return;
     const c = live();
-    if (!c || !FXS[name]) return;
+    if (!c) return;
     buses(c);
+    try { if (recorded(c, name, a)) return; } catch (e) { /* the live-made one below */ }
+    if (!FXS[name]) return;
     try { FXS[name](c, c.currentTime + 0.01, fxBus, a); } catch (e) { /* ignore */ }
   }
 };
+/* The Wonder Window is open: fetch every effect's file quietly in the background (small; they decode on first use). */
+let fetched = false;
+function prefetchFx() { if (fetched || !Sound.on) return; fetched = true; Samples.prefetch(Object.keys(BANK).map((n) => 'fx:' + n).concat(['i-tubular'])); }
+['pointerdown', 'keydown'].forEach((t) => window.addEventListener(t, () => setTimeout(prefetchFx, 1500), { once: true, capture: true, passive: true }));
+Sound.onChange((on) => { if (on) setTimeout(prefetchFx, 800); });
+if (Sound.running) setTimeout(prefetchFx, 2000);
 const FXS = {
   firework(c, t, out, big) {
     hiss(c, t, 0.7, 'bandpass', 900, 3, 0.03, out, 0.3, 3800);                                     // the rocket's whistle up
@@ -237,6 +308,21 @@ const FXS = {
   gust(c, t, out) { hiss(c, t, 2.2, 'bandpass', 480, 0.8, 0.07, out, 0.7, 1500); },                                                    // a gust of mountain wind
   chime(c, t, out) { [79, 84, 88, 91].forEach((m, k) => INST.bell(c, t + k * 0.09, hz(m), 0.03, out)); },                                // the light changes
   rattle(c, t, out) { for (let k = 0; k < 12; k++) INST.shake(c, t + k * 0.06, 5000 + Math.random() * 1500, 0.03, out); INST.kick(c, t + 0.8, 60, 0.12, out); },   // the serpent's shadow
-  flare(c, t, out) { hiss(c, t, 1.2, 'lowpass', 1200, 0.6, 0.12, out, 0.05, 300); for (let k = 0; k < 8; k++) hiss(c, t + 0.1 + Math.random() * 0.6, 0.03, 'highpass', 3500, 0.6, 0.03, out); }   // a fire roaring up
+  flare(c, t, out) { hiss(c, t, 1.2, 'lowpass', 1200, 0.6, 0.12, out, 0.05, 300); for (let k = 0; k < 8; k++) hiss(c, t + 0.1 + Math.random() * 0.6, 0.03, 'highpass', 3500, 0.6, 0.03, out); },   // a fire roaring up
+  // Malaysia's wonders and the record breakers (stand-ins for the recorded or designed versions)
+  hornbill(c, t, out) { for (let k = 0; k < 4; k++) { const s = t + k * 0.38; osc(c, 'sawtooth', 330, s, 0.19, 280).connect(bandOut(c, s, 0.19, 700, 0.07, out)); } },
+  roar(c, t, out) { osc(c, 'sawtooth', 150, t, 2, 95).connect(bandOut(c, t, 2, 600, 0.12, out, 0.3)); hiss(c, t, 1.8, 'lowpass', 500, 0.6, 0.08, out, 0.3, 200); },
+  bats(c, t, out) { for (let k = 0; k < 30; k++) hiss(c, t + Math.random() * 2, 0.03, 'bandpass', 1500 + Math.random() * 1500, 1.5, 0.03, out); for (let k = 0; k < 10; k++) { const s = t + Math.random() * 2; osc(c, 'sine', 8000, s, 0.03, 6000).connect(env(c, s, 0.01, 0.002, 0.025, out)); } },
+  glow(c, t, out) { [96, 100, 103, 108, 103, 100].forEach((m, k) => INST.bell(c, t + k * 0.18 + Math.random() * 0.1, hz(m), 0.018, out)); },
+  monkeys(c, t, out) { for (let k = 0; k < 3; k++) { const s = t + k * 0.5; osc(c, 'sawtooth', 200, s, 0.26, 160).connect(bandOut(c, s, 0.26, 520, 0.08, out)); } },
+  orangutan(c, t, out) { for (let k = 0; k < 3; k++) { const s = t + 0.8 + k * 0.85; osc(c, 'sawtooth', 220, s, 0.7, 160).connect(bandOut(c, s, 0.7, 450, 0.09, out, 0.12)); } },
+  rustle(c, t, out) { for (let k = 0; k < 40; k++) hiss(c, t + Math.random() * 0.9, 0.012, 'bandpass', 2000 + Math.random() * 4000, 1.2, 0.03, out); },
+  frogs(c, t, out) { for (let k = 0; k < 6; k++) { const s = t + k * 0.42; osc(c, 'sawtooth', 280, s, 0.12, 230).connect(bandOut(c, s, 0.12, 900, 0.06, out)); } },
+  hatch(c, t, out) { for (let k = 0; k < 30; k++) hiss(c, t + Math.random() * 2.5, 0.05, 'bandpass', 800 + Math.random() * 1500, 1, 0.025, out); },
+  trumpet(c, t, out) { osc(c, 'sawtooth', 420, t, 1.4, 640).connect(bandOut(c, t, 1.4, 1200, 0.06, out, 0.1)); },
+  wings(c, t, out) { for (let k = 0; k < 5; k++) hiss(c, t + k * 0.4, 0.3, 'bandpass', 400, 0.9, 0.06, out, 0.06, 1200); },
+  waves(c, t, out) { hiss(c, t, 4, 'lowpass', 900, 0.6, 0.12, out, 1.2, 300); }
 };
+/* a harsh source through one formant, with an envelope: the stand-in animal calls */
+function bandOut(c, t, d, f, peak, out, a) { const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = 2; bp.connect(env(c, t, peak, a || 0.02, d, out)); return bp; }
 export const STYLE_NAMES = Object.keys(STYLES);

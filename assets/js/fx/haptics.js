@@ -10,7 +10,7 @@ const read = () => { try { return localStorage.getItem(KEY) !== 'off'; } catch (
 let on = read(), lastTouch = 0, lastBuzz = 0, sw = null;
 
 const coarse = (() => { try { return window.matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } })();
-const canVibrate = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
+const canVibrate = coarse && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';   // desktop browsers have the call but no motor
 const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
 const apple = /iPhone|iPod/.test(ua) || (/iPad|Macintosh/.test(ua) && typeof navigator !== 'undefined' && navigator.maxTouchPoints > 1);
 
@@ -40,6 +40,7 @@ function tickIOS() {
       l.setAttribute('aria-hidden', 'true'); l.style.display = 'none';
       i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1;
       l.appendChild(i); document.head.appendChild(l);
+      l.addEventListener('click', (e) => e.stopPropagation());      // the page's own click handlers never see it
       sw = l;
     }
     sw.click();
@@ -64,6 +65,27 @@ export function haptic(kind, o) {
     t += Math.max(70, p[k] + (p[k + 1] || 0));
   }
 }
+/* Silent touches still feel like something: a tap on a Wonder Window scene, a pupil's button, a game. Runs after
+   the page's own click handlers, and only if they did not already play a feel (a sound with its own pattern). */
+const FELT = '#view-play, .jn, [data-feel], .kg-overlay, .qstage, .ltask, .play-pick';
+document.addEventListener('click', (e) => {
+  const t = e.target;
+  if (!on || !(t instanceof Element) || !t.closest(FELT)) return;
+  setTimeout(() => {
+    if (lastBuzz >= lastTouch - 5) return;                           // this touch already played its own feel
+    if (t.closest('canvas')) haptic('tap');
+    else if (t.closest('button, a, [role="tab"], [role="radio"], [role="option"], label, summary, input[type="checkbox"], input[type="radio"]')) haptic('tick');
+  }, 0);
+}, { passive: true });
+/* A slider ticks as it passes each step (at most every 70 ms), like a dial. */
+let lastSlide = 0;
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (!on || !(t instanceof HTMLInputElement) || t.type !== 'range') return;
+  const now = performance.now(); if (now - lastSlide < 70) return; lastSlide = now;
+  haptic('tick');
+}, { passive: true });
+
 export const Haptics = {
   get on() { return on; },
   set on(v) { on = !!v; try { localStorage.setItem(KEY, on ? 'on' : 'off'); } catch (e) { /* private mode */ } if (on) haptic('success', { force: true }); },

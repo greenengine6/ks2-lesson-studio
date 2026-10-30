@@ -1,7 +1,9 @@
 /* One sound engine for the whole site. Every sound effect, the ambient soundscapes, the Wonder Window music and the
    Earth's space sound play through it, so one switch turns them all on or off (remembered on this device), and
-   everything drops to a whisper while Symphony speaks, then comes back. All sounds are made live with the Web Audio
-   API: there are no audio files.
+   everything drops to a whisper while Symphony speaks, then comes back. The interface sounds are recorded
+   instruments and designed sounds (assets/sounds/ui.mp3: celesta, marimba, vibraphone, tubular bells, woodblock,
+   a soft glass tap, airy whooshes), fetched after the first tap; until they arrive the old live-made ones play.
+   Each sound also has a feel on a phone that can vibrate (haptics.js), even with the sound off.
 
    Sound effects, where they play:
    - switches: a soft rising note for on, a falling one for off
@@ -14,6 +16,8 @@
    - messages: a tiny blip for each notice; a glassy tick when moving between engines
    - Wonder Window: a soft breath of wind between scenes; Escape Room: a click and fanfare when a lock opens */
 import { Voice } from './voice.js?v=cdc164df';
+import { haptic } from './haptics.js?v=cdc164df';
+import { Samples } from './samples.js?v=cdc164df';
 
 const KEY = 'ks2-engine.sound.v1';
 const DUCKED = 0.12;                                   // how loud everything is while Symphony speaks
@@ -44,9 +48,11 @@ function apply(sec) {
   try { master.gain.cancelScheduledValues(t); master.gain.setTargetAtTime(level(), t, sec == null ? 0.12 : sec); } catch (e) { master.gain.value = level(); }
 }
 /* Browsers only start sound after a tap or key press. */
+let warmed = false;
 function wake() {
   const c = ensure();
   if (c && c.state === 'suspended' && on) c.resume().catch(() => {});
+  if (!warmed && on && c) { warmed = true; setTimeout(() => Samples.load('kit', 'ui'), 400); }   // the interface sounds, ready for the next tap
 }
 ['pointerdown', 'pointerup', 'touchend', 'keydown'].forEach((t) => window.addEventListener(t, wake, { capture: true, passive: true }));
 
@@ -57,7 +63,7 @@ export const Sound = {
   set on(v) {
     on = !!v;
     try { localStorage.setItem(KEY, on ? 'on' : 'off'); } catch (e) { /* private mode */ }
-    if (on) wake();
+    if (on) { warmed = false; wake(); }
     apply(0.1);
     listeners.forEach((fn) => { try { fn(on); } catch (e) { /* ignore */ } });
   },
@@ -127,8 +133,12 @@ const FX = {
   whoosh(t) { noise(t, 0.55, { f: 2600, to: 400, q: 0.7, vol: 0.04, a: 0.18 }); },
   unlock(t) { tone(t, 2200, 0.025, { type: 'square', vol: 0.03 }); tone(t + 0.03, 1500, 0.03, { type: 'square', vol: 0.025 }); FX.success(t + 0.12); }
 };
+/* What each sound feels like on a phone (haptics.js plays it only right after a touch). */
+const FEEL = { tap: 'tick', nav: 'tick', on: 'tick', off: 'tick', open: 'pop', close: 'tick', listen: 'tick', unlisten: 'tick', send: 'whoosh', success: 'success',
+  error: 'error', pop: 'pop', page: 'tick', present: 'whoosh', chime: 'pop', whoosh: 'whoosh', unlock: 'success' };
 /* Play one sound effect by name. Quietly does nothing while sound is off or before the first tap. */
 export function sfx(name, arg) {
+  if (FEEL[name]) haptic(FEEL[name]);
   if (!on || !FX[name]) return;
   const c = ensure();
   if (!c || c.state !== 'running') { if (c && c.state === 'suspended') c.resume().catch(() => {}); return; }
@@ -136,5 +146,8 @@ export function sfx(name, arg) {
   if (now - (lastFx[name] || 0) < 45) return;          // never a machine-gun of the same sound
   if (name === 'toast' && now - lastAny < 600) return; // a notice right after another sound stays quiet
   lastFx[name] = now; lastAny = now;
-  try { FX[name](c.currentTime + 0.005, arg); } catch (e) { /* ignore */ }
+  try {
+    if (Samples.sprite('ui', name, { out: sfxBus, gain: name === 'toast' ? 0.7 : 1, rate: name === 'pop' && arg ? 1 + Math.min(6, arg) * 0.09 : 1 })) return;
+    FX[name](c.currentTime + 0.005, arg);
+  } catch (e) { /* ignore */ }
 }
