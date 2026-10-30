@@ -5,11 +5,11 @@
    - The live-class hooks: when a class is live (the Classroom page), the timer, groups, signs and points also reach
      pupils' devices through live/tasks.js. When that is missing, nothing happens.
    - Icons and colours. */
-import { $, esc, store, bus, icon, reduceMotion } from '../core.js?v=49509700';
-import { mineKey } from '../library.js?v=49509700';
-import { pupils } from '../pupils.js?v=49509700';
-import { Live } from '../live/session.js?v=49509700';
-import { SOUNDS } from './alarm.js?v=49509700';
+import { $, esc, store, bus, icon, reduceMotion } from '../core.js?v=af1c9ebd';
+import { mineKey } from '../library.js?v=af1c9ebd';
+import { pupils } from '../pupils.js?v=af1c9ebd';
+import { Live } from '../live/session.js?v=af1c9ebd';
+import { SOUNDS } from './alarm.js?v=af1c9ebd';
 
 /* ---------------- settings ---------------- */
 const SET = 'ks2-engine.tools.v1';
@@ -62,7 +62,7 @@ export const liveOn = () => !!(Live && Live.on);
 /* The module is fetched once, the first time a class is live (calls made meanwhile wait for the same fetch). */
 function tasks() {
   if (!liveOn()) return Promise.resolve(null);
-  if (!tasksP) tasksP = import('../live/tasks.js?v=49509700').catch(() => null);
+  if (!tasksP) tasksP = import('../live/tasks.js?v=af1c9ebd').catch(() => null);
   return tasksP;
 }
 /* Call a live/tasks.js function only while a class is live; quietly nothing otherwise. */

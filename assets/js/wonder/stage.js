@@ -3,9 +3,9 @@
    sea bubbles, falling leaves, bats at dusk, sunbeams or speed lines. The pictures come from Wikipedia; until one
    arrives, the item's colours and emoji glow in its place, so the screen is never empty.
    Also switcher(): one scene slot that can hold different scenes (a window's tabs). */
-import { leadPicture, picURL } from '../pics.js?v=49509700';
-import { TAU, rnd, clamp, smooth, layer, view } from './util.js?v=49509700';
-import { drawCreature, creatureOf } from './fauna.js?v=49509700';
+import { leadPicture, picURL } from '../pics.js?v=af1c9ebd';
+import { TAU, rnd, clamp, smooth, layer, view } from './util.js?v=af1c9ebd';
+import { drawCreature, creatureOf } from './fauna.js?v=af1c9ebd';
 
 const photos = new Map();                  // wiki title → { p, img, ok }
 /* Load one item's photo (once). Resolves with { p, img } or null. */

@@ -7,17 +7,17 @@
    Symphony for a topic for every lesson. Reminders 5 minutes before each lesson while the site is open, and the
    whole calendar as a file for her phone.
    Other pages use the exports: the Today page (daySchedule, todayText), the Now-and-next tool (nowNext). */
-import { $, $$, esc, icon, toast, bus } from './core.js?v=49509700';
-import { subjectName } from './library.js?v=49509700';
-import { isDate, isTime, addDays, toMin, fromMin } from './ics.js?v=49509700';
-import * as S from './cal/store.js?v=49509700';
-import { weekHTML, dayHTML, monthHTML, termHTML, rangeLabel, ci, CI } from './cal/views.js?v=49509700';
-import { openItemSheet, lessonForm, eventForm, homeworkForm, rangesForm, settingsForm, closeSheet, sheetOpen, setShareHandler, openSheet } from './cal/sheet.js?v=49509700';
-import { openShare, dueThisWeek } from './cal/share.js?v=49509700';
-import { wirePlanButton, SPARK } from './cal/plan.js?v=49509700';
-import { startReminders, downloadTeacherICS, teacherICS } from './cal/extras.js?v=49509700';
+import { $, $$, esc, icon, toast, bus } from './core.js?v=af1c9ebd';
+import { subjectName } from './library.js?v=af1c9ebd';
+import { isDate, isTime, addDays, toMin, fromMin } from './ics.js?v=af1c9ebd';
+import * as S from './cal/store.js?v=af1c9ebd';
+import { weekHTML, dayHTML, monthHTML, termHTML, rangeLabel, ci, CI } from './cal/views.js?v=af1c9ebd';
+import { openItemSheet, lessonForm, eventForm, homeworkForm, rangesForm, settingsForm, closeSheet, sheetOpen, setShareHandler, openSheet } from './cal/sheet.js?v=af1c9ebd';
+import { openShare, dueThisWeek } from './cal/share.js?v=af1c9ebd';
+import { wirePlanButton, SPARK } from './cal/plan.js?v=af1c9ebd';
+import { startReminders, downloadTeacherICS, teacherICS } from './cal/extras.js?v=af1c9ebd';
 
-export { daySchedule, nowNext, upcoming, plannedFor, hasTimetable, planFor, setPlan, homeworkSetOn, nextDateOf } from './cal/store.js?v=49509700';
+export { daySchedule, nowNext, upcoming, plannedFor, hasTimetable, planFor, setPlan, homeworkSetOn, nextDateOf } from './cal/store.js?v=af1c9ebd';
 export { downloadTeacherICS as exportICS, teacherICS, startReminders };
 
 setShareHandler((list) => openShare(list, openSheet));

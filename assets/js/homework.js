@@ -5,10 +5,10 @@
    evening before. If the teacher shared them, the class's online lesson times come too, each with a reminder
    10 minutes before. Every field in the link is treated as untrusted: text only, strict limits, real dates,
    https links only. */
-import './viewport.js?v=49509700';
-import { unpackLink } from './cal/link.js?v=49509700';
-import { icsHomework, icsLessons, homeworkEvent, googleCalLink, downloadText, isDate, isTime, isHttps, subjectLabel, addDays } from './ics.js?v=49509700';
-import { fractify } from './fractions.js?v=49509700';
+import './viewport.js?v=af1c9ebd';
+import { unpackLink } from './cal/link.js?v=af1c9ebd';
+import { icsHomework, icsLessons, homeworkEvent, googleCalLink, downloadText, isDate, isTime, isHttps, subjectLabel, addDays } from './ics.js?v=af1c9ebd';
+import { fractify } from './fractions.js?v=af1c9ebd';
 
 const COLOURS = { maths: '#4F5BD5', english: '#C7356F', science: '#2E7D4F', computing: '#C2581A', history: '#9A6A00', geography: '#2B76C6', art: '#8B44C2', dt: '#4B6475', music: '#A63E91', pe: '#0B7F99', pshe: '#D4566F', re: '#6B5B2E', bm: '#1F7A75', mandarin: '#B42020', french: '#3949AB', spanish: '#B7791F', general: '#5B52E6' };
 const PATHS = {

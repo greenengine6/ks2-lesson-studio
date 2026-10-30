@@ -7,9 +7,9 @@
    The wonders reuse their own drawings from the Seven Wonders scenes (wonders.js), clipped to the monument and scaled
    to its real height, so "How tall?" matches what the class has just seen; the Great Pyramid, the Great Wall and
    Big Ben's tower are drawn here. */
-import { TAU } from './util.js?v=49509700';
-import { seeded, tint } from './scenery.js?v=49509700';
-import { WONDER_SCENES } from './wonders.js?v=49509700';
+import { TAU } from './util.js?v=af1c9ebd';
+import { seeded, tint } from './scenery.js?v=af1c9ebd';
+import { WONDER_SCENES } from './wonders.js?v=af1c9ebd';
 
 /* ---------------- drawing helpers (metres, y up) ---------------- */
 /* a smooth curve through points (Catmull-Rom), closed or open */

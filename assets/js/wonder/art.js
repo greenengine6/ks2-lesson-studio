@@ -1,10 +1,10 @@
 /* Drawn pictures for the Wonder Window, in place of emoji: each window's picture on the picker, the flags of the World
    Explorer's 24 cities, and the small signs on its postcard. They are drawn with the canvas in the same lit, shaded
    style as the scenes (the globe uses the real Earth picture the map uses), and cached once drawn. */
-import { TAU } from './util.js?v=49509700';
-import { tint, seeded } from './scenery.js?v=49509700';
-import { drawCreature } from './fauna.js?v=49509700';
-import { lin, rad, E, C, P, rgba, giantTree } from './mydraw.js?v=49509700';
+import { TAU } from './util.js?v=af1c9ebd';
+import { tint, seeded } from './scenery.js?v=af1c9ebd';
+import { drawCreature } from './fauna.js?v=af1c9ebd';
+import { lin, rad, E, C, P, rgba, giantTree } from './mydraw.js?v=af1c9ebd';
 
 const DPR = () => Math.min(2, window.devicePixelRatio || 1);
 function star(g, x, y, r, n, ri, rot) {

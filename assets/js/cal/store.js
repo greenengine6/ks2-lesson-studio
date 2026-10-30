@@ -4,10 +4,10 @@
    - Events (one-off or weekly), homework, a plan for each lesson on each date (topic, things attached, note, taught),
      terms and school holidays.
    Everything is kept in this browser only, under the signed-in teacher (library.js mineKey). */
-import { store, bus, uid, str } from '../core.js?v=49509700';
-import { mineKey, subjectOf, subjectName, yearOf } from '../library.js?v=49509700';
-import { isDate, isTime, isHttps, addDays, toMin, fromMin } from '../ics.js?v=49509700';
-import { publicHolidaysOn } from './holidays.js?v=49509700';
+import { store, bus, uid, str } from '../core.js?v=af1c9ebd';
+import { mineKey, subjectOf, subjectName, yearOf } from '../library.js?v=af1c9ebd';
+import { isDate, isTime, isHttps, addDays, toMin, fromMin } from '../ics.js?v=af1c9ebd';
+import { publicHolidaysOn } from './holidays.js?v=af1c9ebd';
 
 const KEY = 'ks2-engine.cal.v1';
 export const EVENT_KINDS = { meeting: 'Meeting', planning: 'Planning time', assessment: 'Assessment', event: 'School event', trip: 'Trip', holiday: 'Holiday', other: 'Other' };

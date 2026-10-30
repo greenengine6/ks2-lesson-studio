@@ -8,8 +8,8 @@
    Nothing is fetched while sound is off. A file is fetched once, decoded when it is first needed and dropped
    again when many others have been used since. Until a file is ready, callers play their old live-made sound,
    so nothing ever waits and nothing breaks offline. */
-import { Sound } from './audio.js?v=49509700';
-import { BEDS, FX, KITS } from './soundbank.js?v=49509700';
+import { Sound } from './audio.js?v=af1c9ebd';
+import { BEDS, FX, KITS } from './soundbank.js?v=af1c9ebd';
 
 const BASE = new URL('../../sounds/', import.meta.url).href;
 const BUDGET = 56e6;                                      // bytes of decoded audio kept at once (about 5 minutes of mono)

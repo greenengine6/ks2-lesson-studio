@@ -6,7 +6,7 @@
    It is drawn a little smaller than the screen and scaled up (clouds are soft), at most 30 new pictures a second,
    less often on a slow computer, and not at all while the tab is hidden. Without WebGL, a cloud picture worked out
    once in JavaScript turns instead. */
-import { noise, layer, clamp } from './util.js?v=49509700';
+import { noise, layer, clamp } from './util.js?v=af1c9ebd';
 
 const VERT = 'attribute vec2 a; void main() { gl_Position = vec4(a, 0.0, 1.0); }';
 /* simplex noise: Ian McEwan and Stefan Gustavson (Ashima Arts), MIT licence */

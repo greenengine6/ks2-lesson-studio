@@ -4,17 +4,17 @@
    our class's names (remember, pick someone fairly, read them, forget them), read the slide, the time, and opening a
    maker (lesson, worksheet, quiz or game) with the topic filled in so the teacher can press Make. Commands are matched
    in English and Malay; anything else is a question for her to answer. */
-import { $, $$, esc, icon, bus } from './core.js?v=49509700';
-import { timesUp } from './fx/timesup.js?v=49509700';
-import { ENGINES } from './engines/registry.js?v=49509700';
-import { pupils, namesIn, addPupils, clearPupils, showPick } from './pupils.js?v=49509700';
-import { presenting, page } from './context.js?v=49509700';
-import { sfx } from './fx/audio.js?v=49509700';
-import { Voice } from './fx/voice.js?v=49509700';
-import { settings } from './settings.js?v=49509700';
-import { isAdmin } from './people.js?v=49509700';
-import { startMaking, startClass, subjectName, guessSubject, soon } from './library.js?v=49509700';
-import { store } from './core.js?v=49509700';
+import { $, $$, esc, icon, bus } from './core.js?v=af1c9ebd';
+import { timesUp } from './fx/timesup.js?v=af1c9ebd';
+import { ENGINES } from './engines/registry.js?v=af1c9ebd';
+import { pupils, namesIn, addPupils, clearPupils, showPick } from './pupils.js?v=af1c9ebd';
+import { presenting, page } from './context.js?v=af1c9ebd';
+import { sfx } from './fx/audio.js?v=af1c9ebd';
+import { Voice } from './fx/voice.js?v=af1c9ebd';
+import { settings } from './settings.js?v=af1c9ebd';
+import { isAdmin } from './people.js?v=af1c9ebd';
+import { startMaking, startClass, subjectName, guessSubject, soon } from './library.js?v=af1c9ebd';
+import { store } from './core.js?v=af1c9ebd';
 
 /* ---------------- where she can take you ---------------- */
 const ENGINE_WORDS = { maths: 'maths reasoning|maths|math reasoning|math|which one doesn\'t belong|open middle', story: 'story spark|story|stories|creative writing', reading: 'reading ladder|reading|reading comprehension',
@@ -170,8 +170,8 @@ function setTimer(secs, ms) {
 const presentHost = () => document.querySelector('.present:not([hidden]), .spresent:not([hidden])');
 async function toolTimer(secs) {
   try {
-    if (!secs) { const t = await import('./tools/timer.js?v=49509700'); if (typeof t.reset !== 'function') return false; t.reset(); setTimer(0); return true; }
-    const m = await import('./tools/tools.js?v=49509700');
+    if (!secs) { const t = await import('./tools/timer.js?v=af1c9ebd'); if (typeof t.reset !== 'function') return false; t.reset(); setTimer(0); return true; }
+    const m = await import('./tools/tools.js?v=af1c9ebd');
     if (typeof m.startTimer !== 'function') return false;
     const host = presentHost();
     m.startTimer(secs, { host, panel: !!host });
@@ -181,7 +181,7 @@ async function toolTimer(secs) {
 }
 async function toolPick(lang) {
   try {
-    const m = await import('./tools/tools.js?v=49509700');
+    const m = await import('./tools/tools.js?v=af1c9ebd');
     if (typeof m.pickName !== 'function') throw new Error('no picker');
     return await m.pickName({ host: presentHost() || undefined });
   } catch (e) {
@@ -202,7 +202,7 @@ const say2 = (ms, en, my) => (ms ? my : en);
 
 /* ---------------- the calendar: what is on, what is next, and starting the class on now ---------------- */
 let calP = null;
-const loadCal = () => (calP = calP || import('./calendar.js?v=49509700').catch(() => { calP = null; return null; }));
+const loadCal = () => (calP = calP || import('./calendar.js?v=af1c9ebd').catch(() => { calP = null; return null; }));
 const toMins = (s) => { const m = /^(\d{1,2}):(\d{2})/.exec(String(s || '')); return m ? Number(m[1]) * 60 + Number(m[2]) : -1; };
 const t12 = (s) => { const m = /^(\d{1,2}):(\d{2})/.exec(String(s || '')); if (!m) return ''; const h = Number(m[1]); return (((h + 11) % 12) + 1) + ':' + m[2] + (h < 12 ? ' am' : ' pm'); };
 const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -247,7 +247,7 @@ async function nextText(ms) {
 async function classNow(ms) {
   if (soon('class')) return say2(ms, 'The Classroom comes in the next update. For now, start presenting and press Join, and pupils can answer on their devices.', 'Bilik darjah akan datang dalam kemas kini seterusnya. Buat masa ini, mulakan pembentangan dan tekan Join.');
   try {
-    const t = await import('./live/tasks.js?v=49509700');
+    const t = await import('./live/tasks.js?v=af1c9ebd');
     if (t && typeof t.classOn === 'function' && t.classOn()) { location.hash = '#/class'; return say2(ms, 'Your class is running. Here it is.', 'Kelas anda sedang berjalan. Ini dia.'); }
   } catch (e) { /* the Classroom is not on this device yet */ }
   let o = {};

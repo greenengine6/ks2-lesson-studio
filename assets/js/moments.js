@@ -5,12 +5,12 @@
      typed answers and mini whiteboards wait face down until the teacher reveals them all at once.
    - Without a live lesson, the teacher taps to count hands, reactions or fingers, and the 3-2-1 countdown runs the
      chat waterfall and the "hold it up" moment. */
-import { $, $$, esc, icon, prefs, normAnswer } from './core.js?v=49509700';
-import { sfx } from './fx/audio.js?v=49509700';
-import { Live, onLive, setMoment, updateMoment, endMoment, answersFor, pupilsIn, nameOf } from './live/session.js?v=49509700';
-import { openJoin } from './live/panel.js?v=49509700';
-import { strokesSVG, unpackStrokes } from './draw.js?v=49509700';
-import { REACTIONS, reactSVG } from './live/shapes.js?v=49509700';
+import { $, $$, esc, icon, prefs, normAnswer } from './core.js?v=af1c9ebd';
+import { sfx } from './fx/audio.js?v=af1c9ebd';
+import { Live, onLive, setMoment, updateMoment, endMoment, answersFor, pupilsIn, nameOf } from './live/session.js?v=af1c9ebd';
+import { openJoin } from './live/panel.js?v=af1c9ebd';
+import { strokesSVG, unpackStrokes } from './draw.js?v=af1c9ebd';
+import { REACTIONS, reactSVG } from './live/shapes.js?v=af1c9ebd';
 
 /* Reactions: [id, label] (drawn by live/shapes.js reactSVG, the same pictures as on pupils' devices). */
 export const REACTS = REACTIONS.map((r) => [r[0], r[1]]);
@@ -298,7 +298,7 @@ function onClick(e) {
   else if (a === 'reveal') { M.revealed = true; sfx('success'); if (M.id) updateMoment({ rv: M.kind === 'vote' && Number.isInteger(M.o.answer) ? { right: M.o.answer } : { all: 1 } }); paint(); }
   else if (a === 'unzoom') { M.big = ''; paint(); }
   else if (a === 'join') openJoin(M.host === document.body ? (presentRoot() || document.body) : M.host, M.o.lesson || M.o.title || '');
-  else if (a === 'cv') import('./live/classview.js?v=49509700').then((m) => m.openClassView({ host: M ? (M.host === document.body ? (presentRoot() || document.body) : M.host) : document.body })).catch(() => {});
+  else if (a === 'cv') import('./live/classview.js?v=af1c9ebd').then((m) => m.openClassView({ host: M ? (M.host === document.body ? (presentRoot() || document.body) : M.host) : document.body })).catch(() => {});
   else if (a === 'go') countdown(M.kind === 'show' ? (prefs.mode === 'online' ? 'Hold it up to the camera!' : 'Show me!') : 'Go! Press Enter!');
 }
 function onKey(e) {

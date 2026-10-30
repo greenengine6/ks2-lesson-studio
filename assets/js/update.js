@@ -3,7 +3,7 @@
    back into view, this asks the site for its page, never from a cache, and compares the version stamp on app.js.
    When there is a newer one, a small bar offers Reload. It never reloads by itself: a presentation must not be cut,
    and a live class carries on after a reload anyway. */
-import { icon } from './core.js?v=49509700';
+import { icon } from './core.js?v=af1c9ebd';
 
 const mine = () => { const s = document.querySelector('script[type=module][src*="app.js"]'); const m = s && /\?v=([0-9a-f]{8})/.exec(s.getAttribute('src') || ''); return m ? m[1] : ''; };
 let shown = false, last = 0;

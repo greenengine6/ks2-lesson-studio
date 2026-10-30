@@ -2,8 +2,8 @@
    east coast of Peninsular Malaysia in the monsoon, and a cabin in the mountains in a blizzard. The parts that do not
    move are drawn once for the screen size (sharp on any screen); the rest (rain, waves on the beach, palms in the
    wind, chimney smoke, snow) is drawn every frame. */
-import { TAU, rnd, clamp, noise, layer, view } from './util.js?v=49509700';
-import { seeded } from './scenery.js?v=49509700';
+import { TAU, rnd, clamp, noise, layer, view } from './util.js?v=af1c9ebd';
+import { seeded } from './scenery.js?v=af1c9ebd';
 
 const DPR = () => Math.min(view.dpr || 1, 2);
 /* a canvas the size of the screen, sharp on this screen, drawn in CSS pixels */

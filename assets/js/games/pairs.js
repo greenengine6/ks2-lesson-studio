@@ -1,7 +1,7 @@
 /* Match pairs: two columns of cards. Tap one on the left and its partner on the right (either order). A right pair
    locks in green with its own number; a wrong one shakes. Ends when every pair is found (or the time or the lives
    run out). Touch, mouse and keyboard (the cards are buttons). */
-import { el, txt, shuffle, makeHud, makeClock, floatText, say, icon } from './common.js?v=49509700';
+import { el, txt, shuffle, makeHud, makeClock, floatText, say, icon } from './common.js?v=af1c9ebd';
 
 export function run(root, g, h) {
   const c = g.content, set = g.settings;
