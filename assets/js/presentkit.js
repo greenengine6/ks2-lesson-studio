@@ -9,14 +9,14 @@
      respond" pill) by itself, with a count on the pill of how many have answered.
    - A timer, for screens that have none of their own.
    Each present screen calls kit.paint() after it draws a slide, and kit.close() when it closes. */
-import { $, $$, icon } from './core.js?v=cdc164df';
-import { sfx } from './fx/audio.js?v=cdc164df';
-import { timesUp } from './fx/timesup.js?v=cdc164df';
-import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=cdc164df';
-import { Live, onLive, pupilsIn, setBoard, boardQuestion, answersFor } from './live/session.js?v=cdc164df';
-import { openJoin, closeJoin } from './live/panel.js?v=cdc164df';
-import { closeMoment, infoOf, liveSpec, MOMENTS } from './moments.js?v=cdc164df';
-import { boardWords, boardPicture } from './context.js?v=cdc164df';
+import { $, $$, icon } from './core.js?v=3c9d4698';
+import { sfx } from './fx/audio.js?v=3c9d4698';
+import { timesUp } from './fx/timesup.js?v=3c9d4698';
+import { Ink, COLOURS, COLOUR_NAMES } from './draw.js?v=3c9d4698';
+import { Live, onLive, pupilsIn, setBoard, boardQuestion, answersFor } from './live/session.js?v=3c9d4698';
+import { openJoin, closeJoin } from './live/panel.js?v=3c9d4698';
+import { closeMoment, infoOf, liveSpec, MOMENTS } from './moments.js?v=3c9d4698';
+import { boardWords, boardPicture } from './context.js?v=3c9d4698';
 
 const TRAY_COLOURS = [1, 2, 3, 0, 4, 6];          // red, blue, green, black, yellow, white
 const kits = [];
@@ -161,7 +161,7 @@ export function presentKit(o) {
       const a = kb.dataset.kit;
       if (a === 'draw') k.setDraw(!k.draw);
       else if (a === 'join') openJoin(root, o.title());
-      else if (a === 'tools') import('./tools/tools.js?v=cdc164df').then((m) => { if (m && m.openToolDock) m.openToolDock(root); }).catch(() => { /* class tools not on this version yet */ });
+      else if (a === 'tools') import('./tools/tools.js?v=3c9d4698').then((m) => { if (m && m.openToolDock) m.openToolDock(root); }).catch(() => { /* class tools not on this version yet */ });
       else if (a === 'timer') { const m = $('[data-kit-menu]', root); if (m) { m.hidden = !m.hidden; kb.setAttribute('aria-expanded', String(!m.hidden)); } }
       else if (a === 'min') { const m = $('[data-kit-menu]', root); if (m) m.hidden = true; const v = Number(kb.dataset.min); if (v) startTimer(v); else stopTimer(); }
       return;

@@ -3,8 +3,8 @@
    have arrived (or offline) the live-made versions below play. Each is also felt on a phone that can vibrate.
    One AudioContext, made on the first sound (browsers only allow sound after a tap); a host page may pass its own
    (o.ctx) so the main site shares the one it already has. Imports only small modules, so the pupils' page can use it. */
-import { haptic } from '../fx/haptics.js?v=cdc164df';
-import { warmUI, playUI } from '../fx/minisprite.js?v=cdc164df';
+import { haptic } from '../fx/haptics.js?v=3c9d4698';
+import { warmUI, playUI } from '../fx/minisprite.js?v=3c9d4698';
 const REC = { pop: 'pop', right: 'success', wrong: 'error', flip: 'flip', whoosh: 'whoosh', tick: 'tick', go: 'go', step: 'step', win: 'win', lose: 'lose' };
 const FEEL = { pop: 'pop', right: 'success', wrong: 'error', flip: 'tick', whoosh: 'whoosh', go: 'tick', step: 'tick', win: 'success', lose: 'error' };
 export function makeSfx(o) {

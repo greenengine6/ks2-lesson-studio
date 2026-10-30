@@ -65,7 +65,7 @@ body.playing .top,body.playing .dock,body.playing .sym-fab,body.playing .symc,bo
 @keyframes capin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes capeq{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
 @keyframes capprog{to{transform:scaleX(1)}}
-@media (prefers-reduced-motion:reduce){.play-cap.in .play-txt,.cap-eq i{animation:none}.cap-prog{display:none}}
+@media (prefers-reduced-motion:reduce){.play-cap.in .play-txt,.play-cap.in .play-txt > *,.cap-eq i{animation:none!important}.cap-prog{display:none}}
 
 /* ---------- layers ---------- */
 .play-pane{position:absolute;inset:0;z-index:1;pointer-events:none;transition:opacity .5s}
@@ -231,9 +231,14 @@ body.playing .top,body.playing .dock,body.playing .sym-fab,body.playing .symc,bo
   .play-btns{margin-left:auto;gap:6px}
   .play .pbtn span{display:none}
   .play-all{padding:0 10px}
-  .play-cap{bottom:calc(10px + env(safe-area-inset-bottom,0px));width:calc(100% - 20px);gap:12px;padding:12px 6px 14px 12px;border-radius:18px}
-  .play-cap .sym-dot{--s:32px}
-  .play-txt p{margin-top:4px;font-size:max(14.5px,calc(16.5px * var(--m,1)));line-height:1.38}
+  /* a phone: her mark, the label and the two buttons share the top line, and the fact gets the whole width below */
+  .play-cap{bottom:calc(10px + env(safe-area-inset-bottom,0px));width:calc(100% - 20px);display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:9px;row-gap:3px;padding:8px 6px 13px 12px;border-radius:18px}
+  .play-txt{display:contents}
+  .play-cap .sym-dot{--s:26px;grid-area:1 / 1;align-self:center;margin:0}
+  .play-txt small{grid-area:1 / 2}
+  .play-nav{grid-area:1 / 3}
+  .play-txt p{grid-area:2 / 1 / 3 / 4;margin:0 6px 0 0;font-size:max(14.5px,calc(16.5px * var(--m,1)));line-height:1.38}
+  .play-cap.in .play-txt > *{animation:capin .6s var(--ease)}
   .play-cap .pbtn{width:38px;height:38px;min-width:38px;min-height:38px}
   .play-pick{padding:6px 12px 40px}
   .pk-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}

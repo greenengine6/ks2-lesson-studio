@@ -1,7 +1,7 @@
 /* Sort it: put each item into the right group, then Check. Right ones lock in green (10 points first time, 5 after
    a second try); wrong ones bounce back to try again. Drag with a finger or the mouse, or tap an item and then a
    group; with the keyboard, Enter on an item and then a number key (1 to 4) or Enter on a group. */
-import { el, txt, shuffle, COLOURS, makeHud, makeClock, floatText, say } from './common.js?v=cdc164df';
+import { el, txt, shuffle, COLOURS, makeHud, makeClock, floatText, say } from './common.js?v=3c9d4698';
 
 export function run(root, g, h) {
   const c = g.content, set = g.settings, total = c.items.length;

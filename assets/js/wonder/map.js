@@ -3,10 +3,10 @@
    shortest route over the globe (a great circle, which looks curved on a flat map), from Kuala Lumpur or from the
    last city visited, with the distance and about how long the flight takes. The map gives room to the postcard
    when one is open. */
-import { CITIES } from './data.js?v=cdc164df';
-import { TAU, clamp, smooth, layer, sunAt, sunHeight, view, FONT } from './util.js?v=cdc164df';
-import { drawCreature } from './fauna.js?v=cdc164df';
-import { drawFlag, isoOf } from './art.js?v=cdc164df';
+import { CITIES } from './data.js?v=3c9d4698';
+import { TAU, clamp, smooth, layer, sunAt, sunHeight, view, FONT } from './util.js?v=3c9d4698';
+import { drawCreature } from './fauna.js?v=3c9d4698';
+import { drawFlag, isoOf } from './art.js?v=3c9d4698';
 
 const TOP = 78, BOTTOM = -58, SPAN = TOP - BOTTOM, ASPECT = 360 / SPAN;   // the far north and most of Antarctica are left off
 const RAD = Math.PI / 180;

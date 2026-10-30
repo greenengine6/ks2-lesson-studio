@@ -5,8 +5,8 @@
    Drawn smaller than the screen and scaled up (clouds are soft), at most 30 times a second (every frame while
    lightning flickers), with fewer pixels on a slow computer, and not at all while the tab is hidden. Without WebGL the
    same picture is worked out once in JavaScript and stays still. */
-import { NOISE, compile } from './hurricane.js?v=cdc164df';
-import { noise, layer, clamp } from './util.js?v=cdc164df';
+import { NOISE, compile } from './hurricane.js?v=3c9d4698';
+import { noise, layer, clamp } from './util.js?v=3c9d4698';
 
 const VERT = 'attribute vec2 a; void main() { gl_Position = vec4(a, 0.0, 1.0); }';
 const FRAG = `

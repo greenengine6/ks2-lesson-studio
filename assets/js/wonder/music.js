@@ -10,10 +10,10 @@
    Effects: recorded or designed offline (samples.js, assets/sounds/fx-*.mp3): fireworks, firecrackers, a splash, a
    lantern lifting off, a jet, hooves, a cheering crowd, thunder, a tiger, a hornbill, bats, fireflies… Each one is
    also felt on a phone that can vibrate, when it follows a touch (haptics.js). */
-import { Sound } from '../fx/audio.js?v=cdc164df';
-import { Samples } from '../fx/samples.js?v=cdc164df';
-import { haptic } from '../fx/haptics.js?v=cdc164df';
-import { FX as BANK } from '../fx/soundbank.js?v=cdc164df';
+import { Sound } from '../fx/audio.js?v=3c9d4698';
+import { Samples } from '../fx/samples.js?v=3c9d4698';
+import { haptic } from '../fx/haptics.js?v=3c9d4698';
+import { FX as BANK } from '../fx/soundbank.js?v=3c9d4698';
 
 const live = () => { const c = Sound.ctx(); return c && c.state === 'running' ? c : null; };
 let musicBus = null, fxBus = null, noiseBuf = null;

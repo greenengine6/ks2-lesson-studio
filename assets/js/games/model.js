@@ -8,7 +8,7 @@
    race    content { questions: [{ q, opts, a }], teams: [names] }      teams race to the finish, a step for each right answer
    memory  content { prompt, pairs: [[a, b]] }                           flip the cards to find the pairs
    custom  html: one whole HTML document the engine wrote. It only ever runs inside games/run.html, a locked box. */
-import { fracNorm } from '../fractions.js?v=cdc164df';
+import { fracNorm } from '../fractions.js?v=3c9d4698';
 
 export const TEMPLATES = [
   { id: 'pop', name: 'Balloon pop', blurb: 'Balloons float up. Pop only the ones that fit the rule.' },

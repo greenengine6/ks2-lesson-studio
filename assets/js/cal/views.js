@@ -1,8 +1,8 @@
 /* The calendar's views, drawn as HTML: Week (a time grid), Day (a list, best on phones), Month and Term. */
-import { esc, icon } from '../core.js?v=cdc164df';
-import { subjectName, subjectColor } from '../library.js?v=cdc164df';
-import { isTime, addDays, toMin } from '../ics.js?v=cdc164df';
-import { data, daySchedule, homeworkSetOn, isoDay, weekStart, monthStart, today, nowMin, fmtTime, span, dateWords, DAY_SHORT, EVENT_KINDS, termOf } from './store.js?v=cdc164df';
+import { esc, icon } from '../core.js?v=3c9d4698';
+import { subjectName, subjectColor } from '../library.js?v=3c9d4698';
+import { isTime, addDays, toMin } from '../ics.js?v=3c9d4698';
+import { data, daySchedule, homeworkSetOn, isoDay, weekStart, monthStart, today, nowMin, fmtTime, span, dateWords, DAY_SHORT, EVENT_KINDS, termOf } from './store.js?v=3c9d4698';
 
 export const CI = {
   cal: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>',

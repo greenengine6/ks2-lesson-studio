@@ -2,12 +2,12 @@
    them) with the diagrams, pictures, backgrounds and text sizes as on screen, each video as its picture with a link,
    and the teacher notes and picture credits in the speaker notes; and the worksheet as an editable Word document
    (opens in Word and Google Docs). */
-import { esc } from '../core.js?v=cdc164df';
-import { fracSlide, fracHTML } from '../fractions.js?v=cdc164df';
-import { KIND, TONE, diagramSVG, answersOf, learnText, respondText } from './render.js?v=cdc164df';
-import { TIERS } from './model.js?v=cdc164df';
-import { lookFor, lookInfo, lookForPptx } from './looks.js?v=cdc164df';
-import { pictureData, urlData, creditText, safePic, safeVideo, ytThumb, ytWatch, ytShort } from '../pics.js?v=cdc164df';
+import { esc } from '../core.js?v=3c9d4698';
+import { fracSlide, fracHTML } from '../fractions.js?v=3c9d4698';
+import { KIND, TONE, diagramSVG, answersOf, learnText, respondText } from './render.js?v=3c9d4698';
+import { TIERS } from './model.js?v=3c9d4698';
+import { lookFor, lookInfo, lookForPptx } from './looks.js?v=3c9d4698';
+import { pictureData, urlData, creditText, safePic, safeVideo, ytThumb, ytWatch, ytShort } from '../pics.js?v=3c9d4698';
 
 /* ---------------- diagrams as pictures ---------------- */
 export function svgSize(svg) { const m = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg); return m ? [Number(m[1]), Number(m[2])] : [640, 200]; }

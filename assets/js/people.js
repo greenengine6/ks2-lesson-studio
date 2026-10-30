@@ -3,11 +3,11 @@
    one-tap link once on their device). Rabinder has the only login: "Hello Admin", her name pre-filled, her
    password on a new device, then a passkey (Face ID, fingerprint or the screen lock) on each of her devices.
    Pupils never sign in. */
-import { $, $$, esc, el, icon, store, bus, CONFIG, setKey, toast } from './core.js?v=cdc164df';
-import { voiceKey, setVoiceKey, KEY_RX } from './fx/human.js?v=cdc164df';
-import { cryptoOK, b64u, unb64u, utf8, unutf8, random, pbkdf2, sha256, sameBytes, aesKey, aesDecrypt, importAdminPrivate, passkeyOK, platformPasskey, createPasskey, checkPasskey, idbGet, idbSet, idbDel } from './crypto.js?v=cdc164df';
-import { sfx } from './fx/audio.js?v=cdc164df';
-import { settleViewport } from './viewport.js?v=cdc164df';
+import { $, $$, esc, el, icon, store, bus, CONFIG, setKey, toast } from './core.js?v=3c9d4698';
+import { voiceKey, setVoiceKey, KEY_RX } from './fx/human.js?v=3c9d4698';
+import { cryptoOK, b64u, unb64u, utf8, unutf8, random, pbkdf2, sha256, sameBytes, aesKey, aesDecrypt, importAdminPrivate, passkeyOK, platformPasskey, createPasskey, checkPasskey, idbGet, idbSet, idbDel } from './crypto.js?v=3c9d4698';
+import { sfx } from './fx/audio.js?v=3c9d4698';
+import { settleViewport } from './viewport.js?v=3c9d4698';
 
 const ME_KEY = 'ks2-engine.me.v1', ROSTER_KEY = 'ks2-engine.roster.v1', PASS_KEY = 'ks2-engine.passkey.v1', SES_KEY = 'ks2-engine.session.v1', LOCK_KEY = 'ks2-engine.pinlock.v1';
 const PIN_ITER = 150000, ADMIN_IDLE = 30 * 60 * 1000;

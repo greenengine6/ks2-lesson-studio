@@ -8,12 +8,12 @@
      over the slides;
    - timesUp(o): the teacher's chosen end sound, flash and voice (for the older present timers);
    - pickName(o): a name picked fairly (o.host: where to show it). Resolves to the name, or '' if there is nobody. */
-import { $, $$, esc, icon } from '../core.js?v=cdc164df';
-import { TOOLS, TOOL_BY_ID, ti } from './shared.js?v=cdc164df';
-import { start, T, timesUp as ring } from './timer.js?v=cdc164df';
-import { pickName as pick } from './names.js?v=cdc164df';
-import { stopNoise } from './noise.js?v=cdc164df';
-import { renderTool, openBoard, openToolDock, openPanel, closePanel } from './dock.js?v=cdc164df';
+import { $, $$, esc, icon } from '../core.js?v=3c9d4698';
+import { TOOLS, TOOL_BY_ID, ti } from './shared.js?v=3c9d4698';
+import { start, T, timesUp as ring } from './timer.js?v=3c9d4698';
+import { pickName as pick } from './names.js?v=3c9d4698';
+import { stopNoise } from './noise.js?v=3c9d4698';
+import { renderTool, openBoard, openToolDock, openPanel, closePanel } from './dock.js?v=3c9d4698';
 
 let cleanups = [];
 const runCleanups = () => { cleanups.forEach((c) => { try { c(); } catch (e) { /* fine */ } }); cleanups = []; };

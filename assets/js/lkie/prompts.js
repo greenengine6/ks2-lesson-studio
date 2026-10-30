@@ -1,8 +1,8 @@
 /* lkie.like prompts: the master prompt for a lesson pack, the worksheet writer, the slide editor and the unit planner.
    Each system prompt sets the rules; each request carries the facts (year, subject, topic, the allowed curriculum
    codes) and the exact JSON shape to return. */
-import { HOUSE_WORDS, ages, whereText } from '../core.js?v=cdc164df';
-import { FRAMEWORKS, SUBJECT_BY_ID, yearsLabel } from './curriculum.js?v=cdc164df';
+import { HOUSE_WORDS, ages, whereText } from '../core.js?v=3c9d4698';
+import { FRAMEWORKS, SUBJECT_BY_ID, yearsLabel } from './curriculum.js?v=3c9d4698';
 
 /* ---------------- shared rules ---------------- */
 const LANG_RULES = {

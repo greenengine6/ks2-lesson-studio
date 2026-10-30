@@ -2,8 +2,8 @@
    silhouettes that fade into the haze with distance, leaf masses with a soft leafy edge lit from one side, rock with
    its grain, and animals built from proper shapes (a tiger's deep chest and striped flank, an orangutan's long shaggy
    arms, a hornbill's casque) rather than stickers. Everything draws on the screen (y down); sizes are in pixels. */
-import { TAU } from './util.js?v=cdc164df';
-import { tint, dotGlow } from './scenery.js?v=cdc164df';
+import { TAU } from './util.js?v=3c9d4698';
+import { tint, dotGlow } from './scenery.js?v=3c9d4698';
 
 /* ---------------- small helpers ---------------- */
 export const lerp = (a, b, k) => a + (b - a) * k;

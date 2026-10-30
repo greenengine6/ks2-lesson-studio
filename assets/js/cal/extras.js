@@ -1,11 +1,11 @@
 /* Two extras for the teacher: reminders 5 minutes before each lesson while the site is open, and her whole calendar
    as an .ics file for her own phone (each lesson weekly until the end of the term, with a 5-minute reminder). */
-import { toast } from '../core.js?v=cdc164df';
-import { sfx } from '../fx/audio.js?v=cdc164df';
-import { subjectName } from '../library.js?v=cdc164df';
-import { icsEvents, homeworkEvent, downloadText, addDays, isTime, toMin } from '../ics.js?v=cdc164df';
-import { PUBLIC_HOLIDAYS } from './holidays.js?v=cdc164df';
-import { data, daySchedule, weekStart, today, termOf, isoDay, occursOn, planKey, lessonTitle, fmtTime } from './store.js?v=cdc164df';
+import { toast } from '../core.js?v=3c9d4698';
+import { sfx } from '../fx/audio.js?v=3c9d4698';
+import { subjectName } from '../library.js?v=3c9d4698';
+import { icsEvents, homeworkEvent, downloadText, addDays, isTime, toMin } from '../ics.js?v=3c9d4698';
+import { PUBLIC_HOLIDAYS } from './holidays.js?v=3c9d4698';
+import { data, daySchedule, weekStart, today, termOf, isoDay, occursOn, planKey, lessonTitle, fmtTime } from './store.js?v=3c9d4698';
 
 /* ---------------- reminders ---------------- */
 let timer = 0;

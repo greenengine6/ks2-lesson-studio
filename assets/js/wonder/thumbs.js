@@ -2,10 +2,10 @@
    the Wonders of Malaysia and the festivals drawn small by its own engine (cached), for the strip under a scene and for
    a card while (or instead of) its photo loads. fillThumbs() puts them into the page; drawn icons for everything else
    come from art.js. */
-import { view, layer } from './util.js?v=cdc164df';
-import { makeWonders } from './wonders.js?v=cdc164df';
-import { makeFestival } from './festive.js?v=cdc164df';
-import './malaysia.js?v=cdc164df';
+import { view, layer } from './util.js?v=3c9d4698';
+import { makeWonders } from './wonders.js?v=3c9d4698';
+import { makeFestival } from './festive.js?v=3c9d4698';
+import './malaysia.js?v=3c9d4698';
 
 const MAKE = { wonders: makeWonders, festival: makeFestival };
 const cache = new Map();

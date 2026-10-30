@@ -1,10 +1,10 @@
 /* Class tools for the board: Work signs, Class points, Traffic light, Dice, and Now and next.
    Each one draws calm on the Class tools page and big and bright on the board (full screen). During a live class the
    signs and the points also reach pupils' devices (live/tasks.js), and Now and next reads the teacher's calendar. */
-import { $, esc, icon, store, bus } from '../core.js?v=cdc164df';
-import { mineKey, subjectName, subjectColor } from '../library.js?v=cdc164df';
-import { Alarm } from './alarm.js?v=cdc164df';
-import { prefs, setPrefs, randInt, liveCall, liveOn, ti, COLOURS, colourOf, confetti, boardOverlay } from './shared.js?v=cdc164df';
+import { $, esc, icon, store, bus } from '../core.js?v=3c9d4698';
+import { mineKey, subjectName, subjectColor } from '../library.js?v=3c9d4698';
+import { Alarm } from './alarm.js?v=3c9d4698';
+import { prefs, setPrefs, randInt, liveCall, liveOn, ti, COLOURS, colourOf, confetti, boardOverlay } from './shared.js?v=3c9d4698';
 
 /* ================= Work signs ================= */
 const W = '#FFFFFF';
@@ -229,7 +229,7 @@ export function diceView(host, mode) {
 /* ================= Now and next ================= */
 let calP = null;
 function cal() {
-  if (!calP) calP = import('../calendar.js?v=cdc164df').catch(() => null);
+  if (!calP) calP = import('../calendar.js?v=3c9d4698').catch(() => null);
   return calP;
 }
 const hm = (t) => { const m = /^(\d{1,2}):(\d{2})$/.exec(String(t || '')); if (!m) return ''; const h = Number(m[1]), mm = m[2]; return (h % 12 || 12) + ':' + mm + (h < 12 ? ' am' : ' pm'); };

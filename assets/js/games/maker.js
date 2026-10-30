@@ -3,14 +3,14 @@
    or, with "Something new", writes a whole game from scratch, which only ever runs in a locked box
    (games/run.html). She tries it here, changes it by asking, plays it on the board, sends it to pupils' devices,
    and it is kept in My subjects. Every engine press goes through the shared guard (guard.js). */
-import { $, $$, esc, str, icon, toast, hasKey, askJSON, askClaude, errorCopy, AiError, CONFIG, bus, store, YEARS } from '../core.js?v=cdc164df';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, watch, waitText, clockAt } from '../guard.js?v=cdc164df';
-import { track } from '../track.js?v=cdc164df';
-import { sfx as uiSfx, Sound } from '../fx/audio.js?v=cdc164df';
-import { SUBJECT_LIST, subjectOf, subjectName, subjectColor, yearOf, putItem, getItem, removeItem, listAll, findItem, folders, addFolder, moveItem, takeMaking, onLibrary, dayLabel } from '../library.js?v=cdc164df';
-import { TEMPLATES, TEMPLATE_BY_ID, normGame, exampleGame, itemCount } from './model.js?v=cdc164df';
-import { SYSTEM, CUSTOM_SYSTEM, makeRequest, editRequest, customRequest, customEditRequest, parseCustom } from './prompts.js?v=cdc164df';
-import { playGame } from './player.js?v=cdc164df';
+import { $, $$, esc, str, icon, toast, hasKey, askJSON, askClaude, errorCopy, AiError, CONFIG, bus, store, YEARS } from '../core.js?v=3c9d4698';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, watch, waitText, clockAt } from '../guard.js?v=3c9d4698';
+import { track } from '../track.js?v=3c9d4698';
+import { sfx as uiSfx, Sound } from '../fx/audio.js?v=3c9d4698';
+import { SUBJECT_LIST, subjectOf, subjectName, subjectColor, yearOf, putItem, getItem, removeItem, listAll, findItem, folders, addFolder, moveItem, takeMaking, onLibrary, dayLabel } from '../library.js?v=3c9d4698';
+import { TEMPLATES, TEMPLATE_BY_ID, normGame, exampleGame, itemCount } from './model.js?v=3c9d4698';
+import { SYSTEM, CUSTOM_SYSTEM, makeRequest, editRequest, customRequest, customEditRequest, parseCustom } from './prompts.js?v=3c9d4698';
+import { playGame } from './player.js?v=3c9d4698';
 
 const FORM = 'ks2-engine.game.form.v1';
 const SPARK = '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>';
@@ -380,7 +380,7 @@ function closeBoard(quiet) {
 /* ---------------- pupils' devices (the live part of the site) ---------------- */
 async function tasks() {
   if (S.tasks !== undefined) return S.tasks;
-  try { S.tasks = await import('../live/tasks.js?v=cdc164df'); } catch (e) { S.tasks = null; }
+  try { S.tasks = await import('../live/tasks.js?v=3c9d4698'); } catch (e) { S.tasks = null; }
   if (S.tasks && typeof S.tasks.sendGameLive !== 'function') S.tasks = null;
   return S.tasks;
 }

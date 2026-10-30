@@ -11,22 +11,22 @@
    our class), and knows what is on the screen (context.js) so "explain this slide" works.
    Her answers come from the main engine model with her knowledge and web search (sym-brain.js): she checks facts on
    trusted education websites and shows the pages she used under her answer. */
-import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, toast, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=cdc164df';
-import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=cdc164df';
-import { settings, paintSwitches } from './settings.js?v=cdc164df';
-import { isAdmin, ADMIN_NAME } from './people.js?v=cdc164df';
-import { briefing, downloadReport } from './admin.js?v=cdc164df';
-import { track } from './track.js?v=cdc164df';
-import { Voice } from './fx/voice.js?v=cdc164df';
-import { Beam } from './fx/beam.js?v=cdc164df';
-import { sfx } from './fx/audio.js?v=cdc164df';
-import { chatState, chatStart, chatEnd, clockAt } from './guard.js?v=cdc164df';
-import { Ear } from './ear.js?v=cdc164df';
-import { parseCommand, runCommand, COMMANDS_HELP } from './commands.js?v=cdc164df';
-import { screenContext, presenting } from './context.js?v=cdc164df';
-import { pupils, pupilsHTML, setPupils, namesIn, showPick, clearPupils } from './pupils.js?v=cdc164df';
-import { Live, pupilsIn } from './live/session.js?v=cdc164df';
-import { brain, today, SEARCH_TOOL, searchOn, searchOff } from './sym-brain.js?v=cdc164df';
+import { $, $$, esc, el, icon, store, bus, hasKey, askClaude, errorCopy, copyOut, toast, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseText } from './core.js?v=3c9d4698';
+import { SYMPHONY_ABOUT, MINI } from './fx/symphony.js?v=3c9d4698';
+import { settings, paintSwitches } from './settings.js?v=3c9d4698';
+import { isAdmin, ADMIN_NAME } from './people.js?v=3c9d4698';
+import { briefing, downloadReport } from './admin.js?v=3c9d4698';
+import { track } from './track.js?v=3c9d4698';
+import { Voice } from './fx/voice.js?v=3c9d4698';
+import { Beam } from './fx/beam.js?v=3c9d4698';
+import { sfx } from './fx/audio.js?v=3c9d4698';
+import { chatState, chatStart, chatEnd, clockAt } from './guard.js?v=3c9d4698';
+import { Ear } from './ear.js?v=3c9d4698';
+import { parseCommand, runCommand, COMMANDS_HELP } from './commands.js?v=3c9d4698';
+import { screenContext, presenting } from './context.js?v=3c9d4698';
+import { pupils, pupilsHTML, setPupils, namesIn, showPick, clearPupils } from './pupils.js?v=3c9d4698';
+import { Live, pupilsIn } from './live/session.js?v=3c9d4698';
+import { brain, today, SEARCH_TOOL, searchOn, searchOff } from './sym-brain.js?v=3c9d4698';
 
 const LANG_KEY = 'ks2-engine.symlang.v1';
 const T = {
