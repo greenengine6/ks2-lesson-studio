@@ -1,11 +1,11 @@
 /* What the quiz maker asks the engine for: a whole quiz from a topic or from a lesson, more questions like the
    ones she has, and one question changed in her own words. Every reply is JSON, checked again by model.js. */
-import { HOUSE_WORDS, str, arr } from '../core.js?v=e5cf7b70';
-import { match, SUBJECT_BY_ID } from '../lkie/curriculum.js?v=e5cf7b70';
-import { subjectName } from '../library.js?v=e5cf7b70';
+import { HOUSE_WORDS, str, arr } from '../core.js?v=a277ebb7';
+import { match, SUBJECT_BY_ID } from '../lkie/curriculum.js?v=a277ebb7';
+import { subjectName } from '../library.js?v=a277ebb7';
 
 export const QUIZ_SYSTEM = [
-  'You write quizzes for Key Stage 2 pupils (Years 3 to 6, ages 7 to 11) at an international school in Ipoh, Malaysia, that follows the National Curriculum in England.',
+  'You write quizzes for Key Stage 2 pupils (Years 3 to 6, ages 7 to 11) at an international school in Ipoh, Malaysia, that follows the Cambridge Primary curriculum (Stages 3 to 6 match Years 3 to 6).',
   'Write in British English, in short, clear sentences a child of that age can read.',
   HOUSE_WORDS,
   'Rules for every question:',
@@ -35,7 +35,7 @@ function typesText(types) {
 function curriculum(subject, year, topic) {
   if (!SUBJECT_BY_ID[subject]) return '';
   const hits = match(subject, year, topic, 3);
-  return hits.length ? 'The National Curriculum statements this quiz should check:\n' + hits.map((o) => '- ' + o.text).join('\n') + '\n' : '';
+  return hits.length ? 'The curriculum statements this quiz should check:\n' + hits.map((o) => '- ' + o.text).join('\n') + '\n' : '';
 }
 
 /* A whole quiz from a topic. o: { topic, year, subject, n, types, level } */

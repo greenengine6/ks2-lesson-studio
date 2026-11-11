@@ -2,9 +2,9 @@
    Today"), each with its topic and a picture of the topic, on the Today page. Covers: the lesson's own title picture,
    or the best Wikipedia picture for its topic. The shelf draws wherever a page puts #shelf (data-only="pinned" shows
    the kept ones only). */
-import { $, esc, icon, store, bus } from './core.js?v=e5cf7b70';
-import { who } from './people.js?v=e5cf7b70';
-import { coverFor, picURL, safePic, hydrate } from './pics.js?v=e5cf7b70';
+import { $, esc, icon, store, bus } from './core.js?v=a277ebb7';
+import { who } from './people.js?v=a277ebb7';
+import { coverFor, picURL, safePic, hydrate } from './pics.js?v=a277ebb7';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', DECKS = 'ks2-lesson-studio.recent.v1', PINS = 'ks2-engine.shelf.pins.v1';
 export const OPEN_KEY = { lkie: 'ks2-engine.lkie.open', slides: 'ks2-engine.slides.open' };

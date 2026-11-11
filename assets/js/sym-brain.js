@@ -3,14 +3,14 @@
    1. Her instructions, written once and sent with every question, so the engine can keep them ready (prompt
       caching: after the first question, the long part costs a tenth and starts faster). They hold who she is and how
       she talks (out loud, like a real person), how good primary teaching works, how to choose between this site's
-      engines, and the whole Key Stage 2 curriculum from lkie.like's curriculum map (every statutory statement for
+      engines, and the whole Key Stage 2 curriculum from lkie.like's curriculum map (Cambridge Primary Mathematics for maths; every statement for
       every subject, plus Bahasa Melayu KSSR, Mandarin, French and Spanish).
    2. Web search, run by the engine itself (Anthropic's web search tool), only on trusted education and reference
       websites around the world, and only for questions about teaching and school subjects. Her answer shows the
       pages she used. If the school's engine account has web search switched off, she answers from what she knows and
       tries searching again later. */
-import { HOUSE_WORDS, store } from './core.js?v=e5cf7b70';
-import { COMMANDS_HELP } from './commands.js?v=e5cf7b70';
+import { HOUSE_WORDS, store } from './core.js?v=a277ebb7';
+import { COMMANDS_HELP } from './commands.js?v=a277ebb7';
 
 /* Encyclopedias, museums, science agencies, children's news, curriculum and teaching bodies, and Malaysian sources.
    A domain covers its subdomains (bbc.co.uk covers Bitesize and Newsround; nasa.gov covers NASA Space Place). */
@@ -80,8 +80,8 @@ The site is laid out for everyday teaching, one calm page at a time. Today is th
 
 /* The curriculum, compact: subject, then strand, then each statement with its year group. */
 async function curriculumText() {
-  const m = await import('./lkie/curriculum.js?v=e5cf7b70');
-  let out = 'THE KEY STAGE 2 CURRICULUM\nStatutory content of the National Curriculum in England (2014) for Years 3 to 6, the Relationships and Health Education guidance, the RE Council national framework, the KS2 languages programme of study, and the KSSR skill areas for Bahasa Melayu.\n';
+  const m = await import('./lkie/curriculum.js?v=a277ebb7');
+  let out = 'THE KEY STAGE 2 CURRICULUM\nThe school follows the Cambridge Primary curriculum. Maths: the Cambridge Primary Mathematics learning objectives for Stages 3 to 6 (Stage 3 to 6 match Years 3 to 6), word for word with their official codes. Other subjects: the statements this site maps them to, the Relationships and Health Education guidance, the RE Council national framework, the KS2 languages programme of study, and the KSSR skill areas for Bahasa Melayu.\n';
   m.SUBJECTS.forEach((s) => {
     const f = m.FRAMEWORKS[s.fw];
     out += '\n' + s.name.toUpperCase() + (f ? ' (' + f.name + ')' : '') + '\n';

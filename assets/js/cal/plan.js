@@ -2,13 +2,13 @@
    National Curriculum for that subject and year and carrying on from each class's recent topics. She checks each one
    (use it, change it or skip it) and only then are they saved as the lessons' plans. No pupil names are ever sent:
    only subjects, year groups, class names such as "4 Amber" and topics. */
-import { $, $$, esc, icon, toast, bus, askJSON, HOUSE_WORDS, CONFIG, hasKey, errorCopy, str } from '../core.js?v=e5cf7b70';
-import { makeState, makeStart, makeEnd, deliberate, watch, waitText, repaint } from '../guard.js?v=e5cf7b70';
-import { objectivesFor, fits, yearNum } from '../lkie/curriculum.js?v=e5cf7b70';
-import { subjectName, subjectColor } from '../library.js?v=e5cf7b70';
-import { addDays } from '../ics.js?v=e5cf7b70';
-import { data, daySchedule, weekStart, setPlan, lessonById, fmtTime, DAY_SHORT, isoDay } from './store.js?v=e5cf7b70';
-import { closeSheet } from './sheet.js?v=e5cf7b70';
+import { $, $$, esc, icon, toast, bus, askJSON, HOUSE_WORDS, CONFIG, hasKey, errorCopy, str } from '../core.js?v=a277ebb7';
+import { makeState, makeStart, makeEnd, deliberate, watch, waitText, repaint } from '../guard.js?v=a277ebb7';
+import { objectivesFor, fits, yearNum } from '../lkie/curriculum.js?v=a277ebb7';
+import { subjectName, subjectColor } from '../library.js?v=a277ebb7';
+import { addDays } from '../ics.js?v=a277ebb7';
+import { data, daySchedule, weekStart, setPlan, lessonById, fmtTime, DAY_SHORT, isoDay } from './store.js?v=a277ebb7';
+import { closeSheet } from './sheet.js?v=a277ebb7';
 
 export const PLAN_NAME = 'cal:plan';
 export const SPARK = '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>';
@@ -42,7 +42,7 @@ function request(lessons, ws) {
   const lines = lessons.map((x, i) => (i + 1) + '. key=' + x.id + ' · ' + short(x.date) + ' ' + fmtTime(x.start, true) + ' · ' + subjectName(x.subject) + (x.year ? ' · ' + x.year : '') + (x.cls ? ' · class ' + x.cls : '') +
     ' · recent topics: ' + (recentTopics(x, ws).join('; ') || 'none') + ' · current topic: ' + (x.plan && x.plan.topic ? x.plan.topic : 'none')).join('\n');
   const prompt = 'Plan this week’s lessons for a KS2 teacher. Suggest one lesson topic for every lesson below.\n\n' +
-    'Rules:\n- Follow the English National Curriculum statements given for each subject and year group, in a sensible teaching order.\n' +
+    'Rules:\n- Follow the curriculum statements given for each subject and year group (Cambridge Primary for maths), in a sensible teaching order.\n' +
     '- Carry each class on from its recent topics; lessons of the same class in the same week build on each other.\n' +
     '- One clear topic per lesson, written like a lesson title (3 to 8 words), right for the year group.\n' +
     '- If a lesson already has a current topic, keep it unless a different one clearly fits the sequence better.\n' +
@@ -51,7 +51,7 @@ function request(lessons, ws) {
     'Lessons this week:\n' + lines + '\n\nCurriculum statements:\n' + curriculum;
   return { prompt, codes };
 }
-const SYSTEM = 'You are Symphony, the planning helper in the KS2 Lesson Engine, a website for teachers of Years 3 to 6 (ages 7 to 11) at an international school in Ipoh, Malaysia, that follows the English National Curriculum. Write in British English, in plain words. Content must be child-safe. Never invent or use names of real pupils.';
+const SYSTEM = 'You are Symphony, the planning helper in the KS2 Lesson Engine, a website for teachers of Years 3 to 6 (ages 7 to 11) at an international school in Ipoh, Malaysia, that follows the Cambridge Primary curriculum. Write in British English, in plain words. Content must be child-safe. Never invent or use names of real pupils.';
 
 /* The Plan my week button: watched by the engine guard (rest, caps, one thing at a time). */
 export function wirePlanButton(btn, fine, getDate, openSheet) {

@@ -1,15 +1,15 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
-import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=e5cf7b70';
-import { track } from './track.js?v=e5cf7b70';
-import { fractify, fracSlide } from './fractions.js?v=e5cf7b70';
-import EXAMPLE_RAW from './slides-example.js?v=e5cf7b70';
-import { Ribbons } from './fx/ribbons.js?v=e5cf7b70';
-import { sfx } from './fx/audio.js?v=e5cf7b70';
-import { timesUp } from './fx/timesup.js?v=e5cf7b70';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=e5cf7b70';
-import { presentKit } from './presentkit.js?v=e5cf7b70';
-import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=e5cf7b70';
+import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=a277ebb7';
+import { track } from './track.js?v=a277ebb7';
+import { fractify, fracSlide } from './fractions.js?v=a277ebb7';
+import EXAMPLE_RAW from './slides-example.js?v=a277ebb7';
+import { Ribbons } from './fx/ribbons.js?v=a277ebb7';
+import { sfx } from './fx/audio.js?v=a277ebb7';
+import { timesUp } from './fx/timesup.js?v=a277ebb7';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=a277ebb7';
+import { presentKit } from './presentkit.js?v=a277ebb7';
+import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=a277ebb7';
 
 const I = {
   flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
@@ -258,7 +258,7 @@ function lessonPrompt(p) {
   return [
     'You are an outstanding primary school teacher in England. Write a ' + p.minutes + '-minute ' + p.subject + ' lesson for ' + p.year + ' (Key Stage 2) pupils.',
     'Topic: ' + p.topic, p.goal ? 'What pupils should learn: ' + p.goal : '', 'The lesson is taught ' + where + '.', '',
-    'Follow the National Curriculum for England. Use British English spelling. Write for the age group: short sentences and child-friendly words on the slides.',
+    'Follow the Cambridge Primary curriculum. Use British English spelling. Write for the age group: short sentences and child-friendly words on the slides.',
     HOUSE_WORDS,
     'Every fact and every answer must be correct. Check all maths twice.',
     'Make it two-way: pupils respond every few minutes (starter, check point, talk time, your turn, exit ticket).',
@@ -366,7 +366,7 @@ async function planUnit() {
   let ok = false, code = '';
   try {
     const raw = await askJSON('Plan a sequence of ' + n + ' lessons for ' + year + ' ' + subject + ' in a primary school in England, on the unit "' + unit + '". ' +
-      'Build from the basics to harder ideas, following the National Curriculum for England. British English. ' + HOUSE_WORDS + ' ' +
+      'Build from the basics to harder ideas, following the Cambridge Primary curriculum. British English. ' + HOUSE_WORDS + ' ' +
       'Reply with only a JSON array of ' + n + ' objects like {"title": "Equivalent fractions", "objective": "To recognise and show families of equivalent fractions."}.', { model: CONFIG.quickModel, maxTokens: 1500 });
     const list = arr(raw).map((x) => ({ title: str(x && x.title), objective: str(x && x.objective) })).filter((x) => x.title).slice(0, 8);
     if (!list.length) throw { code: 'invalid_json' };

@@ -7,13 +7,13 @@
    them (this browser's storage). Worksheets, quizzes and games are kept in this browser's database (IndexedDB), with a
    small index here so lists draw at once. Folders and moves are kept on this device.
    Page modules use startMaking() / takeMaking() to open a maker with the topic, year and subject already filled in. */
-import { $, esc, str, icon, store, bus, uid, el, num, toast } from './core.js?v=e5cf7b70';
-import { who } from './people.js?v=e5cf7b70';
-import { kvGet, kvSet, kvDel } from './idb.js?v=e5cf7b70';
-import { SUBJECTS, match } from './lkie/curriculum.js?v=e5cf7b70';
-import { ENGINE_BY_ID } from './engines/registry.js?v=e5cf7b70';
-import { coverOfPack, unpin, OPEN_KEY } from './shelf.js?v=e5cf7b70';
-import { forgetUploads, safePic } from './pics.js?v=e5cf7b70';
+import { $, esc, str, icon, store, bus, uid, el, num, toast } from './core.js?v=a277ebb7';
+import { who } from './people.js?v=a277ebb7';
+import { kvGet, kvSet, kvDel } from './idb.js?v=a277ebb7';
+import { SUBJECTS, match } from './lkie/curriculum.js?v=a277ebb7';
+import { ENGINE_BY_ID } from './engines/registry.js?v=a277ebb7';
+import { coverOfPack, unpin, OPEN_KEY } from './shelf.js?v=a277ebb7';
+import { forgetUploads, safePic } from './pics.js?v=a277ebb7';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', DECKS = 'ks2-lesson-studio.recent.v1', SAVED = 'ks2-engine.saved.v1';
 const INDEX = 'ks2-engine.lib.v1', FOLDERS = 'ks2-engine.lib.folders.v1', PLACE = 'ks2-engine.lib.place.v1', MAKE = 'ks2-engine.make.v1';
@@ -294,7 +294,7 @@ function attachMade(key, topic) {
   const a = pendingAttach();
   if (!a || a.k !== parseKey(key).k) return;
   try { sessionStorage.removeItem(ATTACH); } catch (e) { /* once */ }
-  import('./calendar.js?v=e5cf7b70').then((c) => {
+  import('./calendar.js?v=a277ebb7').then((c) => {
     if (typeof c.planFor !== 'function' || typeof c.setPlan !== 'function') return;
     const p = c.planFor(a.date, a.slotId) || {}, items = Array.isArray(p.items) ? p.items : [];
     if (items.includes(key)) return;

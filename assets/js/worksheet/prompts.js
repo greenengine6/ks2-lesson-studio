@@ -7,7 +7,7 @@
      same order with many of the same words).
    - answerIssues(): answers that are missing, not one of the options, or (for simple sums and missing numbers in
      fractions) worked out wrongly. */
-import { str, arr, HOUSE_WORDS, ages } from '../core.js?v=e5cf7b70';
+import { str, arr, HOUSE_WORDS, ages } from '../core.js?v=a277ebb7';
 
 export const TYPES = {
   calc: 'Calculations', fill: 'Missing numbers or words', choice: 'Multiple choice', write: 'Short written answers',
@@ -19,7 +19,7 @@ export const BOX = '□';
 
 /* ---------------- the system prompt ---------------- */
 export const SHEET_SYSTEM = [
-  'You write worksheets for primary pupils in Key Stage 2 (Years 3 to 6, ages 7 to 11) at an international school in Ipoh, Malaysia, that follows the National Curriculum in England. Write in British English.',
+  'You write worksheets for primary pupils in Key Stage 2 (Years 3 to 6, ages 7 to 11) at an international school in Ipoh, Malaysia, that follows the Cambridge Primary curriculum (Stages 3 to 6 match Years 3 to 6). Write in British English.',
   HOUSE_WORDS,
   'Write each missing number or word as ' + BOX + ' (one box for each missing item), for example "1/2 = ' + BOX + '/4" or "345 + ' + BOX + ' = 600".',
   'Child-safe content only. Never use the names of real people, except well-known historical figures. Use everyday first names from many backgrounds; Malaysian contexts are welcome (ringgit, local places, foods and festivals) alongside others.',
@@ -72,7 +72,7 @@ export function topicRequest(o) {
   const types = arr(o.types).filter((t) => TYPES[t]);
   return [
     'Make a worksheet on "' + str(o.topic).slice(0, 160) + '" for ' + (o.year || 'Year 4') + ' (ages ' + ages(o.year) + ')' + (o.subject ? ', ' + o.subject : '') + '.',
-    'It has ' + (o.count || 8) + ' questions, from easier to harder, matched to what the National Curriculum in England expects in that year.',
+    'It has ' + (o.count || 8) + ' questions, from easier to harder, matched to what the Cambridge Primary curriculum expects at that stage.',
     types.length ? 'Use these kinds of question: ' + types.map((t) => TYPES[t].toLowerCase()).join(', ') + '.' : 'Use the kinds of question that suit the topic best, with a mix.',
     'Group them into 1 to 3 sections with short headings if that helps. Use 2 columns for short calculations or missing numbers.',
     levelText(o.levels),

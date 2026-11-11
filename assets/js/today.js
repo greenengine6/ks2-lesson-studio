@@ -1,11 +1,11 @@
 /* Today: the calm first page (Rabinder's points 1, 2 and 4). Her day from the calendar (each class Ready or not, with
    Start class), one box for "What are you teaching today?" that makes slides, a worksheet, a quiz or a game, her
    subjects with their pictures, what she was working on, homework due, and the class tools she uses most. */
-import { $, $$, esc, icon, str, store, bus, YEARS } from './core.js?v=e5cf7b70';
-import { who, ADMIN_NAME } from './people.js?v=e5cf7b70';
-import { renderShelf } from './shelf.js?v=e5cf7b70';
-import { listAll, counts, SUBJECT_LIST, subjectName, subjectColor, openItem, startMaking, startClass, KINDS, onLibrary, guessSubject, soon } from './library.js?v=e5cf7b70';
-import { subjectArt } from './art/subjects.js?v=e5cf7b70';
+import { $, $$, esc, icon, str, store, bus, YEARS } from './core.js?v=a277ebb7';
+import { who, ADMIN_NAME } from './people.js?v=a277ebb7';
+import { renderShelf } from './shelf.js?v=a277ebb7';
+import { listAll, counts, SUBJECT_LIST, subjectName, subjectColor, openItem, startMaking, startClass, KINDS, onLibrary, guessSubject, soon } from './library.js?v=a277ebb7';
+import { subjectArt } from './art/subjects.js?v=a277ebb7';
 
 const FORM = 'ks2-engine.today.form.v1';
 const MAKE = [['slides', 'Lesson slides', 'pack'], ['sheet', 'Worksheet', 'sheet'], ['quiz', 'Quiz', 'quiz'], ['game', 'Game', 'game']];
@@ -31,7 +31,7 @@ function form() { const v = store.getJSON(FORM, {}); return Object.assign({ topi
 function loadCal() {
   if (calTried) return Promise.resolve(cal);
   calTried = true;
-  return import('./calendar.js?v=e5cf7b70').then((m) => { cal = m; return m; }).catch(() => null);
+  return import('./calendar.js?v=a277ebb7').then((m) => { cal = m; return m; }).catch(() => null);
 }
 const t12 = (s) => { const m = /^(\d{1,2}):(\d{2})/.exec(String(s || '')); return m ? (((Number(m[1]) + 11) % 12) + 1) + ':' + m[2] : String(s || ''); };   // 13:00 → 1:00, as on the calendar
 const hm = (s) => { const m = /^(\d{1,2}):(\d{2})/.exec(String(s || '')); return m ? Number(m[1]) * 60 + Number(m[2]) : -1; };

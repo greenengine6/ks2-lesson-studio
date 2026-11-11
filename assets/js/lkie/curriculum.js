@@ -1,9 +1,11 @@
 /* lkie.like curriculum map: every KS2 subject, as Framework > Subject > Year (or band) > Strand > Objective.
-   Each objective has a short, stable code of our own (for example MA4-NPV-7). The National Curriculum in England has
-   no official objective codes, so these are ours; the statement text is the statutory requirement, lightly shortened
-   (Crown copyright, Open Government Licence v3.0). Bahasa Melayu follows the KSSR skill areas, Mandarin, French and
-   Spanish follow the KS2 languages programme of study, RE follows the RE Council's national framework (your locally
-   agreed syllabus decides), and PSHE follows the statutory Relationships and Health Education guidance.
+   Maths follows the Cambridge Primary curriculum, as Rabinder's school does: Cambridge's own learning objectives and
+   codes (for example 6Nf.13), word for word, Stages 3 to 6 for Years 3 to 6 (see the maths section). The other
+   subjects still use short, stable codes of this site's own (for example SC4-LT-1) on statements taken from the
+   National Curriculum in England, lightly shortened (Crown copyright, Open Government Licence v3.0). Bahasa Melayu
+   follows the KSSR skill areas, Mandarin, French and Spanish follow the KS2 languages programme of study, RE follows
+   the RE Council's national framework (your locally agreed syllabus decides), and PSHE follows the statutory
+   Relationships and Health Education guidance.
 
    The engine is only ever shown a short list of codes picked here for the topic, and anything it returns that is not
    on that list is thrown away, so a lesson can never carry an invented curriculum code.
@@ -11,6 +13,7 @@
    Row format: [code, years, strand, statement]. years: '3' '4' '5' '6', '34' (Years 3-4), '56' (Years 5-6), 'KS2'. */
 
 export const FRAMEWORKS = {
+  cambridge: { name: 'Cambridge Primary Mathematics (0096)', short: 'Cambridge', stages: true },
   england: { name: 'National Curriculum in England (2014)', short: 'NC England' },
   rshe: { name: 'Relationships and Health Education, statutory guidance (England)', short: 'RSHE' },
   re: { name: 'RE Council national framework (2013) · your agreed syllabus decides', short: 'RE framework' },
@@ -20,7 +23,7 @@ export const FRAMEWORKS = {
 
 export const SUBJECTS = [
   { id: 'english', name: 'English', group: 'Core', fw: 'england' },
-  { id: 'maths', name: 'Maths', group: 'Core', fw: 'england' },
+  { id: 'maths', name: 'Maths', group: 'Core', fw: 'cambridge' },
   { id: 'science', name: 'Science', group: 'Core', fw: 'england' },
   { id: 'computing', name: 'Computing (ICT)', group: 'Foundation', fw: 'england' },
   { id: 'history', name: 'History', group: 'Foundation', fw: 'england' },
@@ -38,150 +41,221 @@ export const SUBJECTS = [
 ];
 export const SUBJECT_BY_ID = Object.fromEntries(SUBJECTS.map((s) => [s.id, s]));
 
-/* ---------------- Maths ---------------- */
+/* ---------------- Maths: Cambridge Primary Mathematics (0096), Stages 3 to 6 ----------------
+   Rabinder's school plans maths from the Cambridge Primary curriculum (Vik, 11 Nov 2026: "i dont want england. i want
+   cambridge"), so these are Cambridge's own learning objectives and codes, word for word from the Cambridge Primary
+   Mathematics Curriculum Framework (0096), version 1.1 (first teaching September 2021), checked against the framework
+   on 11 Nov 2026. Sub-points are joined with "; ". Stage 3 to 6 match Years 3 to 6. Copyright UCLES (Cambridge
+   University Press & Assessment): registered centres may copy the framework for their own internal use. */
 const MATHS = [
-  // Year 3
-  ['MA3-NPV-1', '3', 'Number and place value', 'count from 0 in multiples of 4, 8, 50 and 100; find 10 or 100 more or less than a given number'],
-  ['MA3-NPV-2', '3', 'Number and place value', 'recognise the place value of each digit in a three-digit number (hundreds, tens, ones)'],
-  ['MA3-NPV-3', '3', 'Number and place value', 'compare and order numbers up to 1,000'],
-  ['MA3-NPV-4', '3', 'Number and place value', 'identify, represent and estimate numbers using different representations'],
-  ['MA3-NPV-5', '3', 'Number and place value', 'read and write numbers up to 1,000 in numerals and in words'],
-  ['MA3-AS-1', '3', 'Addition and subtraction', 'add and subtract numbers mentally: a three-digit number and ones, tens or hundreds'],
-  ['MA3-AS-2', '3', 'Addition and subtraction', 'add and subtract numbers with up to three digits using formal written methods of columnar addition and subtraction'],
-  ['MA3-AS-3', '3', 'Addition and subtraction', 'estimate the answer to a calculation and use inverse operations to check answers'],
-  ['MA3-AS-4', '3', 'Addition and subtraction', 'solve problems, including missing number problems, using number facts, place value and more complex addition and subtraction'],
-  ['MA3-MD-1', '3', 'Multiplication and division', 'recall and use multiplication and division facts for the 3, 4 and 8 multiplication tables'],
-  ['MA3-MD-2', '3', 'Multiplication and division', 'write and calculate statements for multiplication and division using known tables, including two-digit times one-digit numbers'],
-  ['MA3-MD-3', '3', 'Multiplication and division', 'solve problems involving multiplication and division, including scaling problems and correspondence problems'],
-  ['MA3-FR-1', '3', 'Fractions', 'count up and down in tenths; recognise that tenths arise from dividing an object into 10 equal parts'],
-  ['MA3-FR-2', '3', 'Fractions', 'recognise, find and write fractions of a set of objects: unit fractions and non-unit fractions with small denominators'],
-  ['MA3-FR-3', '3', 'Fractions', 'recognise and show, using diagrams, equivalent fractions with small denominators'],
-  ['MA3-FR-4', '3', 'Fractions', 'add and subtract fractions with the same denominator within one whole'],
-  ['MA3-FR-5', '3', 'Fractions', 'compare and order unit fractions, and fractions with the same denominators'],
-  ['MA3-ME-1', '3', 'Measurement', 'measure, compare, add and subtract lengths (m/cm/mm), mass (kg/g) and volume or capacity (l/ml)'],
-  ['MA3-ME-2', '3', 'Measurement', 'measure the perimeter of simple 2-D shapes'],
-  ['MA3-ME-3', '3', 'Measurement', 'add and subtract amounts of money to give change, using both £ and p'],
-  ['MA3-ME-4', '3', 'Measurement', 'tell and write the time from an analogue clock, including Roman numerals I to XII, and 12-hour and 24-hour clocks'],
-  ['MA3-ME-5', '3', 'Measurement', 'estimate and read time to the nearest minute; use seconds, minutes, hours, a.m. and p.m.; know the days in each month, year and leap year'],
-  ['MA3-GS-1', '3', 'Geometry: properties of shapes', 'draw 2-D shapes and make 3-D shapes; recognise 3-D shapes in different orientations and describe them'],
-  ['MA3-GS-2', '3', 'Geometry: properties of shapes', 'recognise angles as a property of shape or a description of a turn; identify right angles and angles greater or less than a right angle'],
-  ['MA3-GS-3', '3', 'Geometry: properties of shapes', 'identify horizontal and vertical lines and pairs of perpendicular and parallel lines'],
-  ['MA3-ST-1', '3', 'Statistics', 'interpret and present data using bar charts, pictograms and tables'],
-  ['MA3-ST-2', '3', 'Statistics', 'solve one-step and two-step questions such as how many more or fewer, using scaled bar charts, pictograms and tables'],
-  // Year 4
-  ['MA4-NPV-1', '4', 'Number and place value', 'count in multiples of 6, 7, 9, 25 and 1,000'],
-  ['MA4-NPV-2', '4', 'Number and place value', 'find 1,000 more or less than a given number'],
-  ['MA4-NPV-3', '4', 'Number and place value', 'count backwards through zero to include negative numbers'],
-  ['MA4-NPV-4', '4', 'Number and place value', 'recognise the place value of each digit in a four-digit number (thousands, hundreds, tens and ones)'],
-  ['MA4-NPV-5', '4', 'Number and place value', 'order and compare numbers beyond 1,000'],
-  ['MA4-NPV-6', '4', 'Number and place value', 'identify, represent and estimate numbers using different representations'],
-  ['MA4-NPV-7', '4', 'Number and place value', 'round any number to the nearest 10, 100 or 1,000'],
-  ['MA4-NPV-8', '4', 'Number and place value', 'read Roman numerals to 100 (I to C) and know that the numeral system changed over time to include zero and place value'],
-  ['MA4-AS-1', '4', 'Addition and subtraction', 'add and subtract numbers with up to 4 digits using formal written methods of columnar addition and subtraction'],
-  ['MA4-AS-2', '4', 'Addition and subtraction', 'estimate and use inverse operations to check answers to a calculation'],
-  ['MA4-AS-3', '4', 'Addition and subtraction', 'solve addition and subtraction two-step problems in contexts, deciding which operations and methods to use and why'],
-  ['MA4-MD-1', '4', 'Multiplication and division', 'recall multiplication and division facts for multiplication tables up to 12 × 12'],
-  ['MA4-MD-2', '4', 'Multiplication and division', 'use place value and known facts to multiply and divide mentally, including multiplying by 0 and 1, dividing by 1 and multiplying three numbers'],
-  ['MA4-MD-3', '4', 'Multiplication and division', 'recognise and use factor pairs and commutativity in mental calculations'],
-  ['MA4-MD-4', '4', 'Multiplication and division', 'multiply two-digit and three-digit numbers by a one-digit number using formal written layout'],
-  ['MA4-MD-5', '4', 'Multiplication and division', 'solve problems involving multiplying and adding, including the distributive law, scaling and correspondence problems'],
-  ['MA4-FR-1', '4', 'Fractions and decimals', 'recognise and show, using diagrams, families of common equivalent fractions'],
-  ['MA4-FR-2', '4', 'Fractions and decimals', 'count up and down in hundredths; recognise that hundredths arise when dividing an object by 100 and tenths by 10'],
-  ['MA4-FR-3', '4', 'Fractions and decimals', 'solve problems using fractions to calculate quantities, including non-unit fractions where the answer is a whole number'],
-  ['MA4-FR-4', '4', 'Fractions and decimals', 'add and subtract fractions with the same denominator'],
-  ['MA4-FR-5', '4', 'Fractions and decimals', 'recognise and write decimal equivalents of tenths, hundredths, 1/4, 1/2 and 3/4'],
-  ['MA4-FR-6', '4', 'Fractions and decimals', 'find the effect of dividing a one- or two-digit number by 10 and 100, naming the digits as ones, tenths and hundredths'],
-  ['MA4-FR-7', '4', 'Fractions and decimals', 'round decimals with one decimal place to the nearest whole number'],
-  ['MA4-FR-8', '4', 'Fractions and decimals', 'compare numbers with the same number of decimal places up to two decimal places'],
-  ['MA4-FR-9', '4', 'Fractions and decimals', 'solve simple measure and money problems involving fractions and decimals to two decimal places'],
-  ['MA4-ME-1', '4', 'Measurement', 'convert between different units of measure, for example kilometre to metre and hour to minute'],
-  ['MA4-ME-2', '4', 'Measurement', 'measure and calculate the perimeter of a rectilinear figure (including squares) in centimetres and metres'],
-  ['MA4-ME-3', '4', 'Measurement', 'find the area of rectilinear shapes by counting squares'],
-  ['MA4-ME-4', '4', 'Measurement', 'estimate, compare and calculate different measures, including money in pounds and pence'],
-  ['MA4-ME-5', '4', 'Measurement', 'read, write and convert time between analogue and digital 12-hour and 24-hour clocks'],
-  ['MA4-ME-6', '4', 'Measurement', 'solve problems converting hours to minutes, minutes to seconds, years to months and weeks to days'],
-  ['MA4-GS-1', '4', 'Geometry: properties of shapes', 'compare and classify geometric shapes, including quadrilaterals and triangles, by their properties and sizes'],
-  ['MA4-GS-2', '4', 'Geometry: properties of shapes', 'identify acute and obtuse angles and compare and order angles up to two right angles by size'],
-  ['MA4-GS-3', '4', 'Geometry: properties of shapes', 'identify lines of symmetry in 2-D shapes in different orientations and complete a symmetric figure'],
-  ['MA4-GP-1', '4', 'Geometry: position and direction', 'describe positions on a 2-D grid as coordinates in the first quadrant'],
-  ['MA4-GP-2', '4', 'Geometry: position and direction', 'describe movements between positions as translations left or right and up or down; plot points to complete a polygon'],
-  ['MA4-ST-1', '4', 'Statistics', 'interpret and present discrete and continuous data using bar charts and time graphs'],
-  ['MA4-ST-2', '4', 'Statistics', 'solve comparison, sum and difference problems using bar charts, pictograms, tables and other graphs'],
-  // Year 5
-  ['MA5-NPV-1', '5', 'Number and place value', 'read, write, order and compare numbers to at least 1,000,000 and determine the value of each digit'],
-  ['MA5-NPV-2', '5', 'Number and place value', 'count forwards or backwards in steps of powers of 10 for any number up to 1,000,000'],
-  ['MA5-NPV-3', '5', 'Number and place value', 'interpret negative numbers in context and count forwards and backwards through zero'],
-  ['MA5-NPV-4', '5', 'Number and place value', 'round any number up to 1,000,000 to the nearest 10, 100, 1,000, 10,000 and 100,000'],
-  ['MA5-NPV-5', '5', 'Number and place value', 'read Roman numerals to 1,000 (M) and recognise years written in Roman numerals'],
-  ['MA5-AS-1', '5', 'Addition and subtraction', 'add and subtract whole numbers with more than 4 digits, including formal written methods'],
-  ['MA5-AS-2', '5', 'Addition and subtraction', 'add and subtract numbers mentally with increasingly large numbers'],
-  ['MA5-AS-3', '5', 'Addition and subtraction', 'use rounding to check answers to calculations and decide on levels of accuracy'],
-  ['MA5-AS-4', '5', 'Addition and subtraction', 'solve addition and subtraction multi-step problems in contexts, deciding which operations and methods to use and why'],
-  ['MA5-MD-1', '5', 'Multiplication and division', 'identify multiples and factors, including all factor pairs of a number and common factors of two numbers'],
-  ['MA5-MD-2', '5', 'Multiplication and division', 'know and use prime numbers, prime factors and composite numbers; establish whether a number up to 100 is prime'],
-  ['MA5-MD-3', '5', 'Multiplication and division', 'multiply numbers up to 4 digits by a one- or two-digit number, including long multiplication for two-digit numbers'],
-  ['MA5-MD-4', '5', 'Multiplication and division', 'divide numbers up to 4 digits by a one-digit number using short division and interpret remainders'],
-  ['MA5-MD-5', '5', 'Multiplication and division', 'multiply and divide whole numbers and decimals by 10, 100 and 1,000'],
-  ['MA5-MD-6', '5', 'Multiplication and division', 'recognise and use square numbers and cube numbers, and the notation ² and ³'],
-  ['MA5-MD-7', '5', 'Multiplication and division', 'solve problems using all four operations, including the meaning of the equals sign, scaling by simple fractions and simple rates'],
-  ['MA5-FR-1', '5', 'Fractions, decimals and percentages', 'compare and order fractions whose denominators are all multiples of the same number'],
-  ['MA5-FR-2', '5', 'Fractions, decimals and percentages', 'identify, name and write equivalent fractions, including tenths and hundredths'],
-  ['MA5-FR-3', '5', 'Fractions, decimals and percentages', 'recognise mixed numbers and improper fractions and convert from one form to the other'],
-  ['MA5-FR-4', '5', 'Fractions, decimals and percentages', 'add and subtract fractions with the same denominator and denominators that are multiples of the same number'],
-  ['MA5-FR-5', '5', 'Fractions, decimals and percentages', 'multiply proper fractions and mixed numbers by whole numbers'],
-  ['MA5-FR-6', '5', 'Fractions, decimals and percentages', 'read and write decimals as fractions; recognise thousandths and relate them to tenths and hundredths'],
-  ['MA5-FR-7', '5', 'Fractions, decimals and percentages', 'round decimals with two decimal places to the nearest whole number and to one decimal place'],
-  ['MA5-FR-8', '5', 'Fractions, decimals and percentages', 'read, write, order and compare numbers with up to three decimal places'],
-  ['MA5-FR-9', '5', 'Fractions, decimals and percentages', 'recognise the per cent symbol and write percentages as a fraction with denominator 100 and as a decimal'],
-  ['MA5-FR-10', '5', 'Fractions, decimals and percentages', 'solve problems using percentage and decimal equivalents of 1/2, 1/4, 1/5, 2/5, 4/5 and denominators of 10 or 25'],
-  ['MA5-ME-1', '5', 'Measurement', 'convert between units of metric measure and use approximate equivalences with inches, pounds and pints'],
-  ['MA5-ME-2', '5', 'Measurement', 'measure and calculate the perimeter of composite rectilinear shapes'],
-  ['MA5-ME-3', '5', 'Measurement', 'calculate and compare the area of rectangles in cm² and m², and estimate the area of irregular shapes'],
-  ['MA5-ME-4', '5', 'Measurement', 'estimate volume and capacity'],
-  ['MA5-ME-5', '5', 'Measurement', 'solve problems converting between units of time and using all four operations with measures'],
-  ['MA5-GS-1', '5', 'Geometry: properties of shapes', 'identify 3-D shapes, including cubes and cuboids, from 2-D representations'],
-  ['MA5-GS-2', '5', 'Geometry: properties of shapes', 'know angles are measured in degrees; estimate, compare, draw and measure acute, obtuse and reflex angles'],
-  ['MA5-GS-3', '5', 'Geometry: properties of shapes', 'identify angles at a point (360°), on a straight line (180°) and other multiples of 90°'],
-  ['MA5-GS-4', '5', 'Geometry: properties of shapes', 'use the properties of rectangles to find missing lengths and angles; tell regular from irregular polygons'],
-  ['MA5-GP-1', '5', 'Geometry: position and direction', 'identify, describe and represent the position of a shape after a reflection or translation'],
-  ['MA5-ST-1', '5', 'Statistics', 'solve comparison, sum and difference problems using a line graph'],
-  ['MA5-ST-2', '5', 'Statistics', 'complete, read and interpret information in tables, including timetables'],
-  // Year 6
-  ['MA6-NPV-1', '6', 'Number and place value', 'read, write, order and compare numbers up to 10,000,000 and determine the value of each digit'],
-  ['MA6-NPV-2', '6', 'Number and place value', 'round any whole number to a required degree of accuracy'],
-  ['MA6-NPV-3', '6', 'Number and place value', 'use negative numbers in context and calculate intervals across zero'],
-  ['MA6-CA-1', '6', 'Calculation', 'multiply numbers up to 4 digits by a two-digit number using long multiplication'],
-  ['MA6-CA-2', '6', 'Calculation', 'divide numbers up to 4 digits by a two-digit number using long or short division and interpret remainders'],
-  ['MA6-CA-3', '6', 'Calculation', 'perform mental calculations, including with mixed operations and large numbers'],
-  ['MA6-CA-4', '6', 'Calculation', 'identify common factors, common multiples and prime numbers'],
-  ['MA6-CA-5', '6', 'Calculation', 'use the order of operations to carry out calculations involving the four operations'],
-  ['MA6-CA-6', '6', 'Calculation', 'solve multi-step problems and use estimation to check answers to an appropriate degree of accuracy'],
-  ['MA6-FR-1', '6', 'Fractions, decimals and percentages', 'use common factors to simplify fractions and common multiples to express fractions in the same denomination'],
-  ['MA6-FR-2', '6', 'Fractions, decimals and percentages', 'compare and order fractions, including fractions greater than 1'],
-  ['MA6-FR-3', '6', 'Fractions, decimals and percentages', 'add and subtract fractions with different denominators and mixed numbers'],
-  ['MA6-FR-4', '6', 'Fractions, decimals and percentages', 'multiply simple pairs of proper fractions and divide proper fractions by whole numbers'],
-  ['MA6-FR-5', '6', 'Fractions, decimals and percentages', 'associate a fraction with division and calculate decimal equivalents, for example 3/8 = 0.375'],
-  ['MA6-FR-6', '6', 'Fractions, decimals and percentages', 'identify the value of each digit to three decimal places; multiply and divide by 10, 100 and 1,000'],
-  ['MA6-FR-7', '6', 'Fractions, decimals and percentages', 'multiply one-digit numbers with up to two decimal places by whole numbers; divide giving answers to two decimal places'],
-  ['MA6-FR-8', '6', 'Fractions, decimals and percentages', 'recall and use equivalences between simple fractions, decimals and percentages'],
-  ['MA6-RP-1', '6', 'Ratio and proportion', 'solve problems involving the relative sizes of 2 quantities where missing values can be found by using integer multiplication and division facts'],
-  ['MA6-RP-2', '6', 'Ratio and proportion', 'solve problems involving the calculation of percentages [for example, of measures and such as 15% of 360] and the use of percentages for comparison'],
-  ['MA6-RP-3', '6', 'Ratio and proportion', 'solve problems involving similar shapes where the scale factor is known or can be found'],
-  ['MA6-RP-4', '6', 'Ratio and proportion', 'solve problems involving unequal sharing and grouping using knowledge of fractions and multiples'],
-  ['MA6-AL-1', '6', 'Algebra', 'use simple formulae and express missing number problems algebraically'],
-  ['MA6-AL-2', '6', 'Algebra', 'generate and describe linear number sequences'],
-  ['MA6-AL-3', '6', 'Algebra', 'find pairs of numbers that satisfy an equation with two unknowns and list combinations of two variables'],
-  ['MA6-ME-1', '6', 'Measurement', 'convert between standard units of length, mass, volume and time using decimals to three places; convert miles and kilometres'],
-  ['MA6-ME-2', '6', 'Measurement', 'recognise that shapes with the same areas can have different perimeters and vice versa'],
-  ['MA6-ME-3', '6', 'Measurement', 'calculate the area of parallelograms and triangles'],
-  ['MA6-ME-4', '6', 'Measurement', 'calculate, estimate and compare the volume of cubes and cuboids in cm³ and m³'],
-  ['MA6-GS-1', '6', 'Geometry: properties of shapes', 'draw 2-D shapes using given dimensions and angles; build 3-D shapes and make nets'],
-  ['MA6-GS-2', '6', 'Geometry: properties of shapes', 'find unknown angles in triangles, quadrilaterals and regular polygons'],
-  ['MA6-GS-3', '6', 'Geometry: properties of shapes', 'name the parts of circles (radius, diameter, circumference) and know the diameter is twice the radius'],
-  ['MA6-GS-4', '6', 'Geometry: properties of shapes', 'recognise angles at a point, on a straight line and vertically opposite, and find missing angles'],
-  ['MA6-GP-1', '6', 'Geometry: position and direction', 'describe positions on the full coordinate grid (all four quadrants); translate and reflect shapes'],
-  ['MA6-ST-1', '6', 'Statistics', 'interpret and construct pie charts and line graphs and use them to solve problems'],
-  ['MA6-ST-2', '6', 'Statistics', 'calculate and interpret the mean as an average']
+  // Stage 3 (Year 3)
+  ['3Nc.01', '3', 'Counting and sequences', 'Estimate the number of objects or people (up to 1000).'],
+  ['3Nc.02', '3', 'Counting and sequences', 'Count on and count back in steps of constant size: 1-digit numbers, tens or hundreds, starting from any number (from 0 to 1000).'],
+  ['3Nc.03', '3', 'Counting and sequences', 'Use knowledge of even and odd numbers up to 10 to recognise and sort numbers.'],
+  ['3Nc.04', '3', 'Counting and sequences', 'Recognise the use of an object to represent an unknown quantity in addition and subtraction calculations.'],
+  ['3Nc.05', '3', 'Counting and sequences', 'Recognise and extend linear sequences, and describe the term-to-term rule.'],
+  ['3Nc.06', '3', 'Counting and sequences', 'Extend spatial patterns formed from adding and subtracting a constant.'],
+  ['3Ni.01', '3', 'Integers and powers', 'Recite, read and write number names and whole numbers (from 0 to 1000).'],
+  ['3Ni.02', '3', 'Integers and powers', 'Understand the commutative and associative properties of addition, and use these to simplify calculations.'],
+  ['3Ni.03', '3', 'Integers and powers', 'Recognise complements of 100 and complements of multiples of 10 or 100 (up to 1000).'],
+  ['3Ni.04', '3', 'Integers and powers', 'Estimate, add and subtract whole numbers with up to three digits (regrouping of ones or tens).'],
+  ['3Ni.05', '3', 'Integers and powers', 'Understand and explain the relationship between multiplication and division.'],
+  ['3Ni.06', '3', 'Integers and powers', 'Understand and explain the commutative and distributive properties of multiplication, and use these to simplify calculations.'],
+  ['3Ni.07', '3', 'Integers and powers', 'Know 1, 2, 3, 4, 5, 6, 8, 9 and 10 times tables.'],
+  ['3Ni.08', '3', 'Integers and powers', 'Estimate and multiply whole numbers up to 100 by 2, 3, 4 and 5.'],
+  ['3Ni.09', '3', 'Integers and powers', 'Estimate and divide whole numbers up to 100 by 2, 3, 4 and 5.'],
+  ['3Ni.10', '3', 'Integers and powers', 'Recognise multiples of 2, 5 and 10 (up to 1000).'],
+  ['3Nm.01', '3', 'Money', 'Interpret money notation for currencies that use a decimal point.'],
+  ['3Nm.02', '3', 'Money', 'Add and subtract amounts of money to give change.'],
+  ['3Np.01', '3', 'Place value, ordering and rounding', 'Understand and explain that the value of each digit is determined by its position in that number (up to 3-digit numbers).'],
+  ['3Np.02', '3', 'Place value, ordering and rounding', 'Use knowledge of place value to multiply whole numbers by 10.'],
+  ['3Np.03', '3', 'Place value, ordering and rounding', 'Compose, decompose and regroup 3-digit numbers, using hundreds, tens and ones.'],
+  ['3Np.04', '3', 'Place value, ordering and rounding', 'Understand the relative size of quantities to compare and order 3-digit positive numbers, using the symbols =, > and <.'],
+  ['3Np.05', '3', 'Place value, ordering and rounding', 'Round 3-digit numbers to the nearest 10 or 100.'],
+  ['3Nf.01', '3', 'Fractions, decimals, percentages, ratio and proportion', 'Understand and explain that fractions are several equal parts of an object or shape and all the parts, taken together, equal one whole.'],
+  ['3Nf.02', '3', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that the relationship between the whole and the parts depends on the relative size of each, regardless of their shape or orientation.'],
+  ['3Nf.03', '3', 'Fractions, decimals, percentages, ratio and proportion', 'Understand and explain that fractions can describe equal parts of a quantity or set of objects.'],
+  ['3Nf.04', '3', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that a fraction can be represented as a division of the numerator by the denominator (half, quarter and three-quarters).'],
+  ['3Nf.05', '3', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that fractions (half, quarter, three-quarters, third and tenth) can act as operators.'],
+  ['3Nf.06', '3', 'Fractions, decimals, percentages, ratio and proportion', 'Recognise that two fractions can have an equivalent value (halves, quarters, fifths and tenths).'],
+  ['3Nf.07', '3', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate, add and subtract fractions with the same denominator (within one whole).'],
+  ['3Nf.08', '3', 'Fractions, decimals, percentages, ratio and proportion', 'Use knowledge of equivalence to compare and order unit fractions and fractions with the same denominator, using the symbols =, > and <.'],
+  ['3Gt.01', '3', 'Time', 'Choose the appropriate unit of time for familiar activities.'],
+  ['3Gt.02', '3', 'Time', 'Read and record time accurately in digital notation (12-hour) and on analogue clocks.'],
+  ['3Gt.03', '3', 'Time', 'Interpret and use the information in timetables (12-hour clock).'],
+  ['3Gt.04', '3', 'Time', 'Understand the difference between a time and a time interval. Find time intervals between the same units in days, weeks, months and years.'],
+  ['3Gg.01', '3', 'Geometrical reasoning, shapes and measurements', 'Identify, describe, classify, name and sketch 2D shapes by their properties. Differentiate between regular and irregular polygons.'],
+  ['3Gg.02', '3', 'Geometrical reasoning, shapes and measurements', 'Estimate and measure lengths in centimetres (cm), metres (m) and kilometres (km). Understand the relationship between units.'],
+  ['3Gg.03', '3', 'Geometrical reasoning, shapes and measurements', 'Understand that perimeter is the total distance around a 2D shape and can be calculated by adding lengths, and area is how much space a 2D shape occupies within its boundary.'],
+  ['3Gg.04', '3', 'Geometrical reasoning, shapes and measurements', 'Draw lines, rectangles and squares. Estimate, measure and calculate the perimeter of a shape, using appropriate metric units, and area on a square grid.'],
+  ['3Gg.05', '3', 'Geometrical reasoning, shapes and measurements', 'Identify, describe, sort, name and sketch 3D shapes by their properties.'],
+  ['3Gg.06', '3', 'Geometrical reasoning, shapes and measurements', 'Estimate and measure the mass of objects in grams (g) and kilograms (kg). Understand the relationship between units.'],
+  ['3Gg.07', '3', 'Geometrical reasoning, shapes and measurements', 'Estimate and measure capacity in millilitres (ml) and litres (l), and understand their relationships.'],
+  ['3Gg.08', '3', 'Geometrical reasoning, shapes and measurements', 'Recognise pictures, drawings and diagrams of 3D shapes.'],
+  ['3Gg.09', '3', 'Geometrical reasoning, shapes and measurements', 'Identify both horizontal and vertical lines of symmetry on 2D shapes and patterns.'],
+  ['3Gg.10', '3', 'Geometrical reasoning, shapes and measurements', 'Compare angles with a right angle. Recognise that a straight line is equivalent to two right angles or a half turn.'],
+  ['3Gg.11', '3', 'Geometrical reasoning, shapes and measurements', 'Use instruments that measure length, mass, capacity and temperature.'],
+  ['3Gp.01', '3', 'Position and transformation', 'Interpret and create descriptions of position, direction and movement, including reference to cardinal points.'],
+  ['3Gp.02', '3', 'Position and transformation', 'Sketch the reflection of a 2D shape in a horizontal or vertical mirror line, including where the mirror line is the edge of the shape.'],
+  ['3Ss.01', '3', 'Statistics', 'Conduct an investigation to answer non-statistical and statistical questions (categorical and discrete data).'],
+  ['3Ss.02', '3', 'Statistics', 'Record, organise and represent categorical and discrete data. Choose and explain which representation to use in a given situation: Venn and Carroll diagrams; tally charts and frequency tables; pictograms and bar charts.'],
+  ['3Ss.03', '3', 'Statistics', 'Interpret data, identifying similarities and variations, within data sets, to answer non-statistical and statistical questions and discuss conclusions.'],
+  ['3Sp.01', '3', 'Probability', 'Use familiar language associated with chance to describe events, including \'it will happen\', \'it will not happen\', \'it might happen\'.'],
+  ['3Sp.02', '3', 'Probability', 'Conduct chance experiments, and present and describe the results.'],
+  // Stage 4 (Year 4)
+  ['4Nc.01', '4', 'Counting and sequences', 'Count on and count back in steps of constant size: 1-digit numbers, tens, hundreds or thousands, starting from any number, and extending beyond zero to include negative numbers.'],
+  ['4Nc.02', '4', 'Counting and sequences', 'Recognise and explain generalisations when adding and subtracting combinations of even and odd numbers.'],
+  ['4Nc.03', '4', 'Counting and sequences', 'Recognise the use of objects, shapes or symbols to represent unknown quantities in addition and subtraction calculations.'],
+  ['4Nc.04', '4', 'Counting and sequences', 'Recognise and extend linear and non-linear sequences, and describe the term-to-term rule.'],
+  ['4Nc.05', '4', 'Counting and sequences', 'Recognise and extend the spatial pattern of square numbers.'],
+  ['4Ni.01', '4', 'Integers and powers', 'Read and write number names and whole numbers greater than 1000 and less than 0.'],
+  ['4Ni.02', '4', 'Integers and powers', 'Estimate, add and subtract whole numbers with up to three digits.'],
+  ['4Ni.03', '4', 'Integers and powers', 'Understand the associative property of multiplication, and use this to simplify calculations.'],
+  ['4Ni.04', '4', 'Integers and powers', 'Know all times tables from 1 to 10.'],
+  ['4Ni.05', '4', 'Integers and powers', 'Estimate and multiply whole numbers up to 1000 by 1-digit whole numbers.'],
+  ['4Ni.06', '4', 'Integers and powers', 'Estimate and divide whole numbers up to 100 by 1-digit whole numbers.'],
+  ['4Ni.07', '4', 'Integers and powers', 'Understand the relationship between multiples and factors.'],
+  ['4Ni.08', '4', 'Integers and powers', 'Use knowledge of factors and multiples to understand tests of divisibility by 2, 5, 10, 25, 50 and 100.'],
+  ['4Np.01', '4', 'Place value, ordering and rounding', 'Understand and explain that the value of each digit in numbers is determined by its position in that number.'],
+  ['4Np.02', '4', 'Place value, ordering and rounding', 'Use knowledge of place value to multiply and divide whole numbers by 10 and 100.'],
+  ['4Np.03', '4', 'Place value, ordering and rounding', 'Compose, decompose and regroup whole numbers.'],
+  ['4Np.04', '4', 'Place value, ordering and rounding', 'Understand the relative size of quantities to compare and order positive and negative numbers, using the symbols =, > and <.'],
+  ['4Np.05', '4', 'Place value, ordering and rounding', 'Round numbers to the nearest 10, 100, 1000, 10 000 or 100 000.'],
+  ['4Nf.01', '4', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that the more parts a whole is divided into, the smaller the parts become.'],
+  ['4Nf.02', '4', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that a fraction can be represented as a division of the numerator by the denominator (unit fractions and three-quarters).'],
+  ['4Nf.03', '4', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that unit fractions can act as operators.'],
+  ['4Nf.04', '4', 'Fractions, decimals, percentages, ratio and proportion', 'Recognise that two proper fractions can have an equivalent value.'],
+  ['4Nf.05', '4', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate, add and subtract fractions with the same denominator.'],
+  ['4Nf.06', '4', 'Fractions, decimals, percentages, ratio and proportion', 'Understand percentage as the number of parts in each hundred, and use the percentage symbol (%).'],
+  ['4Nf.07', '4', 'Fractions, decimals, percentages, ratio and proportion', 'Use knowledge of equivalence to compare and order proper fractions, using the symbols =, > and <.'],
+  ['4Gt.01', '4', 'Time', 'Understand the direct relationship between units of time, and convert between them.'],
+  ['4Gt.02', '4', 'Time', 'Read and record time accurately in digital notation (12- and 24-hour) and on analogue clocks.'],
+  ['4Gt.03', '4', 'Time', 'Interpret and use the information in timetables (12- and 24-hour clock).'],
+  ['4Gt.04', '4', 'Time', 'Find time intervals between different units: days, weeks, months and years; seconds, minutes and hours that do not bridge through 60.'],
+  ['4Gg.01', '4', 'Geometrical reasoning, shapes and measurements', 'Investigate what shapes can be made if two or more shapes are combined, and analyse their properties, including reference to tessellation.'],
+  ['4Gg.02', '4', 'Geometrical reasoning, shapes and measurements', 'Estimate and measure perimeter and area of 2D shapes, understanding that two areas can be added together to calculate the area of a compound shape.'],
+  ['4Gg.03', '4', 'Geometrical reasoning, shapes and measurements', 'Draw rectangles and squares on square grids, and measure their perimeter and area. Derive and use formulae to calculate areas and perimeters of rectangles and squares.'],
+  ['4Gg.04', '4', 'Geometrical reasoning, shapes and measurements', 'Estimate the area of irregular shapes on a square grid (whole and part squares).'],
+  ['4Gg.05', '4', 'Geometrical reasoning, shapes and measurements', 'Identify 2D faces of 3D shapes, and describe their properties.'],
+  ['4Gg.06', '4', 'Geometrical reasoning, shapes and measurements', 'Match nets to their corresponding 3D shapes.'],
+  ['4Gg.07', '4', 'Geometrical reasoning, shapes and measurements', 'Identify all horizontal, vertical and diagonal lines of symmetry on 2D shapes and patterns.'],
+  ['4Gg.08', '4', 'Geometrical reasoning, shapes and measurements', 'Estimate, compare and classify angles, using geometric vocabulary including acute, right and obtuse.'],
+  ['4Gg.09', '4', 'Geometrical reasoning, shapes and measurements', 'Use knowledge of fractions to read and interpret a measuring scale.'],
+  ['4Gp.01', '4', 'Position and transformation', 'Interpret and create descriptions of position, direction and movement, including reference to cardinal and ordinal points, and their notations.'],
+  ['4Gp.02', '4', 'Position and transformation', 'Understand that position can be described using coordinate notation. Read and plot coordinates in the first quadrant (with the aid of a grid).'],
+  ['4Gp.03', '4', 'Position and transformation', 'Reflect 2D shapes in a horizontal or vertical mirror line, including where the mirror line is the edge of the shape, on square grids.'],
+  ['4Ss.01', '4', 'Statistics', 'Plan and conduct an investigation to answer statistical questions, considering what data to collect (categorical and discrete data).'],
+  ['4Ss.02', '4', 'Statistics', 'Record, organise and represent categorical and discrete data. Choose and explain which representation to use in a given situation: Venn and Carroll diagrams; tally charts and frequency tables; pictograms and bar charts; dot plots (one dot per count).'],
+  ['4Ss.03', '4', 'Statistics', 'Interpret data, identifying similarities and variations, within and between data sets, to answer statistical questions. Discuss conclusions, considering the sources of variation.'],
+  ['4Sp.01', '4', 'Probability', 'Use language associated with chance to describe familiar events, including reference to maybe, likely, certain, impossible.'],
+  ['4Sp.02', '4', 'Probability', 'Conduct chance experiments, using small and large numbers of trials, and present and describe the results using the language of probability.'],
+  // Stage 5 (Year 5)
+  ['5Nc.01', '5', 'Counting and sequences', 'Count on and count back in steps of constant size, and extend beyond zero to include negative numbers.'],
+  ['5Nc.02', '5', 'Counting and sequences', 'Recognise the use of objects, shapes or symbols to represent two unknown quantities in addition and subtraction calculations.'],
+  ['5Nc.03', '5', 'Counting and sequences', 'Use the relationship between repeated addition of a constant and multiplication to find any term of a linear sequence.'],
+  ['5Nc.04', '5', 'Counting and sequences', 'Recognise and extend the spatial pattern of square and triangular numbers.'],
+  ['5Ni.01', '5', 'Integers and powers', 'Estimate, add and subtract integers, including where one integer is negative.'],
+  ['5Ni.02', '5', 'Integers and powers', 'Understand which law of arithmetic to apply to simplify calculations.'],
+  ['5Ni.03', '5', 'Integers and powers', 'Understand that the four operations follow a particular order.'],
+  ['5Ni.04', '5', 'Integers and powers', 'Estimate and multiply whole numbers up to 1000 by 1-digit or 2-digit whole numbers.'],
+  ['5Ni.05', '5', 'Integers and powers', 'Estimate and divide whole numbers up to 1000 by 1-digit whole numbers.'],
+  ['5Ni.06', '5', 'Integers and powers', 'Understand and explain the difference between prime and composite numbers.'],
+  ['5Ni.07', '5', 'Integers and powers', 'Use knowledge of factors and multiples to understand tests of divisibility by 4 and 8.'],
+  ['5Ni.08', '5', 'Integers and powers', 'Use knowledge of multiplication to recognise square numbers (from 1 to 100).'],
+  ['5Np.01', '5', 'Place value, ordering and rounding', 'Understand and explain the value of each digit in decimals (tenths and hundredths).'],
+  ['5Np.02', '5', 'Place value, ordering and rounding', 'Use knowledge of place value to multiply and divide whole numbers by 10, 100 and 1000.'],
+  ['5Np.03', '5', 'Place value, ordering and rounding', 'Use knowledge of place value to multiply and divide decimals by 10 and 100.'],
+  ['5Np.04', '5', 'Place value, ordering and rounding', 'Compose, decompose and regroup numbers, including decimals (tenths and hundredths).'],
+  ['5Np.05', '5', 'Place value, ordering and rounding', 'Round numbers with one decimal place to the nearest whole number.'],
+  ['5Nf.01', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that a fraction can be represented as a division of the numerator by the denominator (unit fractions, three-quarters, tenths and hundredths).'],
+  ['5Nf.02', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that proper fractions can act as operators.'],
+  ['5Nf.03', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Recognise that improper fractions and mixed numbers can have an equivalent value.'],
+  ['5Nf.04', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Recognise that proper fractions, decimals (one decimal place) and percentages can have equivalent values.'],
+  ['5Nf.05', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate, add and subtract fractions with the same denominator and denominators that are multiples of each other.'],
+  ['5Nf.06', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate, multiply and divide unit fractions by a whole number.'],
+  ['5Nf.07', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Recognise percentages of shapes, and write percentages as a fraction with denominator 100.'],
+  ['5Nf.08', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Understand the relative size of quantities to compare and order numbers with one decimal place, proper fractions with the same denominator and percentages, using the symbols =, > and <.'],
+  ['5Nf.09', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate, add and subtract numbers with the same number of decimal places.'],
+  ['5Nf.10', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate and multiply numbers with one decimal place by 1-digit whole numbers.'],
+  ['5Nf.11', '5', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that: a proportion compares part to whole; a ratio compares part to part of two or more quantities.'],
+  ['5Gt.01', '5', 'Time', 'Understand time intervals less than one second.'],
+  ['5Gt.02', '5', 'Time', 'Compare times between time zones in digital notation (12- and 24-hour) and on analogue clocks.'],
+  ['5Gt.03', '5', 'Time', 'Find time intervals in seconds, minutes and hours that bridge through 60.'],
+  ['5Gt.04', '5', 'Time', 'Recognise that a time interval can be expressed as a decimal, or in mixed units.'],
+  ['5Gg.01', '5', 'Geometrical reasoning, shapes and measurements', 'Identify, describe, classify and sketch isosceles, equilateral or scalene triangles, including reference to angles and symmetrical properties.'],
+  ['5Gg.02', '5', 'Geometrical reasoning, shapes and measurements', 'Estimate and measure perimeter and area of 2D shapes, understanding that shapes with the same perimeter can have different areas and vice versa.'],
+  ['5Gg.03', '5', 'Geometrical reasoning, shapes and measurements', 'Draw compound shapes that can be divided into rectangles and squares. Estimate, measure and calculate their perimeter and area.'],
+  ['5Gg.04', '5', 'Geometrical reasoning, shapes and measurements', 'Identify, describe and sketch 3D shapes in different orientations.'],
+  ['5Gg.05', '5', 'Geometrical reasoning, shapes and measurements', 'Identify and sketch different nets for a cube.'],
+  ['5Gg.06', '5', 'Geometrical reasoning, shapes and measurements', 'Use knowledge of reflective symmetry to identify and complete symmetrical patterns.'],
+  ['5Gg.07', '5', 'Geometrical reasoning, shapes and measurements', 'Estimate, compare and classify angles, using geometric vocabulary including acute, right, obtuse and reflex.'],
+  ['5Gg.08', '5', 'Geometrical reasoning, shapes and measurements', 'Know that the sum of the angles on a straight line is 180°, and use this to calculate missing angles on a straight line.'],
+  ['5Gp.01', '5', 'Position and transformation', 'Compare the relative position of coordinates (with or without the aid of a grid).'],
+  ['5Gp.02', '5', 'Position and transformation', 'Use knowledge of 2D shapes and coordinates to plot points to form lines and shapes in the first quadrant (with the aid of a grid).'],
+  ['5Gp.03', '5', 'Position and transformation', 'Translate 2D shapes, identifying the corresponding points between the original and the translated image, on square grids.'],
+  ['5Gp.04', '5', 'Position and transformation', 'Reflect 2D shapes in both horizontal and vertical mirror lines to create patterns on square grids.'],
+  ['5Ss.01', '5', 'Statistics', 'Plan and conduct an investigation to answer a set of related statistical questions, considering what data to collect (categorical, discrete and continuous data).'],
+  ['5Ss.02', '5', 'Statistics', 'Record, organise and represent categorical, discrete and continuous data. Choose and explain which representation to use in a given situation: Venn and Carroll diagrams; tally charts and frequency tables; bar charts; waffle diagrams; frequency diagrams for continuous data; line graphs; dot plots (one dot per data point).'],
+  ['5Ss.03', '5', 'Statistics', 'Understand that the mode and median are ways to describe and summarise data sets. Find and interpret the mode and the median, and consider their appropriateness for the context.'],
+  ['5Ss.04', '5', 'Statistics', 'Interpret data, identifying patterns, within and between data sets, to answer statistical questions. Discuss conclusions, considering the sources of variation.'],
+  ['5Sp.01', '5', 'Probability', 'Use the language associated with likelihood to describe and compare likelihood and risk of familiar events, including those with equally likely outcomes.'],
+  ['5Sp.02', '5', 'Probability', 'Recognise that some outcomes are equally likely to happen and some outcomes are more (or less) likely to happen, when doing practical activities.'],
+  ['5Sp.03', '5', 'Probability', 'Conduct chance experiments or simulations, using small and large numbers of trials, and present and describe the results using the language of probability.'],
+  // Stage 6 (Year 6)
+  ['6Nc.01', '6', 'Counting and sequences', 'Count on and count back in steps of constant size, including fractions and decimals, and extend beyond zero to include negative numbers.'],
+  ['6Nc.02', '6', 'Counting and sequences', 'Recognise the use of letters to represent quantities that vary in addition and subtraction calculations.'],
+  ['6Nc.03', '6', 'Counting and sequences', 'Use the relationship between repeated addition of a constant and multiplication to find and use a position-to-term rule.'],
+  ['6Nc.04', '6', 'Counting and sequences', 'Use knowledge of square numbers to generate terms in a sequence, given its position.'],
+  ['6Ni.01', '6', 'Integers and powers', 'Estimate, add and subtract integers.'],
+  ['6Ni.02', '6', 'Integers and powers', 'Use knowledge of laws of arithmetic and order of operations to simplify calculations.'],
+  ['6Ni.03', '6', 'Integers and powers', 'Understand that brackets can be used to alter the order of operations.'],
+  ['6Ni.04', '6', 'Integers and powers', 'Estimate and multiply whole numbers up to 10 000 by 1-digit or 2-digit whole numbers.'],
+  ['6Ni.05', '6', 'Integers and powers', 'Estimate and divide whole numbers up to 1000 by 1-digit or 2-digit whole numbers.'],
+  ['6Ni.06', '6', 'Integers and powers', 'Understand common multiples and common factors.'],
+  ['6Ni.07', '6', 'Integers and powers', 'Use knowledge of factors and multiples to understand tests of divisibility by 3, 6 and 9.'],
+  ['6Ni.08', '6', 'Integers and powers', 'Use knowledge of multiplication and square numbers to recognise cube numbers (from 1 to 125).'],
+  ['6Np.01', '6', 'Place value, ordering and rounding', 'Understand and explain the value of each digit in decimals (tenths, hundredths and thousandths).'],
+  ['6Np.02', '6', 'Place value, ordering and rounding', 'Use knowledge of place value to multiply and divide whole numbers and decimals by 10, 100 and 1000.'],
+  ['6Np.03', '6', 'Place value, ordering and rounding', 'Compose, decompose and regroup numbers, including decimals (tenths, hundredths and thousandths).'],
+  ['6Np.04', '6', 'Place value, ordering and rounding', 'Round numbers with two decimal places to the nearest tenth or whole number.'],
+  ['6Nf.01', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that a fraction can be represented as a division of the numerator by the denominator (proper and improper fractions).'],
+  ['6Nf.02', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Understand that proper and improper fractions can act as operators.'],
+  ['6Nf.03', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Use knowledge of equivalence to write fractions in their simplest form.'],
+  ['6Nf.04', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Recognise that fractions, decimals (one or two decimal places) and percentages can have equivalent values.'],
+  ['6Nf.05', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate, add and subtract fractions with different denominators.'],
+  ['6Nf.06', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate, multiply and divide proper fractions by whole numbers.'],
+  ['6Nf.07', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Recognise percentages (1%, and multiples of 5% up to 100%) of shapes and whole numbers.'],
+  ['6Nf.08', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Understand the relative size of quantities to compare and order numbers with one or two decimal places, proper fractions with different denominators and percentages, using the symbols =, > and <.'],
+  ['6Nf.09', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate, add and subtract numbers with the same or different number of decimal places.'],
+  ['6Nf.10', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate and multiply numbers with one or two decimal places by 1-digit and 2-digit whole numbers.'],
+  ['6Nf.11', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Estimate and divide numbers with one or two decimal places by whole numbers.'],
+  ['6Nf.12', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Understand the relationship between two quantities when they are in direct proportion.'],
+  ['6Nf.13', '6', 'Fractions, decimals, percentages, ratio and proportion', 'Use knowledge of equivalence to understand and use equivalent ratios.'],
+  ['6Gt.01', '6', 'Time', 'Convert between time intervals expressed as a decimal and in mixed units.'],
+  ['6Gg.01', '6', 'Geometrical reasoning, shapes and measurements', 'Identify, describe, classify and sketch quadrilaterals, including reference to angles, symmetrical properties, parallel sides and diagonals.'],
+  ['6Gg.02', '6', 'Geometrical reasoning, shapes and measurements', 'Know the parts of a circle: centre; radius; diameter; circumference.'],
+  ['6Gg.03', '6', 'Geometrical reasoning, shapes and measurements', 'Use knowledge of area of rectangles to estimate and calculate the area of right-angled triangles.'],
+  ['6Gg.04', '6', 'Geometrical reasoning, shapes and measurements', 'Identify, describe and sketch compound 3D shapes.'],
+  ['6Gg.05', '6', 'Geometrical reasoning, shapes and measurements', 'Understand the difference between capacity and volume.'],
+  ['6Gg.06', '6', 'Geometrical reasoning, shapes and measurements', 'Identify and sketch different nets for cubes, cuboids, prisms and pyramids.'],
+  ['6Gg.07', '6', 'Geometrical reasoning, shapes and measurements', 'Understand the relationship between area of 2D shapes and surface area of 3D shapes.'],
+  ['6Gg.08', '6', 'Geometrical reasoning, shapes and measurements', 'Identify rotational symmetry in familiar shapes, patterns or images with maximum order 4. Describe rotational symmetry as \'order x\'.'],
+  ['6Gg.09', '6', 'Geometrical reasoning, shapes and measurements', 'Classify, estimate, measure and draw angles.'],
+  ['6Gg.10', '6', 'Geometrical reasoning, shapes and measurements', 'Know that the sum of the angles in a triangle is 180°, and use this to calculate missing angles in a triangle.'],
+  ['6Gg.11', '6', 'Geometrical reasoning, shapes and measurements', 'Construct circles of a specified radius or diameter.'],
+  ['6Gp.01', '6', 'Position and transformation', 'Read and plot coordinates including integers, fractions and decimals, in all four quadrants (with the aid of a grid).'],
+  ['6Gp.02', '6', 'Position and transformation', 'Use knowledge of 2D shapes and coordinates to plot points to form lines and shapes in all four quadrants.'],
+  ['6Gp.03', '6', 'Position and transformation', 'Translate 2D shapes, identifying the corresponding points between the original and the translated image, on coordinate grids.'],
+  ['6Gp.04', '6', 'Position and transformation', 'Reflect 2D shapes in a given mirror line (vertical, horizontal and diagonal), on square grids.'],
+  ['6Gp.05', '6', 'Position and transformation', 'Rotate shapes 90° around a vertex (clockwise or anticlockwise).'],
+  ['6Ss.01', '6', 'Statistics', 'Plan and conduct an investigation and make predictions for a set of related statistical questions, considering what data to collect (categorical, discrete and continuous data).'],
+  ['6Ss.02', '6', 'Statistics', 'Record, organise and represent categorical, discrete and continuous data. Choose and explain which representation to use in a given situation: Venn and Carroll diagrams; tally charts and frequency tables; bar charts; waffle diagrams and pie charts; frequency diagrams for continuous data; line graphs; scatter graphs; dot plots.'],
+  ['6Ss.03', '6', 'Statistics', 'Understand that the mode, median, mean and range are ways to describe and summarise data sets. Find and interpret the mode (including bimodal data), median, mean and range, and consider their appropriateness for the context.'],
+  ['6Ss.04', '6', 'Statistics', 'Interpret data, identifying patterns, within and between data sets, to answer statistical questions. Discuss conclusions, considering the sources of variation, and check predictions.'],
+  ['6Sp.01', '6', 'Probability', 'Use the language associated with probability and proportion to describe and compare possible outcomes.'],
+  ['6Sp.02', '6', 'Probability', 'Identify when two events can happen at the same time and when they cannot, and know that the latter are called \'mutually exclusive\'.'],
+  ['6Sp.03', '6', 'Probability', 'Recognise that some probabilities can only be modelled through experiments using a large number of trials.'],
+  ['6Sp.04', '6', 'Probability', 'Conduct chance experiments or simulations, using small and large numbers of trials. Predict, analyse and describe the frequency of outcomes using the language of probability.']
 ];
 
 /* ---------------- Science ---------------- */
@@ -467,23 +541,24 @@ Object.values(ROWS).forEach((rows) => rows.forEach((r) => BY_CODE.set(r[0], toOb
 export const objective = (code) => BY_CODE.get(code) || null;
 export const yearNum = (year) => { const m = /(\d)/.exec(String(year || '')); return m ? m[1] : ''; };
 export function fits(o, y) { return !y || o.years === 'KS2' || o.years === y || (o.years.length === 2 && o.years.includes(y)); }
-export const yearsLabel = (o) => (o.years === 'KS2' ? 'KS2' : o.years.length === 2 ? 'Years ' + o.years[0] + '-' + o.years[1] : 'Year ' + o.years);
+export const isStageCode = (code) => /^[1-6][A-Z][a-z]\.\d{2}$/.test(String(code || ''));      // a Cambridge Primary code
+export const yearsLabel = (o) => (o.years === 'KS2' ? 'KS2' : o.years.length === 2 ? 'Years ' + o.years[0] + '-' + o.years[1] : (isStageCode(o.code) ? 'Stage ' : 'Year ') + o.years);
 export const strandsFor = (subjectId, year) => {
   const y = yearNum(year), seen = new Set();
   return objectivesFor(subjectId).filter((o) => fits(o, y) && !seen.has(o.strand) && seen.add(o.strand)).map((o) => o.strand);
 };
 
 /* ---------------- matching a topic to objectives ---------------- */
-const STOP = new Set('a an the and or of to in on for with without using use including their them they how what which that this these those from by as at be is are was were our my your lesson lessons year years ks2 about into all some more most other than then also can will should would could do does did make making learn learning teach teaching today pupils children class unit'.split(' '));
+const STOP = new Set('a an the and or of to in on for with without using use including their them they how what which that this these those from by as at be is are was were our my your lesson lessons year years ks2 about into all some more most other than then also can will should would could do does did make making learn learning teach teaching today pupils children class unit number numbers'.split(' '));
 /* Everyday teacher words mapped onto the words the curriculum uses. */
 const SYN = {
-  'times table': 'multiplication tables facts', 'times tables': 'multiplication tables facts', times: 'multiply multiplication', multiply: 'multiplication', share: 'divide division', sharing: 'divide division',
+  'times table': 'timestable multiply', 'times tables': 'timestable multiply', times: 'multiply multiplication', multiply: 'multiplication', share: 'divide division', sharing: 'divide division',
   'take away': 'subtract subtraction', minus: 'subtract subtraction', plus: 'add addition', sum: 'add addition', 'rounding off': 'round', 'round off': 'round', rounding: 'round', estimate: 'estimate round',
   amounts: 'quantities amounts', amount: 'quantities amounts', percent: 'per cent percentages', percentage: 'per cent percentages', clock: 'time clocks', clocks: 'time', money: 'money pounds pence change', coins: 'money', shape: 'shapes', '2d': '2-d shapes', '3d': '3-d shapes',
   graph: 'graphs charts', graphs: 'graphs charts', chart: 'charts', tally: 'tables data', data: 'data', decimal: 'decimals decimal', fraction: 'fractions', angle: 'angles', degrees: 'angles degrees', symmetry: 'symmetry symmetric',
-  coordinates: 'coordinates grid quadrant', negative: 'negative numbers', 'place value': 'place value digit', perimeter: 'perimeter', area: 'area', volume: 'volume capacity', mass: 'mass weight', weight: 'mass', length: 'length measure',
-  'roman numerals': 'roman numerals', prime: 'prime', factors: 'factors factor', multiples: 'multiples', ratio: 'ratio proportion relative sizes', algebra: 'algebra formulae equation', mean: 'mean average', average: 'mean average',
-  'pie chart': 'pie charts', 'column addition': 'columnar addition formal written', 'column subtraction': 'columnar subtraction formal written', 'long division': 'long division', 'long multiplication': 'long multiplication', squares: 'square', cubes: 'cube',
+  coordinates: 'coordinates grid quadrant', negative: 'negative numbers integers', 'place value': 'place value digit', perimeter: 'perimeter', area: 'area', volume: 'volume capacity', mass: 'mass weight', weight: 'mass', length: 'length measure',
+  'roman numerals': 'roman numerals', prime: 'prime', factors: 'factors factor', multiples: 'multiples', ratio: 'ratio ratios proportion', algebra: 'algebra formulae equation', mean: 'mean average', average: 'mean average',
+  'pie chart': 'pie charts', 'column addition': 'columnar addition formal written add regroup whole digits', 'column subtraction': 'columnar subtraction formal written subtract regroup whole digits', 'long division': 'long division divide whole 2-digit', 'long multiplication': 'long multiplication multiply whole 2-digit', 'short division': 'divide whole 1-digit', squares: 'square', cubes: 'cube',
   magnet: 'magnets magnetic', circuit: 'electricity circuit', circuits: 'electricity circuit', battery: 'cells electricity', batteries: 'cells', conductors: 'conductors insulators', teeth: 'teeth', digestion: 'digestive', 'food chain': 'food chains producers predators prey', 'food chains': 'food chains producers predators prey',
   planets: 'earth space solar system sun moon', planet: 'earth space solar system', 'solar system': 'earth space solar system', space: 'earth space', skeleton: 'skeletons muscles', bones: 'skeletons', habitat: 'habitats living things', classification: 'classified classification keys',
   evolution: 'evolution inheritance adapted', adaptation: 'adapted adaptation', fossil: 'fossils', rock: 'rocks soils', soil: 'soils', 'water cycle': 'water cycle evaporation condensation', evaporation: 'evaporation', condensation: 'condensation', melting: 'change state heated',
@@ -512,10 +587,12 @@ const SYN = {
   buddhism: 'religions worldviews', judaism: 'religions worldviews', eid: 'celebrations', diwali: 'celebrations', christmas: 'celebrations', 'chinese new year': 'celebrations', vaisakhi: 'celebrations', ethics: 'ethical right wrong',
   pantun: 'pantun', syair: 'syair', sajak: 'sajak', peribahasa: 'peribahasa', imbuhan: 'imbuhan', 'kata nama': 'golongan kata nama', 'kata kerja': 'golongan kata kerja', 'kata adjektif': 'golongan kata adjektif', karangan: 'karangan', membaca: 'membaca', bertutur: 'bertutur',
   ayat: 'ayat', 'penjodoh bilangan': 'penjodoh bilangan', 'kata ganti nama': 'kata ganti nama', 'ayat pasif': 'ayat pasif', 'ayat majmuk': 'ayat majmuk', cerita: 'bercerita',
-  greetings: 'conversations familiar phrases', greeting: 'conversations familiar phrases', numbers: 'vocabulary', colours: 'vocabulary describe', food: 'vocabulary', animals: 'vocabulary describe', pets: 'vocabulary describe', weather: 'vocabulary describe', hobbies: 'opinions vocabulary', classroom: 'vocabulary phrases',
+  greetings: 'conversations familiar phrases', greeting: 'conversations familiar phrases', colours: 'vocabulary describe', food: 'vocabulary', animals: 'vocabulary describe', pets: 'vocabulary describe', weather: 'vocabulary describe', hobbies: 'opinions vocabulary', classroom: 'vocabulary phrases',
   pinyin: 'pinyin tones', tones: 'pinyin tones', characters: 'characters stroke order', 'stroke order': 'characters stroke order', 'measure words': 'measure words sentence patterns'
 };
+const VERB = { addition: 'add', subtraction: 'subtract', multiplication: 'multiply', division: 'divide', regrouping: 'regroup', translation: 'translate', translations: 'translate', reflection: 'reflect', reflections: 'reflect', rotation: 'rotate', rotations: 'rotate', estimation: 'estimate', construction: 'construct' };
 function stem(w) {
+  if (VERB[w]) return VERB[w];
   if (w.length > 5 && w.endsWith('ing')) return w.slice(0, -3);
   if (w.length > 4 && w.endsWith('ies')) return w.slice(0, -3) + 'y';
   if (w.length > 4 && /(ches|shes|xes|sses)$/.test(w)) return w.slice(0, -2);
@@ -523,7 +600,7 @@ function stem(w) {
   if (w.length > 4 && w.endsWith('ed')) return w.slice(0, -2);
   return w;
 }
-const words = (t) => String(t || '').toLowerCase().replace(/[’']/g, '').split(/[^a-z0-9À-ɏ一-鿿-]+/).filter((w) => w && !STOP.has(w));
+const words = (t) => String(t || '').toLowerCase().replace(/[’']/g, '').replace(/\btimes?[ -]tables?\b/g, 'timestable').split(/[^a-z0-9À-ɏ一-鿿-]+/).filter((w) => w && !STOP.has(w));
 function tokens(t) { return new Set(words(t).map(stem)); }
 function expand(topic) {
   const low = ' ' + String(topic || '').toLowerCase() + ' ', out = new Map();
@@ -542,11 +619,12 @@ export function match(subjectId, year, topic, n) {
   const y = yearNum(year), q = expand(topic), low = String(topic || '').toLowerCase();
   if (!q.size) return [];
   const scored = objectivesFor(subjectId).map((o) => {
-    const ix = indexed(o);
+    const ix = indexed(o), sw = ix.strand.size > 3 ? 1.5 : 3;                  // a long strand name ("Fractions, decimals, percentages, ratio and proportion") says less about one statement
     let s = 0;
-    q.forEach((w8, w) => { if (ix.strand.has(w)) s += 3 * w8; if (ix.text.has(w)) s += 2 * w8; });
+    q.forEach((w8, w) => { if (ix.strand.has(w)) s += sw * (w8 < 1 ? w8 * 0.6 : w8); if (ix.text.has(w)) s += 2 * w8; });   // a related word in a strand name counts least
     if (!s) return null;
-    if (low && o.strand.toLowerCase().split(/[:,]/)[0].trim() && low.includes(o.strand.toLowerCase().split(/[:,]/)[0].trim())) s += 2;
+    const head = o.strand.toLowerCase().split(/[:,]/)[0].trim();
+    if (low && head && new RegExp('(^|[^a-z])' + head.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z])').test(low)) s += 2;
     if (fits(o, y)) s += 2;
     else if (y && /^\d$/.test(o.years) && Math.abs(Number(o.years) - Number(y)) === 1) s -= 1.5;
     else if (y) s -= 4;
@@ -562,5 +640,6 @@ export function match(subjectId, year, topic, n) {
 /* Only codes from the list we sent are kept. */
 export function keepCodes(codes, allowed) {
   const ok = new Set((allowed || []).map((o) => o.code || o));
-  return Array.from(new Set((Array.isArray(codes) ? codes : []).map((c) => String(c || '').trim().toUpperCase()))).filter((c) => ok.has(c)).slice(0, 3);
+  const real = new Map(Array.from(ok).map((c) => [String(c).toUpperCase(), c]));             // Cambridge codes have small letters (6Nf.13)
+  return Array.from(new Set((Array.isArray(codes) ? codes : []).map((c) => real.get(String(c || '').trim().toUpperCase())).filter(Boolean))).slice(0, 3);
 }

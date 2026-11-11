@@ -1,9 +1,9 @@
 /* Engine 4: Science Mystery. A puzzling "case file", notice and wonder, a live class vote on predictions,
    a safe home investigation (fair test), then the big reveal and myth-busting. */
-import { esc, str, arr, strs, icon } from '../core.js?v=e5cf7b70';
-import { B } from './shared.js?v=e5cf7b70';
-import { buildPrompt } from './prompt.js?v=e5cf7b70';
-import { mountVote } from './widgets.js?v=e5cf7b70';
+import { esc, str, arr, strs, icon } from '../core.js?v=a277ebb7';
+import { B } from './shared.js?v=a277ebb7';
+import { buildPrompt } from './prompt.js?v=a277ebb7';
+import { mountVote } from './widgets.js?v=a277ebb7';
 
 const EXAMPLE = {
   title: 'The Case of the Vanishing Puddle',
@@ -68,7 +68,7 @@ function prompt(input, mode) {
     ].join('\n'),
     rules: [
       'The mystery story is 3 to 5 sentences, uses a named person and an ordinary place, and ends without giving the answer.',
-      'The science must be correct for ' + input.year + ' and match the National Curriculum for England programme of study.',
+      'The science must be correct for ' + input.year + ' and match the Cambridge Primary Science curriculum for that stage.',
       'Safety first: no heat sources, sharp tools, chemicals, electricity from the mains or anything that needs adult supervision unless you say so clearly in safety.',
       'Wrong predictions are common, sensible ideas that children really have.'
     ]

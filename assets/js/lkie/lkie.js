@@ -3,24 +3,24 @@
    the curriculum with checked codes. Slides change in plain English with undo; a unit planner sequences up to 25
    lessons with recaps and assessments; packs open instantly from this device; PowerPoint and Word downloads.
    Every engine button goes through the shared guard (guard.js). */
-import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=e5cf7b70';
-import { track } from '../track.js?v=e5cf7b70';
-import { sfx } from '../fx/audio.js?v=e5cf7b70';
-import { Voice } from '../fx/voice.js?v=e5cf7b70';
-import { evAll } from '../idb.js?v=e5cf7b70';
-import { moodOf } from '../report.js?v=e5cf7b70';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=e5cf7b70';
-import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=e5cf7b70';
-import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=e5cf7b70';
-import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=e5cf7b70';
-import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=e5cf7b70';
-import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=e5cf7b70';
-import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=e5cf7b70';
-import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=e5cf7b70';
-import { takeMaking, takePresent } from '../library.js?v=e5cf7b70';
-import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=e5cf7b70';
-import EXAMPLE from './example.js?v=e5cf7b70';
-import { presentKit, kitButtons } from '../presentkit.js?v=e5cf7b70';
+import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=a277ebb7';
+import { track } from '../track.js?v=a277ebb7';
+import { sfx } from '../fx/audio.js?v=a277ebb7';
+import { Voice } from '../fx/voice.js?v=a277ebb7';
+import { evAll } from '../idb.js?v=a277ebb7';
+import { moodOf } from '../report.js?v=a277ebb7';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=a277ebb7';
+import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=a277ebb7';
+import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=a277ebb7';
+import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=a277ebb7';
+import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=a277ebb7';
+import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=a277ebb7';
+import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=a277ebb7';
+import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=a277ebb7';
+import { takeMaking, takePresent } from '../library.js?v=a277ebb7';
+import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=a277ebb7';
+import EXAMPLE from './example.js?v=a277ebb7';
+import { presentKit, kitButtons } from '../presentkit.js?v=a277ebb7';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', UNITS = 'ks2-engine.lkie.units.v1', RULES = 'ks2-engine.lkie.rules.v1', THEME = 'ks2-engine.lkie.theme.v1', FORM = 'ks2-engine.lkie.form.v1';
 const YEARS = ['Year 3', 'Year 4', 'Year 5', 'Year 6'];
@@ -157,13 +157,12 @@ function paintTry() {
   $('#lk-try', S.view).innerHTML = t.length ? '<span>Try:</span>' + t.map((x) => '<button type="button" data-try="' + esc(x) + '">' + esc(x) + '</button>').join('') : '';
 }
 let matchT = 0;
-/* The best matches, each statement in full: the top 3, plus any that fit as well as the third, up to 6. So a topic
-   that names a whole strand shows all of it: "Ratio" in Year 6 shows all 4 ratio and proportion statements (only the
-   first 3 used to show, which hid "unequal sharing and grouping", the heart of ratio). */
+/* The matches that really fit, each statement in full, up to 6: those scoring at least three quarters of the best.
+   "Ratio" in Year 6 shows Cambridge's two ratio and proportion objectives (6Nf.13, 6Nf.12) and nothing loosely related. */
 function shownMatches(list) {
-  if (list.length <= 3) return list;
-  const cut = list[2].score;
-  return list.filter((o, i) => i < 3 || o.score >= cut).slice(0, 6);
+  if (!list.length) return list;
+  const top = list[0].score, close = list.filter((o) => o.score >= top * 0.75);   // only the ones that really fit
+  return (close.length ? close : list.slice(0, 1)).slice(0, 6);
 }
 function updateMatch() {
   const topic = str($('#lk-topic', S.view).value);

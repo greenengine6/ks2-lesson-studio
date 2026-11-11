@@ -1,9 +1,9 @@
 /* The luminous switches: Night mode, Symphony's voice, Magic pointer, Teaching online, Sound, Feel taps (vibration),
    Hey Symphony and Patient listening. Any element with data-switch="night|voice|pointer|online|sound|feel|wake|patient" toggles that setting; every copy of the switch (header, menu, the
    lit cards on the home page) shows the same state, and lit cards glow when their switch is on. */
-import { $, $$, store, bus, prefs, toast } from './core.js?v=e5cf7b70';
-import { Sound, sfx } from './fx/audio.js?v=e5cf7b70';
-import { Haptics } from './fx/haptics.js?v=e5cf7b70';
+import { $, $$, store, bus, prefs, toast } from './core.js?v=a277ebb7';
+import { Sound, sfx } from './fx/audio.js?v=a277ebb7';
+import { Haptics } from './fx/haptics.js?v=a277ebb7';
 
 const THEME_KEY = 'ks2-engine.theme.v1', VOICE_KEY = 'ks2-engine.voice.v1', POINTER_KEY = 'ks2-engine.pointer.v1', WAKE_KEY = 'ks2-engine.wake.v1', PATIENT_KEY = 'ks2-engine.patient.v1';
 let onHero = false;

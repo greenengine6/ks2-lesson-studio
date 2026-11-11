@@ -1,12 +1,12 @@
 /* lkie.like's finished example: a whole Year 4 maths pack on rounding off, checked by hand.
    It shows what a pack looks like before anyone makes one, and opens instantly (no engine call). */
 export default {
-  input: { year: 'Year 4', subject: 'maths', subjectName: 'Maths', topic: 'Rounding off to the nearest 10, 100 and 1,000', minutes: 45, mode: 'online', codes: ['MA4-NPV-7'] },
+  input: { year: 'Year 4', subject: 'maths', subjectName: 'Maths', topic: 'Rounding off to the nearest 10, 100 and 1,000', minutes: 45, mode: 'online', codes: ['4Np.05'] },
   title: 'Rounding off to the nearest 10, 100 and 1,000',
   objective: 'To round off any number to the nearest 10, 100 or 1,000.',
   successCriteria: ['I can find the two multiples a number sits between.', 'I can use the deciding digit to round up or down.', 'I can explain why 5 or more rounds up.'],
   bigQuestion: 'Why does a newspaper say 3,000 fans came when 2,987 came?',
-  codes: ['MA4-NPV-7'],
+  codes: ['4Np.05'],
   vocab: [
     { word: 'rounding off', meaning: 'Changing a number to a nearby number that is easier to use.', example: '4,862 rounded off to the nearest 1,000 is 5,000.' },
     { word: 'multiple', meaning: 'A number in a times table, like 30, 300 or 3,000.', example: '40 and 50 are multiples of 10.' },

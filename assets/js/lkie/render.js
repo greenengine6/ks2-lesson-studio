@@ -1,11 +1,11 @@
 /* lkie.like drawing: slides (with diagrams drawn exactly from the numbers), key words, activities, the worksheet in
    three tiers, and the teacher notes. Everything is plain HTML and SVG, so it works offline and on old laptops. */
-import { esc, icon, normAnswer } from '../core.js?v=e5cf7b70';
-import { fractify } from '../fractions.js?v=e5cf7b70';
-import { TIERS, totalMinutes, sheetBalance } from './model.js?v=e5cf7b70';
-import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=e5cf7b70';
-import { picURL, creditText, ytThumb, safePic, safeVideo } from '../pics.js?v=e5cf7b70';
-import { lookInfo, lookFor } from './looks.js?v=e5cf7b70';
+import { esc, icon, normAnswer } from '../core.js?v=a277ebb7';
+import { fractify } from '../fractions.js?v=a277ebb7';
+import { TIERS, totalMinutes, sheetBalance } from './model.js?v=a277ebb7';
+import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=a277ebb7';
+import { picURL, creditText, ytThumb, safePic, safeVideo } from '../pics.js?v=a277ebb7';
+import { lookInfo, lookFor } from './looks.js?v=a277ebb7';
 
 /* ---------------- slide kinds ---------------- */
 export const KIND = {
@@ -281,7 +281,7 @@ export function activitiesHTML(p) {
 export function alignmentHTML(p) {
   const fw = FRAMEWORKS[(SUBJECT_BY_ID[p.input.subject] || {}).fw] || FRAMEWORKS.england;
   if (!p.codes.length) return '<p class="fine">No curriculum statement matched closely, so no code is attached. ' + esc(fw.name) + '.</p>';
-  return '<ul class="lk-codes">' + p.codes.map((c) => { const o = objective(c.code); return '<li><b class="mono">' + esc(c.code) + '</b><span>' + esc(o ? o.text : c.text) + '</span><small>' + esc(o ? o.strand + ' · ' + yearsLabel(o) : '') + '</small></li>'; }).join('') + '</ul><p class="fine">' + esc(fw.name) + '. Codes are this site’s own short labels; only codes from the matched list are ever kept.</p>';
+  return '<ul class="lk-codes">' + p.codes.map((c) => { const o = objective(c.code); return '<li><b class="mono">' + esc(c.code) + '</b><span>' + esc(o ? o.text : c.text) + '</span><small>' + esc(o ? o.strand + ' · ' + yearsLabel(o) : '') + '</small></li>'; }).join('') + '</ul><p class="fine">' + esc(fw.name) + (fw.stages ? '. Codes are Cambridge’s own; Stage 3 to 6 match Years 3 to 6.' : '. Codes are this site’s own short labels.') + ' Only codes from the matched list are ever kept.</p>';
 }
 export function notesHTML(p) {
   const t = p.teacher, L = (xs) => '<ul>' + xs.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>';

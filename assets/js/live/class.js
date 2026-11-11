@@ -11,15 +11,15 @@
    - End class: a summary with no names (how many came, what was covered, the quiz average, what Symphony spotted,
      the class mood, the homework set, and Symphony's idea for the next lesson's starter), saved in My subjects and
      shown at #/class/<id>. */
-import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, askJSON, CONFIG, HOUSE_WORDS, YEARS } from '../core.js?v=e5cf7b70';
-import { sfx } from '../fx/audio.js?v=e5cf7b70';
-import { confetti } from '../fx/particles.js?v=e5cf7b70';
-import { chatState, chatStart, chatEnd } from '../guard.js?v=e5cf7b70';
-import { SUBJECT_LIST, subjectName, subjectColor, yearOf, subjectOf, takeClass, pickItem, getItem, openItem, findItem, putItem, startMaking, startClass } from '../library.js?v=e5cf7b70';
-import { Live, startLive, endLive, onLive, allPupils, setLock, setEyes, asks, setDeviceLock, awayAll, awayCount } from './session.js?v=e5cf7b70';
-import { openJoin } from './panel.js?v=e5cf7b70';
-import { startQuizLive, sendSheetLive, sendGameLive, sendHomework, taskLog, logStep, pushGroups, pushTimer, stopTimerLive, classPupils } from './tasks.js?v=e5cf7b70';
-import { openMoment } from '../moments.js?v=e5cf7b70';
+import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, askJSON, CONFIG, HOUSE_WORDS, YEARS } from '../core.js?v=a277ebb7';
+import { sfx } from '../fx/audio.js?v=a277ebb7';
+import { confetti } from '../fx/particles.js?v=a277ebb7';
+import { chatState, chatStart, chatEnd } from '../guard.js?v=a277ebb7';
+import { SUBJECT_LIST, subjectName, subjectColor, yearOf, subjectOf, takeClass, pickItem, getItem, openItem, findItem, putItem, startMaking, startClass } from '../library.js?v=a277ebb7';
+import { Live, startLive, endLive, onLive, allPupils, setLock, setEyes, asks, setDeviceLock, awayAll, awayCount } from './session.js?v=a277ebb7';
+import { openJoin } from './panel.js?v=a277ebb7';
+import { startQuizLive, sendSheetLive, sendGameLive, sendHomework, taskLog, logStep, pushGroups, pushTimer, stopTimerLive, classPupils } from './tasks.js?v=a277ebb7';
+import { openMoment } from '../moments.js?v=a277ebb7';
 
 const SS = 'ks2-engine.class.v1';
 let C = null, view = null, tick = 0, unsub = null, picked = new Set();
@@ -347,7 +347,7 @@ function makeGroups() {
   logStep({ kind: 'check', title: 'Groups of ' + size });
 }
 async function tryDock() {
-  try { const m = await import('../tools/tools.js?v=e5cf7b70'); if (m.openToolDock) { m.openToolDock(document.body); return; } } catch (e) { /* not there yet */ }
+  try { const m = await import('../tools/tools.js?v=a277ebb7'); if (m.openToolDock) { m.openToolDock(document.body); return; } } catch (e) { /* not there yet */ }
   location.hash = '#/tools';
 }
 function copyRegister() {
@@ -395,7 +395,7 @@ async function suggestNext(key, summary) {
   let ok = false;
   try {
     const facts = { class: summary.title, subject: summary.subject ? subjectName(summary.subject) : '', year: summary.year, covered: summary.steps.filter((s) => s.done).map((s) => s.title), quizzes: summary.quizzes, worksheets: summary.sheets, spotted: summary.spotted, mood: summary.mood, homework: summary.homework };
-    const r = await askJSON('A KS2 teacher (an international school in Ipoh, Malaysia, English National Curriculum) has just finished this lesson. Here is what happened, with no pupil names: ' + JSON.stringify(facts) + '\n' +
+    const r = await askJSON('A KS2 teacher (an international school in Ipoh, Malaysia, Cambridge Primary curriculum) has just finished this lesson. Here is what happened, with no pupil names: ' + JSON.stringify(facts) + '\n' +
       'Suggest a 5-minute starter for the next lesson that tackles what pupils found hardest. ' + HOUSE_WORDS + ' British English.\nReply with JSON only: {"starter":"what to do, in two or three short sentences","topic":"the next lesson’s topic in a few words"}', { model: CONFIG.quickModel, maxTokens: 400 });
     const it = await getItem(key);
     if (it && it.data) {
@@ -459,7 +459,7 @@ async function onClick(e) {
   else if (a === 'start') begin();
   else if (a === 'join') openJoin(document.body, C.title);
   else if (a === 'lock') { setLock(!Live.locked); toast(Live.locked ? 'The door is locked. Nobody new can join.' : 'The door is open again.'); }
-  else if (a === 'cv') import('./classview.js?v=e5cf7b70').then((m) => m.openClassView({ host: document.body }));
+  else if (a === 'cv') import('./classview.js?v=a277ebb7').then((m) => m.openClassView({ host: document.body }));
   else if (a === 'end') endClass(b);
   else if (a === 'register') copyRegister();
   else if (a === 'pick') pickName();
@@ -468,7 +468,7 @@ async function onClick(e) {
   else if (a === 'dock') tryDock();
   else if (a === 'eyes') { setEyes(!Live.eyes); toast(Live.eyes ? 'Every pupil’s screen says “Eyes on the board”.' : 'Pupils can see their screens again.'); }
   else if (a === 'dlock') { setDeviceLock(!Live.dl); paintToggles(); toast(Live.dl ? 'Devices locked. You will see here who leaves the class page.' : 'Devices unlocked.'); }
-  else if (a === 'readq') { const q = Live.tk && Live.tk.q ? Live.tk.q : Live.mo && Live.mo.q ? Live.mo.q : ''; if (q) import('../fx/voice.js?v=e5cf7b70').then((m) => m.Voice.say(q, { lang: 'en-GB', style: 'chat' })); else toast('There is no question on pupils’ devices right now.'); }
+  else if (a === 'readq') { const q = Live.tk && Live.tk.q ? Live.tk.q : Live.mo && Live.mo.q ? Live.mo.q : ''; if (q) import('../fx/voice.js?v=a277ebb7').then((m) => m.Voice.say(q, { lang: 'en-GB', style: 'chat' })); else toast('There is no question on pupils’ devices right now.'); }
   else if (a === 'step-done') { if (C.cur >= 0 && !C.done.includes(C.cur)) C.done.push(C.cur); C.cur = -1; save(); renderRun(); confetti(view, { count: 40, y: 0.2 }); }
   else if (a === 'again') { const o = JSON.parse(view.dataset.sum || '{}'); startClass({ title: o.title, subject: o.subject, year: o.year }); }
 }

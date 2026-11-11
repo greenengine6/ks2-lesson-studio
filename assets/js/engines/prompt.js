@@ -1,5 +1,5 @@
 /* The common frame for every engine prompt. Each engine adds its own task and field rules. */
-import { ages, whereText, HOUSE_WORDS } from '../core.js?v=e5cf7b70';
+import { ages, whereText, HOUSE_WORDS } from '../core.js?v=a277ebb7';
 
 export function buildPrompt(o) {
   const year = o.year || 'Years 3 to 6';
@@ -10,7 +10,7 @@ export function buildPrompt(o) {
     o.task,
     '',
     'Quality rules:',
-    '- Follow the National Curriculum for England. Use British English spelling and vocabulary (maths, colour, favourite, mum).',
+    '- Follow the Cambridge Primary curriculum (Stages 3 to 6 match Years 3 to 6). Use British English spelling and vocabulary (maths, colour, favourite, mum).',
     '- ' + HOUSE_WORDS,
     '- Anything pupils see must be short, clear and child-friendly for the age group. Teacher notes can be more detailed.',
     '- Every fact, number and answer must be correct. Check all maths twice before you reply.',

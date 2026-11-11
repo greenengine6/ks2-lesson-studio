@@ -1,8 +1,8 @@
 /* lkie.like data: tidying what the engine returns into a safe, predictable pack (slides, key words, activities,
    worksheet, unit plan), the automatic checks on a unit plan, the cache key, and reading slides out of a reply
    while it is still arriving. */
-import { str, arr, houseFix } from '../core.js?v=e5cf7b70';
-import { keepCodes, objective } from './curriculum.js?v=e5cf7b70';
+import { str, arr, houseFix } from '../core.js?v=a277ebb7';
+import { keepCodes, objective } from './curriculum.js?v=a277ebb7';
 
 export const LAYOUTS = ['title', 'recap', 'hook', 'vocab', 'concept', 'guided', 'check', 'independent', 'talk', 'plenary', 'exit'];
 const RESPONDS = ['chat', 'vote', 'show', 'talk', 'react', 'none'];
