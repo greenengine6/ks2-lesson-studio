@@ -1,12 +1,12 @@
 /* Extreme weather, drawn live: a hurricane seen from space (it spins the other way south of the equator), a
    thunderstorm with the "count to the thunder" game, the monsoon on Malaysia's east coast month by month, and a
    blizzard where the wind makes it feel colder (wind chill). */
-import { MONSOON, MONSOON_SEASONS } from './data.js?v=a277ebb7';
-import { TAU, rnd, clamp, noise, view, FONT } from './util.js?v=a277ebb7';
-import { Sound } from '../fx/audio.js?v=a277ebb7';
-import { makeHurricane } from './hurricane.js?v=a277ebb7';
-import { makeSky } from './sky.js?v=a277ebb7';
-import { makeCity, makeCoast, makeSnowfield } from './wxart.js?v=a277ebb7';
+import { MONSOON, MONSOON_SEASONS } from './data.js?v=ceec3b96';
+import { TAU, rnd, clamp, noise, view, FONT } from './util.js?v=ceec3b96';
+import { Sound } from '../fx/audio.js?v=ceec3b96';
+import { makeHurricane } from './hurricane.js?v=ceec3b96';
+import { makeSky } from './sky.js?v=ceec3b96';
+import { makeCity, makeCoast, makeSnowfield } from './wxart.js?v=ceec3b96';
 
 const pill = (ctx, x, y, w, h) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, h / 2); else ctx.rect(x, y, w, h); };
 /* ---------------- thunder, made live (no sound files) ---------------- */

@@ -1,78 +1,900 @@
-/* lkie.like's finished example: a whole Year 4 maths pack on rounding off, checked by hand.
-   It shows what a pack looks like before anyone makes one, and opens instantly (no engine call). */
+/* lkie.like's finished example: a whole Year 6 (Cambridge Stage 6) maths pack on circles, written and checked by hand
+   to the standard of the Chalkie reference deck: Starter, Main and Plenary, an exact drawing on every maths slide,
+   worked examples one step at a time, every question followed by its answer, and real Malaysian examples. It shows
+   what a pack looks like before anyone makes one, and opens instantly (no engine call). */
 export default {
-  input: { year: 'Year 4', subject: 'maths', subjectName: 'Maths', topic: 'Rounding off to the nearest 10, 100 and 1,000', minutes: 45, mode: 'online', codes: ['4Np.05'] },
-  title: 'Rounding off to the nearest 10, 100 and 1,000',
-  objective: 'To round off any number to the nearest 10, 100 or 1,000.',
-  successCriteria: ['I can find the two multiples a number sits between.', 'I can use the deciding digit to round up or down.', 'I can explain why 5 or more rounds up.'],
-  bigQuestion: 'Why does a newspaper say 3,000 fans came when 2,987 came?',
-  codes: ['4Np.05'],
-  vocab: [
-    { word: 'rounding off', meaning: 'Changing a number to a nearby number that is easier to use.', example: '4,862 rounded off to the nearest 1,000 is 5,000.' },
-    { word: 'multiple', meaning: 'A number in a times table, like 30, 300 or 3,000.', example: '40 and 50 are multiples of 10.' },
-    { word: 'nearest', meaning: 'The one that is closest.', example: '48 is nearest to 50.' },
-    { word: 'round up', meaning: 'Go to the multiple above.', example: '47 rounds up to 50.' },
-    { word: 'round down', meaning: 'Go back to the multiple below.', example: '43 rounds down to 40.' },
-    { word: 'deciding digit', meaning: 'The digit just to the right of the place you round off to.', example: 'For the nearest 100, the tens digit decides.' }
-  ],
-  slides: [
-    { layout: 'title', title: 'Rounding off to the nearest 10, 100 and 1,000', say: 'Today we become rounding detectives. By the end you will round off any number to the nearest 10, 100 or 1,000, and explain how you did it.', visual: 'A number line from 0 to 100 in jumps of 10, with a magnifying glass over 47.', media: { wiki: 'Stadium', image: 'football stadium crowd', video: 'rounding to the nearest 10 for kids' }, respond: 'none', minutes: 1 },
-    { layout: 'recap', title: 'Quick fire: multiples', questions: [{ q: 'Counting in tens, what comes after 40?', a: '50' }, { q: 'Which multiple of 100 comes after 300?', a: '400' }, { q: 'Which two tens is 47 between?', a: '40 and 50' }, { q: 'Which two hundreds is 260 between?', a: '200 and 300' }], say: 'Type each answer when I say 3, 2, 1. These multiples are the stepping stones we round off to.', visual: 'Stepping stones labelled 10, 20, 30, 40, 50.', respond: 'chat', minutes: 4 },
-    { layout: 'hook', title: 'The big question', prompt: 'The match had 2,987 fans. The newspaper said 3,000. Is the newspaper wrong?', detail: 'Talk to your partner: why might they write 3,000?', diagram: { type: 'cards', items: [{ big: '2,987', small: 'fans at the match', note: 'the real number' }, { big: '3,000', small: 'in the newspaper', note: 'rounded off' }] }, say: 'Give pupils a minute. Draw out that 3,000 is easier to read and remember, and that it is very close to the real number.', visual: 'A football stadium scoreboard showing 2,987 next to a newspaper headline saying 3,000.', media: { image: 'football stadium crowd', video: 'why do we round numbers kids' }, respond: 'talk', minutes: 3 },
-    { layout: 'vocab', title: 'Key words', words: ['rounding off', 'multiple', 'nearest', 'round up', 'round down', 'deciding digit'], say: 'Read each word with me, then tell your partner what it means in your own words.', visual: 'Word cards with a small picture beside each word.', respond: 'none', minutes: 3 },
-    { layout: 'concept', title: 'Where does it live?', points: ['Find the two multiples either side.', 'Which one is it nearer to?', 'Halfway or more? Round up.'], example: '47 is between 40 and 50. It is nearer 50, so 47 rounds off to 50.', diagram: { type: 'numberline', from: 40, to: 50, step: 1, label: 5, marks: [47], highlight: [45] }, say: 'Point to 45, the halfway point. Anything from 45 upwards rounds up to 50; anything below 45 rounds down to 40.', visual: 'A number line from 40 to 50 with 45 marked as halfway and 47 marked.', media: { image: 'number line 40 to 50', video: 'rounding numbers number line' }, respond: 'react', minutes: 4 },
-    { layout: 'concept', title: 'The deciding digit', points: ['Look at the digit to the right.', '0, 1, 2, 3 or 4: round down.', '5, 6, 7, 8 or 9: round up.'], example: 'Round off 362 to the nearest 100: the tens digit is 6, so 362 rounds up to 400.', diagram: { type: 'placevalue', columns: ['H', 'T', 'O'], digits: ['3', '6', '2'], circle: 1 }, say: 'We are rounding off to the hundreds, so the digit to its right, the tens digit, decides. 6 is 5 or more, so we round up.', visual: 'A place value chart with 362, the tens digit 6 circled.', media: { image: 'place value chart hundreds tens ones', video: 'rounding to the nearest 100' }, respond: 'react', minutes: 4 },
-    { layout: 'guided', title: 'I do: nearest 1,000', problem: 'Round off 4,862 to the nearest 1,000.', steps: ['It is between 4,000 and 5,000.', 'The deciding digit is the hundreds digit: 8.', '8 is 5 or more, so round up.'], answer: '5,000', diagram: { type: 'placevalue', columns: ['Th', 'H', 'T', 'O'], digits: ['4', '8', '6', '2'], circle: 1 }, say: 'Think aloud as you reveal each step. Ask: which digit decides when we round off to the nearest 1,000?', visual: 'A place value chart with 4,862 and the hundreds digit circled.', respond: 'show', minutes: 4 },
-    { layout: 'guided', title: 'We do: one number, three ways', problem: 'Round off 2,449 to the nearest 10, 100 and 1,000.', steps: ['Nearest 10: the ones digit is 9, so 2,450.', 'Nearest 100: the tens digit is 4, so 2,400.', 'Nearest 1,000: the hundreds digit is 4, so 2,000.'], answer: '2,450, 2,400 and 2,000', say: 'Pupils work each step on whiteboards or paper before you reveal it. Stress that each time we round off from 2,449 itself, not from the last answer.', visual: 'The number 2,449 with three arrows pointing to 2,450, 2,400 and 2,000.', respond: 'show', minutes: 4 },
-    { layout: 'check', title: 'Check point', question: 'Round off 6,509 to the nearest 1,000.', options: ['6,000', '7,000', '6,500', '6,510'], answer: 1, why: 'The hundreds digit is 5, so 6,509 rounds up to 7,000. Choosing 6,500 means rounding to the nearest 100; 6,000 means the deciding digit was ignored.', say: 'Everyone votes at once. If many choose 6,500 or 6,000, reteach with a number line from 6,000 to 7,000 before the task.', visual: 'Four answer cards labelled A to D.', respond: 'vote', minutes: 2 },
-    { layout: 'independent', title: 'Choose your challenge', support: ['Round off 34, 58 and 75 to the nearest 10.', 'Use a number line to help you.'], core: ['Round off 463, 825 and 1,350 to the nearest 100.', 'Round off 7,481 to the nearest 1,000.'], stretch: ['A number rounds off to 300 to the nearest 100. What are the smallest and largest whole numbers it could be?', 'Explain why 2,449 rounds off to 2,000, not 3,000.'], answers: 'Support: 30, 60, 80. Core: 500, 800, 1,400; 7,000. Stretch: 250 and 349; rounding off in steps changes the answer, so always use the original number (the hundreds digit is 4).', say: 'Pupils choose their level. Check the support group first, then listen to stretch pupils explain.', visual: 'Three coloured boxes: mild, spicy and hot.', respond: 'show', minutes: 9 },
-    { layout: 'talk', title: 'Talk time', prompt: 'True or false: a number that rounds off to 400 must be less than 400.', starter: 'I think … because …', say: 'Listen for examples like 412, which rounds off to 400 but is more than 400.', visual: 'Two speech bubbles, one saying true and one saying false.', respond: 'talk', minutes: 2 },
-    { layout: 'plenary', title: 'What have we learned?', points: ['Find the two multiples either side.', 'Let the deciding digit choose.', 'Always round off from the original number.'], prompt: 'Which step do you find hardest? Show me 1, 2 or 3 fingers.', say: 'Pupils show fingers. Note who shows 2 or 3 for the next lesson.', visual: 'Three numbered steps on a staircase.', respond: 'react', minutes: 2 },
-    { layout: 'exit', title: 'Exit ticket', questions: [{ q: 'Round off 87 to the nearest 10.', a: '90' }, { q: 'Round off 1,250 to the nearest 100.', a: '1,300' }, { q: 'Round off 3,499 to the nearest 1,000.', a: '3,000' }], say: 'Pupils answer on their own. Anyone who gets 3,499 wrong needs a number line from 3,000 to 4,000 tomorrow.', visual: 'A ticket with three empty answer boxes.', respond: 'chat', minutes: 3 }
-  ],
-  activities: [
-    { name: 'Rounding race', minutes: 8, grouping: 'whole class', steps: ['Show a four-digit number on the screen.', 'Say which place to round off to: 10, 100 or 1,000.', 'Pupils write their answer and show it on 3, 2, 1 (online: type it in the chat).', 'Ask one pupil to explain using the deciding digit.'], resources: 'A list of four-digit numbers or a random number generator.' },
-    { name: 'Nearest neighbours', minutes: 10, grouping: 'pairs', steps: ['Each pair picks four digit cards (or rolls a dice four times).', 'They make the largest four-digit number they can.', 'They round it off to the nearest 10, 100 and 1,000.', 'They swap with another pair to check each other.'], resources: 'Digit cards 0 to 9 or a dice.' },
-    { name: 'Spot the cheat', minutes: 7, grouping: 'groups', steps: ['Show three rounding answers, one of them wrong.', 'Groups find the wrong one and explain the mistake.', 'Share: which rule did the cheat break?'], resources: 'Three prepared examples, for example 362 → 300, 4,862 → 5,000, 75 → 80.' }
-  ],
-  teacher: {
-    overview: 'Pupils learn that rounding off moves a number to the nearest multiple of 10, 100 or 1,000, using the deciding digit. The two worked examples show that we always round off from the original number.',
-    misconceptions: ['Rounding off in steps (2,449 → 2,450 → 2,500 → 3,000). Always round off from the original number.', 'Looking at the wrong digit. The deciding digit is just to the right of the place you round off to.', 'Thinking 5 rounds down because it is in the middle. 5 or more always rounds up.', 'Writing only the rounded digit, such as 4 instead of 400. Zeros keep the place value.'],
-    support: 'Give every pupil a number line for each question and a place value chart with the deciding digit highlighted. Start with two-digit numbers to the nearest 10.',
-    stretch: 'Ask for the range of whole numbers that round off to a given value (250 to 349 round off to 300), and include numbers like 9,950 that roll over to the next thousand.',
-    assessment: 'Use the check point: pupils who choose 6,500 rounded to the nearest 100, and those who choose 6,000 ignored the deciding digit. Reteach them with a number line before the independent task. The exit ticket shows who is ready for the next lesson.',
-    briefing: 'Hello! Here is your two-minute briefing for today’s Year 4 lesson on rounding off. The big idea is simple: rounding off moves a number to the nearest multiple of 10, 100 or 1,000, so it is easier to use. Start with the quick-fire recap to warm up their multiples, then use the newspaper hook, 2,987 fans written as 3,000, to show why we round off in real life. The key teaching point is the deciding digit: the digit just to the right of the place you are rounding off to. Zero to four, round down. Five to nine, round up. Model 4,862 to the nearest 1,000 by thinking aloud, then work through 2,449 together, three ways. That example matters, because the most common mistake is rounding off in steps and ending up at 3,000 instead of 2,000. Use the check point to see who is secure: a pupil who picks 6,500 has rounded to the nearest hundred, and a pupil who picks 6,000 has ignored the deciding digit. Reteach those pupils with a number line before they start the task. For support, keep a number line out for every question; for stretch, ask for the smallest and largest numbers that round off to 300. Finish with the exit ticket and you will know exactly who is ready for the next lesson. Have a great lesson!'
+ "input": {
+  "year": "Year 6",
+  "subject": "maths",
+  "subjectName": "Maths",
+  "topic": "Circles: radius, diameter and circumference",
+  "minutes": 45,
+  "mode": "online",
+  "codes": [
+   "6Gg.02",
+   "6Gg.11"
+  ]
+ },
+ "title": "Circles: radius, diameter and circumference",
+ "objective": "To know the parts of a circle and use the fact that the diameter is twice the radius.",
+ "successCriteria": [
+  "I can name the centre, radius, diameter and circumference.",
+  "I can find the diameter from the radius, and the radius from the diameter.",
+  "I can draw a circle with a given radius."
+ ],
+ "bigQuestion": "Why is the diameter of every circle exactly twice its radius?",
+ "codes": [
+  "6Gg.02",
+  "6Gg.11"
+ ],
+ "vocab": [
+  {
+   "word": "centre",
+   "meaning": "The point in the middle, the same distance from every point on the edge.",
+   "example": "The compass point stays on the centre."
   },
-  worksheet: {
-    title: 'Rounding off to the nearest 10, 100 and 1,000',
-    instructions: 'Read each question carefully. Use the deciding digit to help you.',
-    scaffolded: [
-      { type: 'fill', text: '45 is between 40 and ___.', answers: ['50'], bank: ['40', '50', '60'], skill: 'recall', marks: 1 },
-      { type: 'mcq', q: 'Round off 38 to the nearest 10.', options: ['30', '40', '38', '50'], answer: 1, why: 'The ones digit is 8, which is 5 or more, so round up to 40.', hint: '5 or more: round up.', skill: 'apply', marks: 1 },
-      { type: 'truefalse', statement: '73 rounded off to the nearest 10 is 70.', answer: true, because: 'The ones digit is 3, which is less than 5, so round down to 70.', skill: 'apply', marks: 1 },
-      { type: 'fill', text: 'Round off to the nearest 10: 26 → ___, 54 → ___, 85 → ___.', answers: ['30', '50', '90'], bank: ['20', '30', '50', '60', '80', '90'], skill: 'apply', marks: 2 },
-      { type: 'order', q: 'Put the steps for rounding off 64 to the nearest 10 in order.', items: ['Find the two tens: 60 and 70.', 'Look at the ones digit: 4.', '4 is less than 5, so round down.', '64 rounds off to 60.'], skill: 'apply', marks: 1 },
-      { type: 'short', q: 'Round off 250 to the nearest 100.', answer: '300', hint: 'Draw a number line from 200 to 300. Where is halfway?', skill: 'apply', marks: 1 }
-    ],
-    standard: [
-      { type: 'mcq', q: 'Round off 463 to the nearest 100.', options: ['400', '500', '460', '470'], answer: 1, why: 'The tens digit is 6, so 463 rounds up to 500.', skill: 'apply', marks: 1 },
-      { type: 'fill', text: '6,280 rounded off to the nearest 1,000 is ___.', answers: ['6,000'], skill: 'apply', marks: 1 },
-      { type: 'short', q: 'Round off 1,350 to the nearest 100.', answer: '1,400', skill: 'apply', marks: 1 },
-      { type: 'truefalse', statement: '2,449 rounded off to the nearest 1,000 is 3,000.', answer: false, because: 'The hundreds digit is 4, so it rounds down to 2,000.', skill: 'reason', marks: 1 },
-      { type: 'match', q: 'Match each number to its value rounded off to the nearest 100.', pairs: [['349', '300'], ['351', '400'], ['1,250', '1,300'], ['1,249', '1,200']], skill: 'apply', marks: 2 },
-      { type: 'odd', q: 'Round each number off to the nearest 10. Which is the odd one out? Why?', items: ['72', '68', '74', '75'], answer: 3, why: '72, 68 and 74 round off to 70. 75 rounds off to 80.', skill: 'reason', marks: 2 },
-      { type: 'spot', q: 'Spot the mistake and correct it.', work: 'Round off 5,709 to the nearest 1,000: the hundreds digit is 7, so it rounds down to 5,000.', mistake: '7 is 5 or more, so it should round up.', fix: '5,709 rounds off to 6,000.', skill: 'reason', marks: 2 },
-      { type: 'sort', q: 'To the nearest 100, does each number round off to 500 or 600?', groups: ['500', '600'], items: [{ text: '549', group: 0 }, { text: '550', group: 1 }, { text: '512', group: 0 }, { text: '587', group: 1 }, { text: '451', group: 0 }, { text: '649', group: 1 }], skill: 'apply', marks: 2 }
-    ],
-    stretch: [
-      { type: 'short', q: 'A number rounds off to 300 to the nearest 100. What is the smallest whole number it could be? What is the largest?', answer: '250 and 349', skill: 'reason', marks: 2 },
-      { type: 'truefalse', statement: 'Every number that rounds off to 1,000 to the nearest 1,000 is less than 1,000.', answer: false, because: 'Numbers from 1,000 to 1,499 also round off to 1,000.', skill: 'reason', marks: 1 },
-      { type: 'spot', q: 'Spot the mistake and correct it.', work: 'Round off 2,449 to the nearest 1,000: 2,449 → 2,450 → 2,500 → 3,000.', mistake: 'Rounding off in steps changes the answer.', fix: 'Use the original number: the hundreds digit is 4, so 2,449 rounds off to 2,000.', skill: 'reason', marks: 2 },
-      { type: 'mcq', q: 'Which number rounds off to 4,000 to the nearest 1,000 and to 3,500 to the nearest 100?', options: ['3,549', '3,450', '3,551', '3,412'], answer: 0, why: '3,549 has 5 hundreds, so it rounds up to 4,000, and 4 tens, so it rounds down to 3,500.', skill: 'reason', marks: 2 },
-      { type: 'order', q: 'Put the steps in order to find the largest whole number that rounds off to 6,000 to the nearest 1,000.', items: ['6,000 is the nearest multiple of 1,000.', 'Halfway to 7,000 is 6,500.', '6,500 rounds up, so it is too big.', 'The largest is 6,499.'], skill: 'reason', marks: 2 },
-      { type: 'odd', q: 'Round each number off to the nearest 1,000. Which is the odd one out? Why?', items: ['8,499', '7,500', '7,851', '8,512'], answer: 3, why: '8,512 rounds off to 9,000; the others round off to 8,000.', skill: 'reason', marks: 2 },
-      { type: 'short', q: 'Tia rounded off a number to the nearest 10 and got 1,250. Write three numbers she could have started with.', answer: 'Any three from 1,245 to 1,254, for example 1,245, 1,250 and 1,254.', skill: 'reason', marks: 2 },
-      { type: 'fill', text: 'To the nearest 100, 9,950 rounds off to ___. To the nearest 1,000, it rounds off to ___.', answers: ['10,000', '10,000'], skill: 'reason', marks: 2 }
-    ]
+  {
+   "word": "radius",
+   "meaning": "A straight line from the centre to the edge. Plural: radii.",
+   "example": "The radius of the roti canai is 11 cm."
+  },
+  {
+   "word": "diameter",
+   "meaning": "A straight line from edge to edge that goes through the centre.",
+   "example": "The diameter is twice the radius."
+  },
+  {
+   "word": "circumference",
+   "meaning": "The distance all the way round a circle.",
+   "example": "We wrapped a string round the kompang to find its circumference."
   }
+ ],
+ "slides": [
+  {
+   "layout": "title",
+   "phase": "starter",
+   "title": "Circles: radius, diameter and circumference",
+   "say": "Today we become circle experts. By the end you will name every part of a circle and work out a diameter or a radius in seconds.",
+   "visual": "The Eye on Malaysia Ferris wheel lit up at night.",
+   "media": {
+    "wiki": "Eye on Malaysia",
+    "image": "",
+    "video": "how to draw a circle with a compass for kids"
+   },
+   "respond": "none",
+   "minutes": 1
+  },
+  {
+   "layout": "goals",
+   "phase": "starter",
+   "title": "Learning goals",
+   "goals": [
+    {
+     "verb": "Identify",
+     "text": "the centre, radius, diameter and circumference of any circle."
+    },
+    {
+     "verb": "Calculate",
+     "text": "the diameter from the radius, and the radius from the diameter."
+    },
+    {
+     "verb": "Draw",
+     "text": "a circle with a given radius, using compasses."
+    }
+   ],
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "radius",
+     "diameter"
+    ]
+   },
+   "say": "Read the three goals with me. We will tick them off as we go.",
+   "visual": "A circle with its centre, a radius and a diameter.",
+   "respond": "none",
+   "minutes": 1
+  },
+  {
+   "layout": "recap",
+   "phase": "starter",
+   "title": "Quick recap: doubling and halving",
+   "questions": [
+    {
+     "q": "Double 7",
+     "a": "14"
+    },
+    {
+     "q": "Half of 18",
+     "a": "9"
+    },
+    {
+     "q": "Double 4.5",
+     "a": "9"
+    },
+    {
+     "q": "Half of 25",
+     "a": "12.5"
+    }
+   ],
+   "say": "Circles need quick doubling and halving. Type your answers in the chat.",
+   "visual": "Four quick questions.",
+   "respond": "chat",
+   "minutes": 3
+  },
+  {
+   "layout": "think",
+   "phase": "starter",
+   "title": "Spot the circles",
+   "prompt": "Look at this kompang. Where can you see circles? Why do you think drums, wheels and plates are round?",
+   "reveal": [
+    "The drum skin, the frame and the rim are all circles.",
+    "Wheels are round so they roll smoothly.",
+    "A circle is the same distance across, through its centre, in every direction."
+   ],
+   "say": "Give pupils 30 seconds to talk, then take two or three ideas before you show the answers.",
+   "visual": "A kompang drum.",
+   "media": {
+    "wiki": "Kompang",
+    "image": "kompang drum",
+    "video": ""
+   },
+   "respond": "talk",
+   "minutes": 2
+  },
+  {
+   "layout": "think",
+   "phase": "starter",
+   "title": "What is a circle?",
+   "prompt": "Aisyah stands in the middle of the school field holding one end of a 2-metre rope. Wei Jie holds the other end tight and walks all the way round her. What shape does his path make?",
+   "reveal": [
+    "A circle!",
+    "Every point of his path is exactly 2 metres from Aisyah.",
+    "Aisyah is the centre. The rope is the radius."
+   ],
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "radius"
+    ],
+    "radius": "2 m"
+   },
+   "say": "Act it out with a skipping rope if you are in class. Online, draw it as they describe it.",
+   "visual": "A circle with its centre and a 2 m radius.",
+   "respond": "talk",
+   "minutes": 2
+  },
+  {
+   "layout": "vocab",
+   "phase": "main",
+   "title": "Key words",
+   "words": [
+    "centre",
+    "radius",
+    "diameter",
+    "circumference"
+   ],
+   "diagrams": [
+    {
+     "type": "circle",
+     "parts": [
+      "centre"
+     ],
+     "highlight": "centre"
+    },
+    {
+     "type": "circle",
+     "parts": [
+      "centre",
+      "radius"
+     ],
+     "highlight": "radius"
+    },
+    {
+     "type": "circle",
+     "parts": [
+      "centre",
+      "diameter"
+     ],
+     "highlight": "diameter"
+    },
+    {
+     "type": "circle",
+     "parts": [
+      "circumference"
+     ],
+     "highlight": "circumference"
+    }
+   ],
+   "say": "Say each word with me. Point to each part in the air with your finger.",
+   "visual": "Four circles, each showing one part.",
+   "respond": "none",
+   "minutes": 3
+  },
+  {
+   "layout": "concept",
+   "phase": "main",
+   "title": "The radius",
+   "points": [
+    "A radius goes from the centre to the edge.",
+    "Every radius of a circle is the same length.",
+    "We write r for radius."
+   ],
+   "definition": "Radius (r): the distance from the centre to the edge of a circle.",
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "radius"
+    ],
+    "radii": 4,
+    "radius": "5 cm"
+   },
+   "say": "However many radii we draw, they are all 5 cm. That is what makes it a circle.",
+   "visual": "A circle with four equal radii.",
+   "respond": "react",
+   "minutes": 2
+  },
+  {
+   "layout": "concept",
+   "phase": "main",
+   "title": "The diameter",
+   "points": [
+    "A diameter goes from edge to edge.",
+    "It must pass through the centre.",
+    "We write d for diameter."
+   ],
+   "mistake": "A line across a circle is not a diameter unless it passes through the centre. The line below the centre is called a chord.",
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "diameter",
+     "chord"
+    ],
+    "diameter": "10 cm",
+    "highlight": "diameter"
+   },
+   "say": "Show me with your arms: a diameter through the middle of your body, edge to edge.",
+   "visual": "A circle with a diameter through the centre and a chord below it.",
+   "respond": "react",
+   "minutes": 2
+  },
+  {
+   "layout": "rule",
+   "phase": "main",
+   "title": "Diameter and radius",
+   "rule": "d = 2 × r",
+   "cards": [
+    {
+     "big": "d",
+     "name": "Diameter",
+     "text": "Double the radius: d = 2 × r"
+    },
+    {
+     "big": "r",
+     "name": "Radius",
+     "text": "Half the diameter: r = d ÷ 2"
+    }
+   ],
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "radius",
+     "diameter"
+    ],
+    "radius": "6 cm",
+    "diameter": "12 cm"
+   },
+   "say": "Two radii side by side make one diameter. So we double to find the diameter and halve to find the radius.",
+   "visual": "A circle with a 6 cm radius and a 12 cm diameter.",
+   "respond": "react",
+   "minutes": 2
+  },
+  {
+   "layout": "guided",
+   "phase": "main",
+   "title": "Finding the diameter",
+   "problem": "A roti canai has a radius of 11 cm. What is its diameter?",
+   "steps": [
+    {
+     "math": "d = 2 × r",
+     "text": "Write the rule that links diameter and radius."
+    },
+    {
+     "math": "d = 2 × 11",
+     "text": "Put in the radius."
+    },
+    {
+     "math": "d = 22 cm",
+     "text": "Work it out and write the units."
+    }
+   ],
+   "answer": "The diameter is 22 cm.",
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "radius",
+     "diameter"
+    ],
+    "radius": "11 cm",
+    "diameter": "?",
+    "highlight": "diameter"
+   },
+   "say": "I do this one. Watch each step, then you do the next one.",
+   "visual": "A circle with an 11 cm radius and the diameter marked with a question mark.",
+   "respond": "show",
+   "minutes": 3
+  },
+  {
+   "layout": "try",
+   "phase": "main",
+   "title": "Quick calculation",
+   "question": "The ceiling fan in our classroom is 120 cm across, measured through the centre. How long is one blade, from the centre to the tip?",
+   "answer": "60 cm",
+   "working": "120 cm is the diameter, so r = d ÷ 2 = 120 ÷ 2 = 60 cm.",
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "radius",
+     "diameter"
+    ],
+    "diameter": "120 cm",
+    "radius": "?",
+    "highlight": "radius"
+   },
+   "say": "We do this one together. Is 120 cm the radius or the diameter? How do you know?",
+   "visual": "A circle with a 120 cm diameter and the radius marked with a question mark.",
+   "respond": "show",
+   "minutes": 2
+  },
+  {
+   "layout": "guided",
+   "phase": "main",
+   "title": "Finding the radius",
+   "problem": "Mei Ling's kompang is 35 cm across, through the centre. What is its radius?",
+   "steps": [
+    {
+     "math": "r = d ÷ 2",
+     "text": "Write the rule for the radius."
+    },
+    {
+     "math": "r = 35 ÷ 2",
+     "text": "Put in the diameter."
+    },
+    {
+     "math": "r = 17.5 cm",
+     "text": "Half of 35 is 17 and a half."
+    }
+   ],
+   "answer": "The radius is 17.5 cm.",
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "radius",
+     "diameter"
+    ],
+    "diameter": "35 cm",
+    "radius": "?",
+    "highlight": "radius"
+   },
+   "say": "An odd diameter gives a radius with a half. That is fine: 17.5 cm.",
+   "visual": "A circle with a 35 cm diameter.",
+   "respond": "show",
+   "minutes": 2
+  },
+  {
+   "layout": "gallery",
+   "phase": "main",
+   "title": "Circles all around us",
+   "intro": "In every circle, the diameter is double the radius.",
+   "items": [
+    {
+     "name": "20 sen coin",
+     "lines": [
+      "Diameter: about 2 cm",
+      "Radius: about 1 cm"
+     ],
+     "wiki": "",
+     "image": "20 sen coin Malaysia"
+    },
+    {
+     "name": "Roti canai",
+     "lines": [
+      "Diameter: about 22 cm",
+      "Radius: about 11 cm"
+     ],
+     "wiki": "Roti canai",
+     "image": ""
+    },
+    {
+     "name": "Bicycle wheel",
+     "lines": [
+      "Diameter: about 66 cm",
+      "Radius: about 33 cm"
+     ],
+     "wiki": "Bicycle wheel",
+     "image": ""
+    }
+   ],
+   "say": "Which of these have you seen today? Each diameter is double its radius.",
+   "visual": "A coin, a roti canai and a bicycle wheel.",
+   "respond": "talk",
+   "minutes": 2
+  },
+  {
+   "layout": "concept",
+   "phase": "main",
+   "title": "The circumference",
+   "points": [
+    "The circumference is the distance all the way round.",
+    "It is the perimeter of a circle.",
+    "We measure it in cm or m."
+   ],
+   "example": "Wrap a string round a kompang, then measure the string: that length is its circumference.",
+   "definition": "Circumference: the distance all the way round a circle.",
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "circumference"
+    ],
+    "highlight": "circumference"
+   },
+   "say": "Trace the circumference in the air with your finger: all the way round, back to the start.",
+   "visual": "A circle with its circumference highlighted.",
+   "respond": "react",
+   "minutes": 2
+  },
+  {
+   "layout": "match",
+   "phase": "main",
+   "title": "Match the circle words",
+   "pairs": [
+    {
+     "term": "Centre",
+     "meaning": "The point in the middle of a circle"
+    },
+    {
+     "term": "Radius",
+     "meaning": "From the centre to the edge"
+    },
+    {
+     "term": "Diameter",
+     "meaning": "From edge to edge, through the centre"
+    },
+    {
+     "term": "Circumference",
+     "meaning": "The distance all the way round"
+    }
+   ],
+   "say": "Type each word with its letter, for example: Radius B.",
+   "visual": "Four words and four meanings.",
+   "respond": "chat",
+   "minutes": 2
+  },
+  {
+   "layout": "check",
+   "phase": "main",
+   "title": "Hinge question",
+   "question": "A circle has a diameter of 16 cm. What is its radius?",
+   "options": [
+    "32 cm",
+    "8 cm",
+    "16 cm",
+    "4 cm"
+   ],
+   "answer": 1,
+   "why": "The radius is half the diameter: 16 ÷ 2 = 8 cm. 32 cm doubles instead of halving, 16 cm mixes up radius and diameter, and 4 cm halves twice.",
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "radius",
+     "diameter"
+    ],
+    "diameter": "16 cm",
+    "radius": "?"
+   },
+   "say": "Vote with A, B, C or D. If many choose A, go back to the rule card.",
+   "visual": "A circle with a 16 cm diameter.",
+   "respond": "vote",
+   "minutes": 2
+  },
+  {
+   "layout": "concept",
+   "phase": "main",
+   "title": "Drawing a circle",
+   "points": [
+    "Open the compasses to the radius on a ruler.",
+    "Put the point on the centre and keep it still.",
+    "Turn the pencil all the way round."
+   ],
+   "mistake": "Opening the compasses to the diameter makes a circle twice as big. Always use the radius.",
+   "diagram": {
+    "type": "circle",
+    "parts": [
+     "centre",
+     "radius"
+    ],
+    "radius": "4 cm"
+   },
+   "say": "Model it on the visualiser: draw a circle with a radius of 4 cm, then pupils draw one with a radius of 3 cm.",
+   "visual": "A circle drawn with a 4 cm radius.",
+   "respond": "show",
+   "minutes": 2
+  },
+  {
+   "layout": "independent",
+   "phase": "main",
+   "title": "Your turn",
+   "support": [
+    "A circle has a radius of 4 cm. What is its diameter?",
+    "A circle has a diameter of 10 cm. What is its radius?"
+   ],
+   "core": [
+    "A plate has a radius of 13 cm. What is its diameter?",
+    "A clock face is 30 cm across. What is its radius?",
+    "Priya says: radius 12 cm, so the diameter is 6 cm. What is her mistake?"
+   ],
+   "stretch": [
+    "Three equal circles fit exactly side by side in a rectangle 24 cm long. What is the radius of each circle?",
+    "A circle fits exactly inside a square with sides of 14 cm. What are its diameter and radius?"
+   ],
+   "answers": "Support: 8 cm; 5 cm. Core: 26 cm; 15 cm; Priya halved instead of doubling, so the diameter is 24 cm. Stretch: each diameter is 24 ÷ 3 = 8 cm, so each radius is 4 cm; diameter 14 cm, radius 7 cm.",
+   "diagram": {
+    "type": "shape",
+    "shape": "rectangle",
+    "w": 24,
+    "h": 8,
+    "circles": 3,
+    "labels": {
+     "w": "24 cm",
+     "h": "?"
+    }
+   },
+   "say": "Choose your level. Hold your work up to the camera when you finish.",
+   "visual": "Three circles in a row inside a 24 cm rectangle.",
+   "respond": "show",
+   "minutes": 6
+  },
+  {
+   "layout": "talk",
+   "phase": "main",
+   "title": "Talk to a partner",
+   "prompt": "Arjun says a circle has only one diameter. Is he right?",
+   "starter": "I think Arjun is right/wrong because …",
+   "say": "Listen for: a circle has endless diameters, all the same length.",
+   "visual": "",
+   "respond": "talk",
+   "minutes": 1
+  },
+  {
+   "layout": "plenary",
+   "phase": "plenary",
+   "title": "Key rules",
+   "points": [
+    "The radius goes from the centre to the edge.",
+    "The diameter goes edge to edge through the centre: d = 2 × r.",
+    "The radius is half the diameter: r = d ÷ 2.",
+    "The circumference is the distance all the way round."
+   ],
+   "prompt": "Which word was hardest to remember, and how will you remember it?",
+   "say": "Read the four rules together, then pupils answer the question with a partner.",
+   "visual": "",
+   "respond": "react",
+   "minutes": 1
+  },
+  {
+   "layout": "truefalse",
+   "phase": "plenary",
+   "title": "Exit check",
+   "statement": "If you double the radius of a circle, its diameter also doubles.",
+   "answer": true,
+   "why": "d = 2 × r, so a radius twice as long gives a diameter twice as long. A radius of 3 cm gives a diameter of 6 cm; a radius of 6 cm gives 12 cm.",
+   "say": "Vote true or false, then ask one pupil to explain with numbers.",
+   "visual": "",
+   "respond": "vote",
+   "minutes": 1
+  },
+  {
+   "layout": "exit",
+   "phase": "plenary",
+   "title": "Exit ticket",
+   "questions": [
+    {
+     "q": "A circle has a radius of 7 cm. What is its diameter?",
+     "a": "14 cm"
+    },
+    {
+     "q": "A circle has a diameter of 30 cm. What is its radius?",
+     "a": "15 cm"
+    },
+    {
+     "q": "What is the distance all the way round a circle called?",
+     "a": "The circumference"
+    }
+   ],
+   "say": "Type your three answers in the chat before you leave.",
+   "visual": "",
+   "respond": "chat",
+   "minutes": 1
+  }
+ ],
+ "activities": [
+  {
+   "name": "Circle hunt",
+   "minutes": 10,
+   "grouping": "pairs",
+   "steps": [
+    "Find three circles in the classroom or at home.",
+    "Measure each diameter with a ruler, through the centre.",
+    "Work out each radius by halving.",
+    "Share your best find with the class."
+   ],
+   "resources": "Rulers, a tape measure, mini whiteboards"
+  },
+  {
+   "name": "Compass circles",
+   "minutes": 8,
+   "grouping": "individual",
+   "steps": [
+    "Draw a circle with a radius of 3 cm.",
+    "Draw one with a diameter of 10 cm (set the compasses to 5 cm).",
+    "Label the centre, a radius and a diameter on each.",
+    "Check a partner's circles with a ruler."
+   ],
+   "resources": "Compasses, rulers, sharp pencils"
+  }
+ ],
+ "teacher": {
+  "overview": "Pupils learn the parts of a circle (centre, radius, diameter and circumference) and use the fact that the diameter is twice the radius. They find diameters and radii in real objects and draw circles with compasses.",
+  "misconceptions": [
+   "Mixing up the radius and the diameter.",
+   "Thinking any line across a circle is a diameter, even when it misses the centre.",
+   "Halving when they should double, or the other way round.",
+   "Opening the compasses to the diameter instead of the radius."
+  ],
+  "support": "Give a printed circle with the centre marked and labels to stick on. Use whole-number radii only.",
+  "stretch": "Circles inside rectangles and squares: three equal circles in a row, or one circle inside a square.",
+  "assessment": "Listen for pupils using radius and diameter correctly and explaining why the diameter is double the radius. If many choose A or C in the hinge question, return to the rule card before the independent task.",
+  "briefing": "This lesson is about naming the parts of a circle and using one big idea: the diameter is twice the radius. Start with the quick doubling and halving recap, because pupils will need both in every calculation. The kompang and the rope puzzle build the idea that a circle is every point the same distance from the centre, so take your time on the rope: the rope is the radius and Aisyah is the centre. When you teach the diameter, make a big deal of the centre: the most common mistake is calling any line across a circle a diameter. The rule card is the heart of the lesson. Two radii side by side make a diameter, so we double to find the diameter and halve to find the radius. Model the roti canai example step by step, then let pupils lead the ceiling fan question with you. Watch the hinge question closely. If pupils pick 32 cm, they doubled instead of halving; if they pick 16 cm, they have mixed up the two words. Before the independent task, model drawing a circle with compasses, and remind them to open the compasses to the radius. Finish with the true or false check: pupils should explain it with numbers, not just a guess."
+ },
+ "worksheet": {
+  "title": "Circles: radius and diameter",
+  "instructions": "Show your working. Remember: diameter = 2 × radius.",
+  "scaffolded": [
+   {
+    "type": "fill",
+    "text": "The ___ goes from the centre to the edge of a circle.",
+    "answers": [
+     "radius"
+    ],
+    "bank": [
+     "radius",
+     "diameter",
+     "centre"
+    ],
+    "skill": "recall",
+    "marks": 1
+   },
+   {
+    "type": "mcq",
+    "q": "Which line goes from edge to edge through the centre?",
+    "options": [
+     "radius",
+     "diameter",
+     "circumference",
+     "centre"
+    ],
+    "answer": 1,
+    "why": "The diameter crosses the whole circle through the centre.",
+    "skill": "recall",
+    "marks": 1
+   },
+   {
+    "type": "short",
+    "q": "A circle has a radius of 3 cm. What is its diameter?",
+    "answer": "6 cm",
+    "hint": "Double the radius.",
+    "skill": "apply",
+    "marks": 1
+   },
+   {
+    "type": "short",
+    "q": "A circle has a diameter of 8 cm. What is its radius?",
+    "answer": "4 cm",
+    "hint": "Halve the diameter.",
+    "skill": "apply",
+    "marks": 1
+   },
+   {
+    "type": "truefalse",
+    "statement": "Every radius of a circle is the same length.",
+    "answer": true,
+    "because": "Every point on the edge is the same distance from the centre.",
+    "skill": "reason",
+    "marks": 1
+   },
+   {
+    "type": "match",
+    "q": "Match each word to its meaning.",
+    "pairs": [
+     [
+      "centre",
+      "the middle point"
+     ],
+     [
+      "radius",
+      "centre to edge"
+     ],
+     [
+      "diameter",
+      "edge to edge through the centre"
+     ],
+     [
+      "circumference",
+      "the distance all the way round"
+     ]
+    ],
+    "skill": "recall",
+    "marks": 1
+   }
+  ],
+  "standard": [
+   {
+    "type": "short",
+    "q": "A circle has a radius of 9 cm. What is its diameter?",
+    "answer": "18 cm",
+    "skill": "apply",
+    "marks": 1
+   },
+   {
+    "type": "short",
+    "q": "A bicycle wheel has a diameter of 64 cm. What is its radius?",
+    "answer": "32 cm",
+    "skill": "apply",
+    "marks": 1
+   },
+   {
+    "type": "mcq",
+    "q": "A plate has a diameter of 26 cm. What is its radius?",
+    "options": [
+     "52 cm",
+     "13 cm",
+     "26 cm",
+     "6.5 cm"
+    ],
+    "answer": 1,
+    "why": "Halve the diameter: 26 ÷ 2 = 13 cm.",
+    "skill": "apply",
+    "marks": 1
+   },
+   {
+    "type": "truefalse",
+    "statement": "A line across a circle is always a diameter.",
+    "answer": false,
+    "because": "It is only a diameter if it passes through the centre.",
+    "skill": "reason",
+    "marks": 1
+   },
+   {
+    "type": "fill",
+    "text": "The diameter is ___ times the radius.",
+    "answers": [
+     "2"
+    ],
+    "bank": [
+     "2",
+     "3",
+     "4"
+    ],
+    "skill": "recall",
+    "marks": 1
+   },
+   {
+    "type": "spot",
+    "q": "Spot the mistake and correct it.",
+    "work": "Radius 15 cm, so diameter = 15 ÷ 2 = 7.5 cm",
+    "mistake": "It halves the radius instead of doubling it.",
+    "fix": "Diameter = 2 × 15 = 30 cm",
+    "skill": "reason",
+    "marks": 2
+   },
+   {
+    "type": "order",
+    "q": "Put these circles in order of size, smallest first.",
+    "items": [
+     "radius 2 cm",
+     "diameter 6 cm",
+     "radius 4 cm",
+     "diameter 10 cm"
+    ],
+    "skill": "apply",
+    "marks": 2
+   },
+   {
+    "type": "short",
+    "q": "A clock face is 28 cm across, through the centre. What is its radius?",
+    "answer": "14 cm",
+    "skill": "apply",
+    "marks": 1
+   }
+  ],
+  "stretch": [
+   {
+    "type": "short",
+    "q": "A circle has a radius of 4.5 cm. What is its diameter?",
+    "answer": "9 cm",
+    "skill": "apply",
+    "marks": 1
+   },
+   {
+    "type": "short",
+    "q": "A circle has a diameter of 17 cm. What is its radius?",
+    "answer": "8.5 cm",
+    "skill": "apply",
+    "marks": 1
+   },
+   {
+    "type": "short",
+    "q": "Three equal circles fit exactly side by side in a rectangle 36 cm long. What is the radius of each circle?",
+    "answer": "6 cm",
+    "hint": "Each diameter is 36 ÷ 3.",
+    "skill": "reason",
+    "marks": 2
+   },
+   {
+    "type": "short",
+    "q": "A circle fits exactly inside a square with sides of 20 cm. What is the radius of the circle?",
+    "answer": "10 cm",
+    "skill": "reason",
+    "marks": 2
+   },
+   {
+    "type": "odd",
+    "q": "Which is the odd one out? Why?",
+    "items": [
+     "radius 6 cm",
+     "diameter 12 cm",
+     "radius 12 cm",
+     "12 cm across, through the centre"
+    ],
+    "answer": 2,
+    "why": "The others all describe the same circle. A radius of 12 cm makes a circle twice as big.",
+    "skill": "reason",
+    "marks": 2
+   },
+   {
+    "type": "truefalse",
+    "statement": "If you halve the diameter of a circle, its radius is halved too.",
+    "answer": true,
+    "because": "r = d ÷ 2, so a diameter half as long gives a radius half as long.",
+    "skill": "reason",
+    "marks": 1
+   },
+   {
+    "type": "spot",
+    "q": "Spot the mistake and correct it.",
+    "work": "Diameter 50 cm, so radius = 50 × 2 = 100 cm",
+    "mistake": "It doubles the diameter instead of halving it.",
+    "fix": "Radius = 50 ÷ 2 = 25 cm",
+    "skill": "reason",
+    "marks": 2
+   },
+   {
+    "type": "short",
+    "q": "Two circles touch on the outside. Their centres are 10 cm apart. One circle has a radius of 4 cm. What is the radius of the other?",
+    "answer": "6 cm",
+    "hint": "The distance between the centres is the two radii added together.",
+    "skill": "reason",
+    "marks": 2
+   }
+  ]
+ }
 };

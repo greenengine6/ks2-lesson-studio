@@ -8,9 +8,9 @@
    mcq: 2 to 4 options, a = the index of the right one. tf: opts ['True', 'False'], a = 0 (true) or 1 (false).
    type: opts [], a = the expected text, alt = other answers that also count. secs 5 to 120, pts 100 to 2000,
    pic: a Wikipedia picture (pics.js keepPic) or null. */
-import { str, arr, num, clamp, uid, houseFix, normAnswer } from '../core.js?v=a277ebb7';
-import { safePic, keepPic } from '../pics.js?v=a277ebb7';
-import { subjectOf, yearOf } from '../library.js?v=a277ebb7';
+import { str, arr, num, clamp, uid, houseFix, normAnswer } from '../core.js?v=ceec3b96';
+import { safePic, keepPic } from '../pics.js?v=ceec3b96';
+import { subjectOf, yearOf } from '../library.js?v=ceec3b96';
 
 export const TYPES = [['mcq', 'Multiple choice'], ['tf', 'True or false'], ['type', 'Type the answer']];
 export const TYPE_NAME = { mcq: 'Multiple choice', tf: 'True or false', type: 'Type the answer' };

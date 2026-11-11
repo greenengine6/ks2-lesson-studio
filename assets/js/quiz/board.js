@@ -6,16 +6,16 @@
    used (or End game), a podium with confetti and a fanfare.
    Keys: type a tile's number (Enter to go at once); in a card, Enter shows the answer then finishes, 1 to 6 tick a
    team, 0 is Nobody, R reads it aloud; Esc closes the card without scoring, and on the board asks to end the game. */
-import { esc, str, store, icon, toast } from '../core.js?v=a277ebb7';
-import { Voice } from '../fx/voice.js?v=a277ebb7';
-import { fracWords } from '../fractions.js?v=a277ebb7';
-import { confetti } from '../fx/particles.js?v=a277ebb7';
-import { picURL, creditText } from '../pics.js?v=a277ebb7';
-import { mineKey } from '../library.js?v=a277ebb7';
-import { track } from '../track.js?v=a277ebb7';
-import { playable, answerText, difficulty, LETTERS, OPT_COLOURS } from './model.js?v=a277ebb7';
-import { shapeSVG, animalSVG, TEAMS, COLOURS, SURPRISES, surpriseSVG, TROPHY, Fx, countTo } from './fx.js?v=a277ebb7';
-import { openStage } from './stage.js?v=a277ebb7';
+import { esc, str, store, icon, toast } from '../core.js?v=ceec3b96';
+import { Voice } from '../fx/voice.js?v=ceec3b96';
+import { fracWords } from '../fractions.js?v=ceec3b96';
+import { confetti } from '../fx/particles.js?v=ceec3b96';
+import { picURL, creditText } from '../pics.js?v=ceec3b96';
+import { mineKey } from '../library.js?v=ceec3b96';
+import { track } from '../track.js?v=ceec3b96';
+import { playable, answerText, difficulty, LETTERS, OPT_COLOURS } from './model.js?v=ceec3b96';
+import { shapeSVG, animalSVG, TEAMS, COLOURS, SURPRISES, surpriseSVG, TROPHY, Fx, countTo } from './fx.js?v=ceec3b96';
+import { openStage } from './stage.js?v=ceec3b96';
 
 const SET_KEY = 'ks2-engine.quiz.board.v1';
 const TILE_COLOURS = ['#4F46E5', '#1F7A75', '#C2410C', '#7E3FAF', '#2563EB', '#BE185D'];

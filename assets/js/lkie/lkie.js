@@ -1,26 +1,26 @@
-/* lkie.like: one topic in, a whole lesson out. A 3-step wizard makes a pack (10 to 15 slides with diagrams and media
-   ideas, key words, activities, a worksheet in three tiers, teacher notes and a 2-minute spoken briefing), matched to
+/* lkie.like: one topic in, a whole lesson out. A 3-step wizard makes a pack (Starter, Main and Plenary in 15 to 28
+   slides, with exact maths drawings, worked examples one step at a time, photos only where they show something real, key words, activities, a worksheet in three tiers, teacher notes and a 2-minute spoken briefing), matched to
    the curriculum with checked codes. Slides change in plain English with undo; a unit planner sequences up to 25
    lessons with recaps and assessments; packs open instantly from this device; PowerPoint and Word downloads.
    Every engine button goes through the shared guard (guard.js). */
-import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=a277ebb7';
-import { track } from '../track.js?v=a277ebb7';
-import { sfx } from '../fx/audio.js?v=a277ebb7';
-import { Voice } from '../fx/voice.js?v=a277ebb7';
-import { evAll } from '../idb.js?v=a277ebb7';
-import { moodOf } from '../report.js?v=a277ebb7';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=a277ebb7';
-import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=a277ebb7';
-import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=a277ebb7';
-import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=a277ebb7';
-import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=a277ebb7';
-import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=a277ebb7';
-import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=a277ebb7';
-import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=a277ebb7';
-import { takeMaking, takePresent } from '../library.js?v=a277ebb7';
-import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=a277ebb7';
-import EXAMPLE from './example.js?v=a277ebb7';
-import { presentKit, kitButtons } from '../presentkit.js?v=a277ebb7';
+import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=ceec3b96';
+import { track } from '../track.js?v=ceec3b96';
+import { sfx } from '../fx/audio.js?v=ceec3b96';
+import { Voice } from '../fx/voice.js?v=ceec3b96';
+import { evAll } from '../idb.js?v=ceec3b96';
+import { moodOf } from '../report.js?v=ceec3b96';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=ceec3b96';
+import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=ceec3b96';
+import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=ceec3b96';
+import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=ceec3b96';
+import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks, stepLine } from './render.js?v=ceec3b96';
+import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=ceec3b96';
+import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=ceec3b96';
+import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=ceec3b96';
+import { takeMaking, takePresent } from '../library.js?v=ceec3b96';
+import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=ceec3b96';
+import EXAMPLE from './example.js?v=ceec3b96';
+import { presentKit, kitButtons } from '../presentkit.js?v=ceec3b96';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', UNITS = 'ks2-engine.lkie.units.v1', RULES = 'ks2-engine.lkie.rules.v1', THEME = 'ks2-engine.lkie.theme.v1', FORM = 'ks2-engine.lkie.form.v1';
 const YEARS = ['Year 3', 'Year 4', 'Year 5', 'Year 6'];
@@ -48,8 +48,10 @@ const TIPS = ['Tip: tap any slide, then say what to change, for example “Add a
   'Tip: press Listen in Teacher notes for a 2-minute spoken briefing.', 'Tip: Calm slides use a cream background and no colour stripes, easier for some readers.', 'Tip: diagrams on the slides are drawn from the numbers, so they are always exact.'];
 const CHIPS = ['simplify', 'stretch', 'analogy', 'shorten', 'visual', 'question', 'tone', 'translate'];
 
+/* New packs (and the example) start in the Deep Sea look, modelled on the Chalkie reference deck; the teacher can change it. */
+const NEW_LOOK = 'deepsea';
 /* ---------------- the example, ready to open ---------------- */
-const EX = (() => { const p = normPack(EXAMPLE, EXAMPLE.input, EXAMPLE.codes.map(objective).filter(Boolean)); p.id = 'example'; p.at = 0; p.key = ''; return p; })();
+const EX = (() => { const p = normPack(EXAMPLE, EXAMPLE.input, EXAMPLE.codes.map(objective).filter(Boolean)); p.id = 'example'; p.at = 0; p.key = ''; p.look = NEW_LOOK; return p; })();
 const isExample = (p) => !p || p.id === 'example';
 
 /* ---------------- state ---------------- */
@@ -97,11 +99,11 @@ function pageHTML() {
   const per = [1, 2, 3, 4, 5].map((n) => '<option value="' + n + '"' + (n === 2 ? ' selected' : '') + '>' + n + ' a week</option>').join('');
   return '<div class="wrap">' +
     '<header class="eng-head"><div class="eng-ico"><i>' + icon('layers') + '</i></div><div><p class="kicker">Any KS2 subject · full lesson pack</p><h1 class="lk-brand" aria-label="lkie.like">lkie<span>.</span>like</h1>' +
-    '<p>One topic in, a whole lesson out: 10 to 15 slides with exact diagrams, key words, activities and a worksheet in three tiers, matched to the curriculum. Change any slide in plain English.</p>' +
+    '<p>One topic in, a whole lesson out: Starter, Main and Plenary in 15 to 28 slides, with exact drawings, worked examples step by step, key words, activities and a worksheet in three tiers, matched to the curriculum. Change any slide in plain English.</p>' +
     '<div class="chips"><span class="chip">All KS2 subjects</span><span class="chip">Bahasa Melayu and Mandarin</span><span class="chip">3-tier worksheets</span><span class="chip">Unit planner</span></div></div></header>' +
     '<div class="ss lk">' +
     '<aside class="rail">' +
-    '<section class="card" aria-labelledby="lk-make-h"><h2 class="card-h" id="lk-make-h"><i>' + icon('wand') + '</i>Make a lesson pack</h2><p class="card-sub">Three steps. About a minute.</p>' +
+    '<section class="card" aria-labelledby="lk-make-h"><h2 class="card-h" id="lk-make-h"><i>' + icon('wand') + '</i>Make a lesson pack</h2><p class="card-sub">Three steps. About two minutes.</p>' +
     '<form id="lk-form" class="lk-form" novalidate>' +
     '<fieldset class="lk-step"><legend><b>1</b>Who is it for?</legend><div class="pills" id="lk-year" role="group" aria-label="Year group">' + YEARS.map((y) => '<button type="button" class="pill" data-v="' + y + '" aria-pressed="' + (y === 'Year 4') + '">' + y + '</button>').join('') + '</div>' +
     '<label class="fld"><span>Subject</span><select id="lk-subject">' + subj + '</select></label></fieldset>' +
@@ -256,13 +258,14 @@ async function makePack(o) {
     steps();
   };
   try {
-    const r = await askClaude(packRequest(Object.assign({}, input, { list, chosen: input.codes, unit: o.unitText || '' })), { system: PACK_SYSTEM, model: CONFIG.mainModel, maxTokens: 12000, signal: ctl.signal, onText });
+    const r = await askClaude(packRequest(Object.assign({}, input, { list, chosen: input.codes, unit: o.unitText || '' })), { system: PACK_SYSTEM, model: CONFIG.mainModel, maxTokens: 16000, signal: ctl.signal, onText });
     if (r.stop === 'max_tokens') throw { code: 'truncated' };
     const pack = normPack(parseJSON(r.text), input, list);
     if (!pack) throw { code: 'invalid_json' };
     if (!sheetP) startSheet({ objective: pack.objective, successCriteria: pack.successCriteria, vocab: pack.vocab, bigQuestion: pack.bigQuestion });
     S.live.slidesDone = true; steps();
     pack.id = 'p' + Date.now().toString(36); pack.at = Date.now(); pack.key = key;
+    if (!pack.look) pack.look = NEW_LOOK;
     if (o.unit) { pack.unitId = o.unit.id; pack.unitN = o.unit.lessons[o.index].n; }
     let w = null;
     try { w = await sheetP; } catch (e) { if (e && e.code === 'cancelled') throw e; }
@@ -390,8 +393,15 @@ function textPane(p, s) {
       break;
     case 'hook': h += fld('prompt', 'Hook question or problem', s.prompt, { area: true, rows: 2, max: 260 }) + fld('detail', 'Follow-up line', s.detail, { max: 200 }); break;
     case 'vocab': h += fld('words', 'Key words on this slide', linesOf(s.words), { area: true, rows: 3, max: 400, hint: 'One on each line, up to 8. Leave it empty to show the pack’s key words.' }); break;
-    case 'concept': h += fld('points', 'Points', linesOf(s.points), { area: true, rows: 3, max: 680, hint: 'One on each line, up to 4.' }) + fld('example', 'Example', s.example, { area: true, rows: 2, max: 260 }); break;
-    case 'guided': h += fld('problem', 'Worked example', s.problem, { area: true, rows: 2, max: 260 }) + fld('steps', 'Steps', linesOf(s.steps), { area: true, rows: 4, max: 1050, hint: 'One on each line, up to 5.' }) + fld('answer', 'Answer', s.answer, { max: 160 }); break;
+    case 'concept': h += fld('points', 'Points', linesOf(s.points), { area: true, rows: 3, max: 680, hint: 'One on each line, up to 4.' }) + fld('example', 'Example', s.example, { area: true, rows: 2, max: 260 }) + fld('definition', 'Definition box', s.definition, { max: 200 }) + fld('mistake', 'Common mistake box', s.mistake, { max: 220 }); break;
+    case 'guided': h += fld('problem', 'Worked example', s.problem, { area: true, rows: 2, max: 260 }) + fld('steps', 'Steps', s.steps.map(stepLine).join('\n'), { area: true, rows: 4, max: 1400, hint: 'One step on each line, up to 5. Working, then | and what it means, for example: d = 2 × 7 = 14 cm | Double the radius.' }) + fld('answer', 'Answer', s.answer, { max: 160 }); break;
+    case 'goals': h += fld('goals', 'Learning goals', s.goals.map((g) => (g.verb ? g.verb + ' ' : '') + g.text).join('\n'), { area: true, rows: 3, max: 900, hint: 'One on each line, up to 4. The first word is shown in bold.' }); break;
+    case 'think': h += fld('prompt', 'The question to think about', s.prompt, { area: true, rows: 2, max: 300 }) + fld('reveal', 'What they might say (shown next)', linesOf(s.reveal), { area: true, rows: 3, max: 680, hint: 'One on each line, up to 4.' }); break;
+    case 'rule': h += fld('rule', 'The rule or formula', s.rule, { max: 60 }) + fld('cards', 'Cards', s.cards.map((c) => [c.big, c.name, c.text].join(' | ')).join('\n'), { area: true, rows: 3, max: 800, hint: 'One card on each line, up to 3: symbol | name | what it means.' }); break;
+    case 'try': h += fld('question', 'Question', s.question, { area: true, rows: 2, max: 300 }) + fld('answer', 'Answer', s.answer, { max: 120 }) + fld('working', 'Working', s.working, { max: 240 }); break;
+    case 'gallery': h += fld('intro', 'Line above the pictures', s.intro, { max: 200 }) + fld('items', 'Pictures', s.items.map((x) => [x.name].concat(x.lines).join(' | ')).join('\n'), { area: true, rows: 3, max: 900, hint: 'One on each line, 2 or 3: name | fact | fact.' }); break;
+    case 'match': h += fld('pairs', 'Words and meanings', s.pairs.map((x) => x.term + ' | ' + x.meaning).join('\n'), { area: true, rows: 4, max: 900, hint: 'One pair on each line, 3 to 5: word | meaning.' }); break;
+    case 'truefalse': h += fld('statement', 'Statement', s.statement, { area: true, rows: 2, max: 260 }) + '<label class="fld"><span>The answer</span><select name="tf"><option value="true"' + (s.answer ? ' selected' : '') + '>True</option><option value="false"' + (!s.answer ? ' selected' : '') + '>False</option></select></label>' + fld('why', 'Why', s.why, { area: true, rows: 2, max: 300 }); break;
     case 'check':
       h += fld('question', 'Question', s.question, { area: true, rows: 2, max: 260 }) + '<div class="lk-qa" role="radiogroup" aria-label="Options and the right answer">' + [0, 1, 2, 3].map((j) => '<div class="lk-qa-row opt"><label class="lk-right" title="The right answer"><input type="radio" name="right" value="' + j + '"' + (s.answer === j ? ' checked' : '') + ' aria-label="' + 'ABCD'[j] + ' is right"><b>' + 'ABCD'[j] + '</b></label><input type="text" name="o' + j + '" maxlength="120" value="' + esc(s.options[j] || '') + '" placeholder="Option ' + 'ABCD'[j] + '" aria-label="Option ' + 'ABCD'[j] + '" autocomplete="off"></div>').join('') + '<small class="fine">Tick the right answer. Wrong options work best as common mistakes.</small></div>' + fld('why', 'Why it is right', s.why, { area: true, rows: 2, max: 300 });
       break;
@@ -405,7 +415,7 @@ function textPane(p, s) {
     '<label class="fld"><span>How pupils answer</span><select name="respond">' + RESP_OPTS.map(([v, l]) => '<option value="' + v + '"' + (s.respond === v ? ' selected' : '') + '>' + l + '</option>').join('') + '</select></label></div>';
   return '<form class="lk-textform" id="lk-text-form" novalidate>' + h + '<div class="lk-row"><button type="submit" class="btn primary small">' + icon('check') + 'Save the changes</button><button type="button" class="btn small" data-ed="text-reset">' + icon('undo') + 'Start again</button></div></form>';
 }
-const NEEDS = { recap: 'A recap needs at least one question.', exit: 'An exit ticket needs at least one question.', hook: 'Write the hook question or problem.', concept: 'Add at least one point or an example.', guided: 'Write the worked example.', check: 'A check point needs a question and at least two options.', independent: 'Add at least one task.', talk: 'Write the question to discuss.', plenary: 'Add a takeaway or a reflection question.' };
+const NEEDS = { goals: 'Write at least one learning goal.', think: 'Write the question to think about.', rule: 'Write the rule or formula.', try: 'A Try it slide needs a question and its answer.', gallery: 'A gallery needs at least 2 pictures: name | fact.', match: 'Matching needs at least 3 pairs: word | meaning.', truefalse: 'Write the statement and pick True or False.', recap: 'A recap needs at least one question.', exit: 'An exit ticket needs at least one question.', hook: 'Write the hook question or problem.', concept: 'Add at least one point or an example.', guided: 'Write the worked example.', check: 'A check point needs a question and at least two options.', independent: 'Add at least one task.', talk: 'Write the question to discuss.', plenary: 'Add a takeaway or a reflection question.' };
 function readText(form, p, s) {
   const el = form.elements, raw = (n) => String(el[n] ? el[n].value : ''), v = (n) => str(raw(n));
   const lines = (n, max, len) => raw(n).split(/\n+/).map((x) => str(x)).filter(Boolean).slice(0, max).map((x) => x.slice(0, len));
@@ -417,9 +427,20 @@ function readText(form, p, s) {
   switch (s.layout) {
     case 'recap': case 'exit': t.questions = [0, 1, 2, 3, 4].map((j) => ({ q: v('q' + j).slice(0, 240), a: v('a' + j).slice(0, 160) })).filter((x) => x.q); break;
     case 'hook': t.prompt = v('prompt'); t.detail = v('detail'); break;
-    case 'vocab': t.words = lines('words', 8, 40); break;
-    case 'concept': t.points = lines('points', 4, 160); t.example = v('example'); break;
-    case 'guided': t.problem = v('problem'); t.steps = lines('steps', 5, 200); t.answer = v('answer'); break;
+    case 'vocab': {
+      t.words = lines('words', 8, 40);
+      if (s.diagrams) { const by = new Map(s.words.map((w, j) => [w.toLowerCase(), s.diagrams[j] || null])); t.diagrams = t.words.map((w) => by.get(w.toLowerCase()) || null); }   // each drawing stays with its word
+      break;
+    }
+    case 'concept': t.points = lines('points', 4, 160); t.example = v('example'); t.definition = v('definition'); t.mistake = v('mistake'); break;
+    case 'guided': t.problem = v('problem'); t.steps = lines('steps', 5, 300).map((x) => { const q = x.split(/\s+\|\s+/); return q.length > 1 ? { math: q[0].slice(0, 80), text: q.slice(1).join(' ').slice(0, 200) } : x.slice(0, 200); }); t.answer = v('answer'); break;
+    case 'goals': t.goals = lines('goals', 4, 220).map((x) => { const m = /^(\S+)\s+(.+)$/.exec(x); return m ? { verb: m[1], text: m[2] } : { verb: '', text: x }; }); break;
+    case 'think': t.prompt = v('prompt'); t.reveal = lines('reveal', 4, 160); t.lead = s.lead; break;
+    case 'rule': t.rule = v('rule'); t.cards = lines('cards', 3, 300).map((x) => { const q = x.split(/\s*\|\s*/); return q.length >= 3 ? { big: q[0], name: q[1], text: q.slice(2).join(' ') } : { big: '', name: q[0], text: q[1] || '' }; }); break;
+    case 'try': t.question = v('question'); t.answer = v('answer'); t.working = v('working'); break;
+    case 'gallery': { t.intro = v('intro'); const was = s.items; t.items = lines('items', 3, 400).map((x, j) => { const q = x.split(/\s*\|\s*/); const it = { name: q[0], lines: q.slice(1, 4), wiki: was[j] ? was[j].wiki : '', image: was[j] ? was[j].image : '' }; if (was[j] && was[j].pic && was[j].name === q[0]) it.pic = was[j].pic; return it; }); break; }
+    case 'match': t.pairs = lines('pairs', 5, 200).map((x) => { const q = x.split(/\s*\|\s*/); return { term: q[0], meaning: q.slice(1).join(' ') }; }); break;
+    case 'truefalse': t.statement = v('statement'); t.answer = v('tf') === 'true'; t.why = v('why'); break;
     case 'check': {
       const r = form.querySelector('input[name="right"]:checked'), right = r ? Number(r.value) : -1;
       const kept = [0, 1, 2, 3].map((j) => ({ j, t: v('o' + j).slice(0, 120) })).filter((o) => o.t);
@@ -705,29 +726,34 @@ function saveText(form) {
   apply(ops.length > 1 ? { t: 'multi', ops } : ops[0]);
   sfx('success'); renderPack(); toast('Slide ' + (i + 1) + ' saved. Undo is always there.');
 }
-/* Up to five pictures for a new pack, chosen from the engine's Wikipedia titles and search words. Slides with a
-   diagram keep the diagram alone. The pack opens first; pictures appear one by one. */
-/* Every kind of slide gets a matching picture unless it has a diagram (exact teaching content) or a video. Busy slides
-   (questions, tiers, options) give the picture less room (lkie.css), so the words stay big. */
-const AUTO = ['title', 'recap', 'hook', 'vocab', 'concept', 'guided', 'check', 'independent', 'talk', 'plenary', 'exit'];
+/* Photos go only where a real photo is the point: the title, a hook or think slide, and the In real life gallery.
+   Maths teaching slides get exact drawings instead (a netball match on a circles lesson taught nobody anything). */
+const AUTO = ['title', 'hook', 'think'];
 async function autoPictures(p, manual) {
   if (!p || S.auto) return;
-  const used = new Set(p.slides.map((s) => s.pic && s.pic.file).filter(Boolean));
-  const want = p.slides.filter((s) => AUTO.includes(s.layout) && !s.diagram && !s.pic && !s.video && !s.noPic).slice(0, 16);
-  if (!want.length) { if (manual) toast('The slides that suit a picture already have one, or a diagram.'); return; }
+  const used = new Set(p.slides.flatMap((s) => [s.pic && s.pic.file].concat((s.items || []).map((x) => x.pic && x.pic.file))).filter(Boolean));
+  // only where the engine named a real thing to show (a Wikipedia article or search words), never a guess from the topic
+  const want = p.slides.filter((s) => AUTO.includes(s.layout) && !s.diagram && !s.pic && !s.video && !s.noPic && s.media && (s.media.wiki || s.media.image)).slice(0, 16);
+  const items = [];
+  p.slides.forEach((s) => { if (s.layout === 'gallery') s.items.forEach((it) => { if (!it.pic && (it.wiki || it.image || it.name)) items.push([s, it]); }); });
+  if (!want.length && !items.length) { if (manual) toast('The slides that suit a picture already have one, or a diagram.'); return; }
   S.auto = p.id; if (S.pack === p) paintActions(p, false);
   let n = 0;
+  const done = (s) => { n++; if (!isExample(p)) savePack(p); const i = p.slides.indexOf(s); if (S.pack === p && i >= 0) refreshThumb(i); };
   for (const s of want) {
-    const m = s.media || {};
-    const terms = m.image || (s.layout === 'title' ? '' : [s.title, p.input.topic].filter(Boolean).join(' '));
-    const pic = await findPicture({ wiki: m.wiki, terms, also: s.layout === 'title' || !m.wiki ? p.input.topic : '', avoid: used }).catch(() => null);
-    const i = p.slides.indexOf(s);
-    if (!pic || i < 0 || s.pic) continue;
+    const m = s.media;
+    const pic = await findPicture({ wiki: m.wiki, terms: m.image || '', also: '', avoid: used }).catch(() => null);
+    if (!pic || p.slides.indexOf(s) < 0 || s.pic) continue;
     used.add(pic.file);
     s.pic = keepPic(pic, { size: '960', fit: 'cover', auto: 1 });
-    n++;
-    if (!isExample(p)) savePack(p);
-    if (S.pack === p) refreshThumb(i);
+    done(s);
+  }
+  for (const [s, it] of items) {                                  // the In real life photos, one per item
+    const pic = await findPicture({ wiki: it.wiki, terms: it.image || it.name, also: '', avoid: used }).catch(() => null);
+    if (!pic || p.slides.indexOf(s) < 0 || it.pic) continue;
+    used.add(pic.file);
+    it.pic = keepPic(pic, { size: '640', fit: 'cover', auto: 1 });
+    done(s);
   }
   S.auto = null;
   if (S.view) renderRecent();
@@ -748,14 +774,14 @@ function refreshThumb(i) {
 const credited = new WeakSet();
 function sweepCredits(p) {
   const pics = [], add = (pic) => { if (pic && !pic.up && pic.file && !pic.by && !credited.has(pic)) { credited.add(pic); pics.push(pic); } };
-  (p.slides || []).forEach((s) => { add(s.pic); if (s.look) add(s.look.pic); });
+  (p.slides || []).forEach((s) => { add(s.pic); if (s.look) add(s.look.pic); (s.items || []).forEach((it) => add(it && it.pic)); });
   if (p.look) add(p.look.pic);
   if (!pics.length) return;
   Promise.all(pics.map((x) => creditFor(x))).then(() => {
     if (!pics.some((x) => x.by)) return;
     if (!isExample(p)) savePack(p);
     if (S.pack !== p || S.live || !S.view) return;
-    if (S.sel >= 0 && !typing()) renderPack(); else p.slides.forEach((s, i) => { if (s.pic && pics.includes(s.pic)) refreshThumb(i); });
+    if (S.sel >= 0 && !typing()) renderPack(); else p.slides.forEach((s, i) => { if ((s.pic && pics.includes(s.pic)) || (s.items || []).some((it) => it && it.pic && pics.includes(it.pic))) refreshThumb(i); });
   });
 }
 function playVideo(fig) {
@@ -1019,7 +1045,7 @@ function micTopic() {
 
 /* ---------------- wiring ---------------- */
 function guardButtons() {
-  watch($('#lk-go', S.view), { name: 'lkie', label: 'Make my lesson pack', icon: SPARK, fine: $('#lk-fine', S.view), busy: () => !!S.busy, idle: 'About a minute. After each pack this button rests for ' + LIMITS.restMin + ' minutes.' });
+  watch($('#lk-go', S.view), { name: 'lkie', label: 'Make my lesson pack', icon: SPARK, fine: $('#lk-fine', S.view), busy: () => !!S.busy, idle: 'About two minutes. After each pack this button rests for ' + LIMITS.restMin + ' minutes.' });
   watch($('#lku-go', S.view), { name: 'lkie-unit', label: 'Plan the unit', icon: LAYERS, busy: () => S.unitBusy });
 }
 function wire() {

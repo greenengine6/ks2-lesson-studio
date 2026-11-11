@@ -3,29 +3,29 @@
    that Symphony reads (facts, then "wonder questions"), a quiz the class can answer together or vote on from their
    own devices, and a "For teachers" panel listing where the facts and photos come from.
    play.js is the frame around them: the picker, the top bar, the caption, sound and full screen. */
-import { $, $$, esc, icon } from '../core.js?v=a277ebb7';
-import { haptic } from '../fx/haptics.js?v=a277ebb7';
-import { sfx } from '../fx/audio.js?v=a277ebb7';
-import { Voice } from '../fx/voice.js?v=a277ebb7';
-import { leadPicture, creditFor, picURL, creditText } from '../pics.js?v=a277ebb7';
-import { openMoment } from '../moments.js?v=a277ebb7';
-import * as D from './data.js?v=a277ebb7';
-import { NATURE, Pad } from './nature.js?v=a277ebb7';
-import { explorer, distanceKm, flightHours } from './map.js?v=a277ebb7';
-import { makeStage, switcher } from './stage.js?v=a277ebb7';
-import { makeFestival, FEST_SCENES } from './festive.js?v=a277ebb7';
-import { makeWonders, WONDER_SCENES } from './wonders.js?v=a277ebb7';
-import { MALAYSIA_SCENES } from './malaysia.js?v=a277ebb7';
-import { fillThumbs, sceneShot, copyOf } from './thumbs.js?v=a277ebb7';
-import { swapCreatures, creatureOf } from './fauna.js?v=a277ebb7';
-import { swapIcons, flagCanvas, isoOf, GLYPH } from './art.js?v=a277ebb7';
+import { $, $$, esc, icon } from '../core.js?v=ceec3b96';
+import { haptic } from '../fx/haptics.js?v=ceec3b96';
+import { sfx } from '../fx/audio.js?v=ceec3b96';
+import { Voice } from '../fx/voice.js?v=ceec3b96';
+import { leadPicture, creditFor, picURL, creditText } from '../pics.js?v=ceec3b96';
+import { openMoment } from '../moments.js?v=ceec3b96';
+import * as D from './data.js?v=ceec3b96';
+import { NATURE, Pad } from './nature.js?v=ceec3b96';
+import { explorer, distanceKm, flightHours } from './map.js?v=ceec3b96';
+import { makeStage, switcher } from './stage.js?v=ceec3b96';
+import { makeFestival, FEST_SCENES } from './festive.js?v=ceec3b96';
+import { makeWonders, WONDER_SCENES } from './wonders.js?v=ceec3b96';
+import { MALAYSIA_SCENES } from './malaysia.js?v=ceec3b96';
+import { fillThumbs, sceneShot, copyOf } from './thumbs.js?v=ceec3b96';
+import { swapCreatures, creatureOf } from './fauna.js?v=ceec3b96';
+import { swapIcons, flagCanvas, isoOf, GLYPH } from './art.js?v=ceec3b96';
 export { swapCreatures, swapIcons };
-import { makeScale, makeRace } from './scale.js?v=a277ebb7';
-import { Music, Fx } from './music.js?v=a277ebb7';
-import { makeBiome } from './biomes.js?v=a277ebb7';
-import { weather, feelsLike } from './weather.js?v=a277ebb7';
-import { seasons, PLACES, MONTHS, dateOf, dayOfYear, seasonOf, daylight } from './seasons.js?v=a277ebb7';
-import { hm } from './util.js?v=a277ebb7';
+import { makeScale, makeRace } from './scale.js?v=ceec3b96';
+import { Music, Fx } from './music.js?v=ceec3b96';
+import { makeBiome } from './biomes.js?v=ceec3b96';
+import { weather, feelsLike } from './weather.js?v=ceec3b96';
+import { seasons, PLACES, MONTHS, dateOf, dayOfYear, seasonOf, daylight } from './seasons.js?v=ceec3b96';
+import { hm } from './util.js?v=ceec3b96';
 
 export { Pad };
 const T = (x, ms) => (x == null ? '' : typeof x === 'string' ? x : ms && x.bm ? x.bm : x.text);

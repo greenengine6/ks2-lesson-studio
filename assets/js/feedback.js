@@ -2,13 +2,13 @@
    the class feedback screen in Present mode, five big faces the teacher taps as answers come in ("type 1 to 5 in
    the chat"), plus "best bit". Both go to Rabinder's report by themselves (sync.js): teachers never download
    anything. download() is used by the admin dashboard only. */
-import { $, $$, esc, el, icon, bus, toast, prefs } from './core.js?v=a277ebb7';
-import { track } from './track.js?v=a277ebb7';
-import { who } from './people.js?v=a277ebb7';
-import { ENGINES } from './engines/registry.js?v=a277ebb7';
-import { confetti } from './fx/particles.js?v=a277ebb7';
-import { sfx } from './fx/audio.js?v=a277ebb7';
-import { Live, onLive, setMoment, endMoment } from './live/session.js?v=a277ebb7';
+import { $, $$, esc, el, icon, bus, toast, prefs } from './core.js?v=ceec3b96';
+import { track } from './track.js?v=ceec3b96';
+import { who } from './people.js?v=ceec3b96';
+import { ENGINES } from './engines/registry.js?v=ceec3b96';
+import { confetti } from './fx/particles.js?v=ceec3b96';
+import { sfx } from './fx/audio.js?v=ceec3b96';
+import { Live, onLive, setMoment, endMoment } from './live/session.js?v=ceec3b96';
 
 export const FACE_NAMES = ['Lost', 'Tricky', 'OK', 'Good', 'Loved it'];
 export const FACE_COLOURS = ['#E5484D', '#F2804A', '#F2B84B', '#7CC24F', '#2BB673'];

@@ -10,15 +10,15 @@
      its own pages) and of the answer sheet; "Another version"; pupils can do it on their own devices in a live lesson.
    Every engine press goes through the guard: Make and Another version rest like every Make button; the rewrite of
    too-close questions is a small edit. */
-import { $, $$, esc, str, arr, icon, store, bus, hasKey, askClaude, parseJSON, houseFix, errorCopy, toast, CONFIG, AiError, YEARS } from '../core.js?v=a277ebb7';
-import { makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, watch, waitText, repaint, LIMITS } from '../guard.js?v=a277ebb7';
-import { track } from '../track.js?v=a277ebb7';
-import { sfx } from '../fx/audio.js?v=a277ebb7';
-import { fracWords } from '../fractions.js?v=a277ebb7';
-import { SUBJECT_LIST, subjectOf, subjectName, subjectColor, yearOf, putItem, getItem, removeItem, listAll, findItem, folders, addFolder, moveItem, pickItem, takeMaking, onLibrary, dayLabel } from '../library.js?v=a277ebb7';
-import { SHEET_SYSTEM, sampleRequest, topicRequest, lessonRequest, againRequest, fixRequest, normSheet, normQuestion, copyCheck, answerIssues, quizToSheet as toSheet, lessonText, TYPES, LEVELS, sectionsFor, questionsOf, eachLevel } from './prompts.js?v=a277ebb7';
-import { readSample, sampleFromText, contentFor, sampleError, sizeText } from './sample.js?v=a277ebb7';
-import { sheetDocx, answersDocx, fileName, mixed } from './docx.js?v=a277ebb7';
+import { $, $$, esc, str, arr, icon, store, bus, hasKey, askClaude, parseJSON, houseFix, errorCopy, toast, CONFIG, AiError, YEARS } from '../core.js?v=ceec3b96';
+import { makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, watch, waitText, repaint, LIMITS } from '../guard.js?v=ceec3b96';
+import { track } from '../track.js?v=ceec3b96';
+import { sfx } from '../fx/audio.js?v=ceec3b96';
+import { fracWords } from '../fractions.js?v=ceec3b96';
+import { SUBJECT_LIST, subjectOf, subjectName, subjectColor, yearOf, putItem, getItem, removeItem, listAll, findItem, folders, addFolder, moveItem, pickItem, takeMaking, onLibrary, dayLabel } from '../library.js?v=ceec3b96';
+import { SHEET_SYSTEM, sampleRequest, topicRequest, lessonRequest, againRequest, fixRequest, normSheet, normQuestion, copyCheck, answerIssues, quizToSheet as toSheet, lessonText, TYPES, LEVELS, sectionsFor, questionsOf, eachLevel } from './prompts.js?v=ceec3b96';
+import { readSample, sampleFromText, contentFor, sampleError, sizeText } from './sample.js?v=ceec3b96';
+import { sheetDocx, answersDocx, fileName, mixed } from './docx.js?v=ceec3b96';
 
 const FORM = 'ks2-engine.sheet.form.v1';
 const SPARK = '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>';
@@ -469,11 +469,11 @@ async function downloadWord(answers) {
 let liveMod = null;
 function checkLive() {
   if (S.liveOK !== null) return;
-  import('../live/tasks.js?v=a277ebb7').then((m) => { liveMod = m; S.liveOK = typeof m.sendSheetLive === 'function'; }, () => { S.liveOK = false; }).then(() => { if (S.sheet && !S.busy) paintRight(); });
+  import('../live/tasks.js?v=ceec3b96').then((m) => { liveMod = m; S.liveOK = typeof m.sendSheetLive === 'function'; }, () => { S.liveOK = false; }).then(() => { if (S.sheet && !S.busy) paintRight(); });
 }
 async function sendLive() {
   if (!S.sheet) return;
-  if (!liveMod) { try { liveMod = await import('../live/tasks.js?v=a277ebb7'); } catch (e) { liveMod = null; } }
+  if (!liveMod) { try { liveMod = await import('../live/tasks.js?v=ceec3b96'); } catch (e) { liveMod = null; } }
   if (!liveMod || typeof liveMod.sendSheetLive !== 'function') { S.liveOK = false; paintRight(); toast('Pupils’ devices: coming soon.'); return; }
   const lv = S.level === 'answers' ? 'core' : S.level;
   const copy = Object.assign({}, S.sheet, { sections: sectionsFor(S.sheet, lv), levels: null, level: lv });

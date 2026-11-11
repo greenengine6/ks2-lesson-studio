@@ -2,22 +2,23 @@
    them) with the diagrams, pictures, backgrounds and text sizes as on screen, each video as its picture with a link,
    and the teacher notes and picture credits in the speaker notes; and the worksheet as an editable Word document
    (opens in Word and Google Docs). */
-import { esc } from '../core.js?v=a277ebb7';
-import { fracSlide, fracHTML } from '../fractions.js?v=a277ebb7';
-import { KIND, TONE, diagramSVG, answersOf, learnText, respondText } from './render.js?v=a277ebb7';
-import { TIERS } from './model.js?v=a277ebb7';
-import { lookFor, lookInfo, lookForPptx } from './looks.js?v=a277ebb7';
-import { pictureData, urlData, creditText, safePic, safeVideo, ytThumb, ytWatch, ytShort } from '../pics.js?v=a277ebb7';
+import { esc } from '../core.js?v=ceec3b96';
+import { fracSlide, fracHTML } from '../fractions.js?v=ceec3b96';
+import { KIND, TONE, diagramSVG, answersOf, learnText, respondText, kindLabel, matchOrder, stepLine, mathParts, nightFor } from './render.js?v=ceec3b96';
+import { TIERS } from './model.js?v=ceec3b96';
+import { lookFor, lookInfo, lookForPptx } from './looks.js?v=ceec3b96';
+import { pictureData, urlData, creditText, safePic, safeVideo, ytThumb, ytWatch, ytShort } from '../pics.js?v=ceec3b96';
 
 /* ---------------- diagrams as pictures ---------------- */
 export function svgSize(svg) { const m = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg); return m ? [Number(m[1]), Number(m[2])] : [640, 200]; }
-export function rasterize(svg, scale) {
+/* clear: keep the background see-through (a night drawing sits straight on a dark slide) */
+export function rasterize(svg, scale, clear) {
   return new Promise((resolve) => {
     const [w, h] = svgSize(svg), k = scale || 2, img = new Image();
     img.onload = () => {
       try {
         const c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
-        const g = c.getContext('2d'); g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+        const g = c.getContext('2d'); if (!clear) { g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c.width, c.height); } g.drawImage(img, 0, 0, c.width, c.height);
         resolve({ data: c.toDataURL('image/png'), w, h });
       } catch (e) { resolve(null); }
     };
@@ -31,19 +32,20 @@ export function rasterize(svg, scale) {
 const W = 13.333, FONT = 'Century Gothic', BINK = '1B2440', BSOFT = '4A5468';
 const LIGHT = { ink: '1B2440', soft: '4A5468', faint: '7A849A', ok: '357A4D', eyebrow: '2C5E9E', bq: '6648A8' };
 const DARK = { ink: 'F5F7FB', soft: 'CDD5E3', faint: '9AA6BC', ok: '86E0A6', eyebrow: '9CC3FF', bq: 'CDBBFF' };
-let C = LIGHT, FS = 1;
+let C = LIGHT, FS = 1, NIGHT = false;          // NIGHT: a dark ready-made look, where maths drawings go straight onto the slide
 const F = (n) => Math.round(n * FS * 2) / 2;
 const hex = (c) => c.replace('#', '');
 const bullets = (xs, color) => xs.map((x, j) => ({ text: x, options: { bullet: true, breakLine: j < xs.length - 1, color: color || C.ink } }));
-function chrome(s, p, sl, i, mode, edge, titleOverride) {
+function chrome(s, p, sl, i, mode, edge, titleOverride, num) {
   const k = KIND[sl.layout] || KIND.concept, t = TONE[k.tone];
   if (edge) [['E35D5B', 14], ['F28C38', 17], ['F2C14E', 11], ['4FA36B', 16], ['2D9C9C', 12], ['3E7CC7', 17], ['8466C4', 13]].reduce((x, [c, w]) => { const ww = W * w / 100; s.addShape('rect', { x, y: 0, w: ww - 0.03, h: 0.1, fill: { color: c }, line: { color: c, width: 0 } }); return x + ww; }, 0);
-  s.addText(k.label.toUpperCase(), { x: 0.5, y: 0.3, w: 3.6, h: 0.42, shape: 'roundRect', rectRadius: 0.2, fill: { color: hex(t[2]) }, color: hex(t[1]), bold: true, fontFace: FONT, fontSize: 12, charSpacing: 2, align: 'center', valign: 'middle', margin: 0 });
+  const pill = kindLabel(sl).toUpperCase();
+  s.addText(pill, { x: 0.5, y: 0.3, w: Math.min(6.2, 1.2 + pill.length * 0.13), h: 0.42, shape: 'roundRect', rectRadius: 0.2, fill: { color: hex(t[2]) }, color: hex(t[1]), bold: true, fontFace: FONT, fontSize: 12, charSpacing: 2, align: 'center', valign: 'middle', margin: 0, fit: 'shrink' });
   const rt = respondText(sl.respond, mode);
   if (rt) s.addText(rt, { x: W - 5.6, y: 0.3, w: 5.1, h: 0.42, shape: 'roundRect', rectRadius: 0.2, fill: { color: hex(t[1]) }, color: 'FFFFFF', bold: true, fontFace: FONT, fontSize: 12, align: 'center', valign: 'middle', margin: 0, fit: 'shrink' });
   if (sl.layout !== 'title' || titleOverride) s.addText(titleOverride || sl.title || k.label, { x: 0.5, y: 0.9, w: W - 1, h: 0.8, fontFace: FONT, fontSize: Math.round(30 * FS), bold: true, color: C.ink, valign: 'middle', fit: 'shrink', margin: 0 });
   s.addText(p.input.year + ' · ' + p.input.subjectName + ' · ' + p.title, { x: 0.5, y: 7.02, w: W - 2.5, h: 0.3, fontFace: FONT, fontSize: 10, color: C.faint, margin: 0 });
-  s.addText((i + 1) + ' / ' + p.slides.length, { x: W - 1.5, y: 7.02, w: 1, h: 0.3, fontFace: FONT, fontSize: 10, color: C.faint, align: 'right', margin: 0 });
+  s.addText(num ? num[0] + ' / ' + num[1] : (i + 1) + ' / ' + p.slides.length, { x: W - 1.5, y: 7.02, w: 1, h: 0.3, fontFace: FONT, fontSize: 10, color: C.faint, align: 'right', margin: 0 });
   return t;
 }
 function questions(s, sl, t, withAnswers, narrow) {
@@ -99,6 +101,175 @@ async function drawMedia(s, md, box, t) {
   s.addShape('triangle', { x: box.x + (box.w - d * 0.42) / 2 + d * 0.05, y: box.y + (box.h - d * 0.42) / 2, w: d * 0.42, h: d * 0.42, rotate: 90, fill: { color: 'FFFFFF' }, line: { color: 'FFFFFF', width: 0 } });
   s.addText([{ text: '▶ Watch: ' + (v.title || 'the video') + ' (YouTube)', options: { hyperlink: { url, tooltip: 'Opens YouTube' } } }], { x: box.x, y: box.y + box.h + 0.04, w: box.w, h: 0.3, fontFace: FONT, fontSize: 10, color: C.ink, align: 'center', valign: 'middle', fit: 'shrink', margin: 0 });
 }
+/* ---------------- the new slide types ---------------- */
+const RIGHT = { x: 7.6, y: 2.0, w: 5.2, h: 4.6 };
+/* maths as text runs: lone letters (d, r, C) in italics, the same rule as on screen (render.js mathParts) */
+function mathRuns(text, o, prose) {
+  const parts = mathParts(text, prose).map((x) => ({ text: x.t, options: Object.assign({}, o, x.i ? { italic: true } : {}) }));
+  return parts.length ? parts : [{ text: String(text || ''), options: Object.assign({}, o) }];
+}
+function card(s, x, y, w, h, fill, line) { s.addShape('roundRect', { x, y, w, h, rectRadius: 0.15, fill: { color: fill }, line: { color: line || fill, width: line ? 1.25 : 0.5 } }); }
+function tag(s, text, x, y, w, color) { s.addText(text, { x, y, w, h: 0.3, fontFace: FONT, fontSize: 11, bold: true, color, charSpacing: 2, margin: 0 }); }
+const numDot = (s, n, x, y, d, fill, color) => s.addText(String(n), { x, y, w: d, h: d, shape: 'ellipse', fill: { color: fill }, color: color || 'FFFFFF', bold: true, fontFace: FONT, fontSize: d > 0.55 ? 18 : 14, align: 'center', valign: 'middle', margin: 0 });
+/* the definition and the common mistake, stacked from y; returns where they end */
+function callouts(s, sl, x, y, w) {
+  [['definition', 'DEFINITION', 'EAF1FA', '2C5E9E'], ['mistake', 'COMMON MISTAKE', 'FCECEC', 'B8403E']].forEach(([k, lab, fill, col]) => {
+    if (!sl[k]) return;
+    const h = Math.min(1.3, 0.66 + Math.ceil(sl[k].length / 60) * 0.29);
+    card(s, x, y, w, h, fill); tag(s, lab, x + 0.25, y + 0.1, w - 0.5, col);
+    s.addText(sl[k], { x: x + 0.25, y: y + 0.42, w: w - 0.5, h: h - 0.48, fontFace: FONT, fontSize: F(15), color: BINK, valign: 'top', fit: 'shrink', margin: 0 });
+    y += h + 0.14;
+  });
+  return y;
+}
+const calloutH = (sl) => ['definition', 'mistake'].reduce((a, k) => a + (sl[k] ? Math.min(1.3, 0.66 + Math.ceil(sl[k].length / 60) * 0.29) + 0.14 : 0), 0);
+function goals(s, sl, t, has) {
+  const w = has ? 6.6 : W - 1.6, step = Math.min(1.2, 4.6 / Math.max(1, sl.goals.length));
+  sl.goals.forEach((g, j) => {
+    const y = 2.05 + j * step;
+    numDot(s, j + 1, 0.7, y + 0.08, 0.62, hex(t[0]));
+    s.addText([{ text: g.verb ? g.verb + ' ' : '', options: { bold: true, color: C.ink } }, { text: g.text, options: { color: C.soft } }], { x: 1.6, y, w: w - 1, h: step - 0.12, fontFace: FONT, fontSize: F(21), valign: 'middle', fit: 'shrink', margin: 0 });
+  });
+}
+async function think(s, sl, t, vis, reveal) {
+  const has = !!(vis.dg || vis.md), w = has ? 6.6 : W - 2.2, x = has ? 0.7 : 1.1, open = reveal && sl.reveal.length, h = open ? 1.85 : 3.0;
+  card(s, x, 2.05, w, h, 'F4F6FB', 'DCE2EE');
+  s.addShape('triangle', { x: x + 0.9, y: 2.05 + h - 0.03, w: 0.55, h: 0.42, flipV: true, fill: { color: 'F4F6FB' }, line: { color: 'F4F6FB', width: 0 } });
+  s.addText(sl.prompt, { x: x + 0.35, y: 2.15, w: w - 0.7, h: h - 0.2, fontFace: FONT, fontSize: F(open ? 19 : 25), bold: true, color: BINK, valign: 'middle', fit: 'shrink', margin: 0 });
+  if (open) {
+    card(s, x, 4.5, w, 2.3, hex(t[2]));
+    s.addText(sl.lead, { x: x + 0.3, y: 4.6, w: w - 0.6, h: 0.45, fontFace: FONT, fontSize: F(18), bold: true, color: hex(t[1]), margin: 0 });
+    s.addText(bullets(sl.reveal, BINK), { x: x + 0.3, y: 5.08, w: w - 0.6, h: 1.62, fontFace: FONT, fontSize: F(18), valign: 'top', paraSpaceAfter: 4, fit: 'shrink', margin: 0 });
+  }
+  await drawRight(s, vis, RIGHT, t);
+}
+async function rule(s, sl, t, vis) {
+  const has = !!(vis.dg || vis.md), w = has ? 6.7 : W - 1.2;
+  s.addText(mathRuns(sl.rule, { color: C === DARK ? 'FFD37A' : hex(t[1]), bold: true }), { x: 0.6, y: 1.95, w, h: 1.6, fontFace: 'Cambria', fontSize: F(56), align: 'center', valign: 'middle', fit: 'shrink', margin: 0 });
+  const n = sl.cards.length, gap = 0.25, cw = n ? (w - gap * (n - 1)) / n : 0;
+  sl.cards.forEach((c, j) => {
+    const x = 0.6 + j * (cw + gap), y = 3.8, h = 2.95, top = c.big ? 0.95 : 0.2;
+    card(s, x, y, cw, h, hex(t[2]));
+    if (c.big) s.addText(mathRuns(c.big, { color: hex(t[1]), bold: true }), { x: x + 0.25, y: y + 0.12, w: cw - 0.5, h: 0.8, fontFace: 'Cambria', fontSize: F(32), margin: 0, fit: 'shrink' });
+    s.addText(c.name, { x: x + 0.25, y: y + top, w: cw - 0.5, h: 0.45, fontFace: FONT, fontSize: F(19), bold: true, color: BINK, margin: 0, fit: 'shrink' });
+    s.addText(mathRuns(c.text, { color: BSOFT }, true), { x: x + 0.25, y: y + top + 0.5, w: cw - 0.5, h: h - top - 0.6, fontFace: FONT, fontSize: F(15), valign: 'top', fit: 'shrink', margin: 0 });
+  });
+  await drawRight(s, vis, RIGHT, t);
+}
+function guidedSteps(s, sl, t, vis, k) {
+  const has = !!(vis.dg || vis.md), LW = has ? 6.7 : W - 1.2, n = sl.steps.length, rowH = Math.min(0.98, 2.95 / Math.max(1, n));
+  card(s, 0.6, 1.95, LW, 1.1, hex(t[2]));
+  tag(s, 'PROBLEM', 0.85, 2.03, 3, hex(t[1]));
+  s.addText(sl.problem, { x: 0.85, y: 2.32, w: LW - 0.5, h: 0.68, fontFace: FONT, fontSize: F(18), bold: true, color: BINK, valign: 'top', fit: 'shrink', margin: 0 });
+  sl.steps.slice(0, k).forEach((st, j) => {
+    const y = 3.28 + j * rowH, o = typeof st === 'string' ? { math: '', text: st } : st;
+    numDot(s, j + 1, 0.6, y + 0.06, 0.48, 'F5A86B', '1B2440');
+    if (has || !o.math) {
+      if (o.math) s.addText(mathRuns(o.math, { color: C.ink, bold: true }), { x: 1.3, y, w: LW - 0.75, h: rowH * 0.52, fontFace: 'Cambria', fontSize: F(20), valign: 'middle', fit: 'shrink', margin: 0 });
+      if (o.text) s.addText(o.text, { x: 1.3, y: o.math ? y + rowH * 0.5 : y, w: LW - 0.75, h: o.math ? rowH * 0.46 : rowH * 0.9, fontFace: FONT, fontSize: F(15), color: C.soft, valign: o.math ? 'top' : 'middle', fit: 'shrink', margin: 0 });
+    } else {
+      s.addText(mathRuns(o.math, { color: C.ink, bold: true }), { x: 1.3, y, w: 5.7, h: rowH * 0.86, fontFace: 'Cambria', fontSize: F(22), valign: 'middle', fit: 'shrink', margin: 0 });
+      if (o.text) s.addText(o.text, { x: 7.3, y, w: 5.4, h: rowH * 0.86, fontFace: FONT, fontSize: F(16), color: C.soft, valign: 'middle', fit: 'shrink', margin: 0 });
+    }
+  });
+  if (k >= n && sl.answer) s.addText([{ text: 'Answer: ', options: { bold: true, color: C.ok } }, { text: sl.answer, options: { bold: true, color: C.ink } }], { x: 0.6, y: 6.3, w: LW, h: 0.5, fontFace: FONT, fontSize: F(19), margin: 0, fit: 'shrink' });
+}
+async function tryIt(s, sl, t, vis, answer) {
+  const has = !!(vis.dg || vis.md), w = has ? 6.7 : W - 1.2, bw = has ? w : 7.4, bx = has ? 0.6 : (W - bw) / 2;
+  s.addText(sl.question, { x: 0.6, y: 1.95, w, h: 1.75, fontFace: FONT, fontSize: F(24), bold: true, color: C.ink, align: has ? 'left' : 'center', valign: 'middle', fit: 'shrink', margin: 0 });
+  if (!answer) {
+    s.addShape('roundRect', { x: bx, y: 4.0, w: bw, h: 2.2, rectRadius: 0.15, fill: { color: 'FFFFFF', transparency: 100 }, line: { color: C === DARK ? '9CC3FF' : hex(t[0]), width: 2, dashType: 'dash' } });
+    s.addText('Work it out on your own, then check your answer.', { x: bx + 0.3, y: 4.0, w: bw - 0.6, h: 2.2, fontFace: FONT, fontSize: F(17), color: C.soft, align: 'center', valign: 'middle', margin: 0 });
+  } else {
+    card(s, bx, 3.95, bw, 2.4, 'FDE2C8');
+    s.addText(mathRuns(sl.answer, { color: BINK, bold: true }, true), { x: bx + 0.3, y: 4.08, w: bw - 0.6, h: 0.95, fontFace: 'Cambria', fontSize: F(32), align: 'center', valign: 'middle', fit: 'shrink', margin: 0 });
+    if (sl.working) s.addText(mathRuns(sl.working, { color: BINK }, true), { x: bx + 0.3, y: 5.08, w: bw - 0.6, h: 1.15, fontFace: FONT, fontSize: F(17), align: 'center', valign: 'top', fit: 'shrink', margin: 0 });
+  }
+  await drawRight(s, vis, RIGHT, t);
+}
+async function gallery(s, sl, t) {
+  const n = sl.items.length, gap = 0.3, w = (W - 1.2 - gap * (n - 1)) / n, top = sl.intro ? 2.45 : 2.0, ph = 2.75;
+  if (sl.intro) s.addText(sl.intro, { x: 0.6, y: 1.9, w: W - 1.2, h: 0.45, fontFace: FONT, fontSize: F(16), color: C.soft, margin: 0, fit: 'shrink' });
+  for (let j = 0; j < n; j++) {
+    const it = sl.items[j], x = 0.6 + j * (w + gap);
+    const img = safePic(it.pic) ? await pictureData(it.pic, { cover: true, aspect: w / ph, max: 1200 }) : null;
+    if (img) {
+      s.addImage({ data: img.data, x, y: top, w, h: ph, altText: it.pic.alt || it.name });
+      const cr = creditText(it.pic, true);
+      if (cr) s.addText(cr, { x, y: top + ph - 0.26, w, h: 0.26, fontFace: FONT, fontSize: 7, color: 'FFFFFF', fill: { color: '000000', transparency: 45 }, align: 'right', valign: 'middle', margin: 0.04, fit: 'shrink' });
+    } else {                                                        // no photo yet: say what goes there
+      card(s, x, top, w, ph, hex(t[2]));
+      s.addText('Add a photo: ' + it.name, { x: x + 0.2, y: top + 0.2, w: w - 0.4, h: ph - 0.4, fontFace: FONT, fontSize: 13, color: hex(t[1]), align: 'center', valign: 'middle', fit: 'shrink', margin: 0 });
+    }
+    s.addText(it.name, { x, y: top + ph + 0.12, w, h: 0.45, fontFace: FONT, fontSize: F(19), bold: true, color: C.ink, margin: 0, fit: 'shrink' });
+    const runs = [];
+    it.lines.forEach((l, q) => { const r = mathRuns(l, {}, true); if (q < it.lines.length - 1) r[r.length - 1].options.breakLine = true; runs.push(...r); });
+    if (runs.length) s.addText(runs, { x, y: top + ph + 0.6, w, h: 1.3, fontFace: FONT, fontSize: F(15), color: C.soft, valign: 'top', fit: 'shrink', margin: 0 });
+  }
+}
+function matchUp(s, sl, t, answers) {
+  const order = matchOrder(sl), L = 'ABCDE', n = sl.pairs.length, gap = 0.2, pw = (W - 1.2 - gap * (n - 1)) / n;
+  s.addText('Match each word to its meaning.', { x: 0.6, y: 1.85, w: W - 1.2, h: 0.4, fontFace: FONT, fontSize: F(16), color: C.soft, margin: 0 });
+  sl.pairs.forEach((pr, j) => {
+    const x = 0.6 + j * (pw + gap), y = 2.4;
+    s.addShape('roundRect', { x, y, w: pw, h: 0.72, rectRadius: 0.36, fill: { color: answers ? hex(t[0]) : 'FFFFFF' }, line: { color: hex(t[0]), width: 2 } });
+    s.addText(pr.term, { x: x + 0.22, y, w: pw - 0.95, h: 0.72, fontFace: FONT, fontSize: F(16), bold: true, color: answers ? 'FFFFFF' : BINK, valign: 'middle', fit: 'shrink', margin: 0 });
+    s.addText(answers ? L[order.indexOf(j)] : '', { x: x + pw - 0.66, y: y + 0.1, w: 0.52, h: 0.52, shape: 'ellipse', fill: { color: 'FFFFFF' }, line: { color: answers ? 'FFFFFF' : hex(t[0]), width: 1.5 }, color: hex(t[1]), bold: true, fontFace: FONT, fontSize: 15, align: 'center', valign: 'middle', margin: 0 });
+  });
+  const dw = (W - 1.2 - 0.3) / 2, rows = Math.ceil(n / 2), dh = Math.min(1.05, 3.25 / rows - 0.18);
+  order.forEach((pi, j) => {
+    const x = 0.6 + (j % 2) * (dw + 0.3), y = 3.55 + Math.floor(j / 2) * (dh + 0.18);
+    s.addShape('roundRect', { x, y, w: dw, h: dh, rectRadius: 0.12, fill: { color: 'FFFFFF' }, line: { color: 'D5DBE8', width: 1 } });
+    s.addText(L[j], { x: x + 0.2, y: y + (dh - 0.5) / 2, w: 0.5, h: 0.5, shape: 'ellipse', fill: { color: 'FFFFFF' }, line: { color: BINK, width: 1.5 }, color: BINK, bold: true, fontFace: FONT, fontSize: 14, align: 'center', valign: 'middle', margin: 0 });
+    s.addText(sl.pairs[pi].meaning, { x: x + 0.9, y, w: dw - 1.1, h: dh, fontFace: FONT, fontSize: F(15), color: BINK, valign: 'middle', fit: 'shrink', margin: 0 });
+  });
+}
+function trueFalse(s, sl, answer) {
+  card(s, 1.2, 2.0, W - 2.4, 1.75, 'FFFFFF', 'D5DBE8');
+  s.addText(sl.statement, { x: 1.5, y: 2.05, w: W - 3.0, h: 1.65, fontFace: FONT, fontSize: F(23), bold: true, color: BINK, align: 'center', valign: 'middle', fit: 'shrink', margin: 0 });
+  [true, false].forEach((v, j) => {
+    const x = W / 2 - 3.0 + j * 3.3, y = 4.15, right = answer && v === sl.answer, dim = answer && v !== sl.answer;
+    s.addShape('roundRect', { x, y, w: 2.7, h: 0.95, rectRadius: 0.15, fill: { color: right ? 'EAF5EE' : 'FFFFFF', transparency: dim ? 50 : 0 }, line: { color: right ? '4FA36B' : 'D5DBE8', width: right ? 2.5 : 1 } });
+    s.addText((right ? '✓  ' : '') + (v ? 'True' : 'False'), { x, y, w: 2.7, h: 0.95, fontFace: FONT, fontSize: F(22), bold: true, color: dim ? '9AA3B5' : right ? '357A4D' : BINK, align: 'center', valign: 'middle', margin: 0 });
+  });
+  if (answer && sl.why) {
+    card(s, 1.2, 5.45, W - 2.4, 1.3, 'FBF3DD');
+    tag(s, 'WHY IS THAT?', 1.45, 5.53, 4, '8F6A12');
+    s.addText(mathRuns(sl.why, { color: BINK }, true), { x: 1.45, y: 5.86, w: W - 2.9, h: 0.82, fontFace: FONT, fontSize: F(16), valign: 'top', fit: 'shrink', margin: 0 });
+  }
+}
+async function vocabDrawn(s, p, sl, t) {
+  const by = new Map(p.vocab.map((v) => [v.word.toLowerCase(), v])), night = NIGHT && sl.diagrams.every((d) => !d || nightFor(d, true));
+  const words = (sl.words.length ? sl.words.map((w) => by.get(w.toLowerCase()) || { word: w, meaning: '' }) : p.vocab).slice(0, 4), n = words.length, gap = 0.25, w = (W - 1.2 - gap * (n - 1)) / n;
+  for (let j = 0; j < n; j++) {
+    const x = 0.6 + j * (w + gap), y = 1.95, h = 4.85;
+    if (night) s.addShape('roundRect', { x, y, w, h, rectRadius: 0.15, fill: { color: 'FFFFFF', transparency: 94 }, line: { color: 'FFFFFF', transparency: 86, width: 1 } });
+    else card(s, x, y, w, h, hex(t[2]));
+    const d = sl.diagrams[j] ? await rasterize(diagramSVG(sl.diagrams[j], (KIND.vocab).tone, { night, bare: true }), 2, night) : null;
+    if (d) { if (!night) card(s, x + 0.15, y + 0.15, w - 0.3, 2.55, 'FFFFFF'); placeImage(s, d, { x: x + 0.2, y: y + 0.2, w: w - 0.4, h: 2.45 }); }
+    s.addText(words[j].word, { x: x + 0.2, y: y + 2.85, w: w - 0.4, h: 0.5, fontFace: FONT, fontSize: F(20), bold: true, color: night ? 'FFFFFF' : hex(t[1]), margin: 0, fit: 'shrink' });
+    s.addText(words[j].meaning || '', { x: x + 0.2, y: y + 3.4, w: w - 0.4, h: 1.35, fontFace: FONT, fontSize: F(14), color: night ? 'C9D6F0' : BSOFT, valign: 'top', fit: 'shrink', margin: 0 });
+  }
+}
+/* One exported slide: the question side (v 'q'), its answer side ('a'), or one step of a worked example ('step'). */
+async function bodyFor(s, p, sl, t, vis, v, step) {
+  const has = !!(vis.dg || vis.md);
+  switch (sl.layout) {
+    case 'guided': guidedSteps(s, sl, t, vis, v === 'step' ? step : sl.steps.length); await drawRight(s, vis, RIGHT, t); return;
+    case 'goals': goals(s, sl, t, has); await drawRight(s, vis, RIGHT, t); return;
+    case 'think': return think(s, sl, t, vis, v === 'a');
+    case 'rule': return rule(s, sl, t, vis);
+    case 'try': return tryIt(s, sl, t, vis, v === 'a');
+    case 'gallery': return gallery(s, sl, t);
+    case 'match': return matchUp(s, sl, t, v === 'a');
+    case 'truefalse': return trueFalse(s, sl, v === 'a');
+    case 'vocab': if (sl.diagrams && sl.diagrams.some(Boolean)) return vocabDrawn(s, p, sl, t); break;
+    case 'recap': case 'exit': if (v === 'a') return questions(s, sl, t, true, false); break;
+    case 'check': if (v === 'a') return check(s, sl, t, true, false); break;
+    default: break;
+  }
+  return body(s, p, sl, t, vis);
+}
 async function body(s, p, sl, t, vis) {
   const has = !!(vis.dg || vis.md), right = { x: 7.6, y: 2.0, w: 5.2, h: 4.6 }, LW = has ? 6.7 : W - 1.2;
   switch (sl.layout) {
@@ -107,7 +278,7 @@ async function body(s, p, sl, t, vis) {
       s.addText((p.input.year + ' · ' + p.input.subjectName).toUpperCase(), { x: 0.8, y: 1.05, w, h: 0.4, fontFace: FONT, fontSize: 14, bold: true, color: C.eyebrow, charSpacing: 3, margin: 0 });
       s.addText(p.title, { x: 0.8, y: 1.5, w, h: 1.3, fontFace: FONT, fontSize: F(has ? 36 : 42), bold: true, color: C.ink, valign: 'top', fit: 'shrink', margin: 0 });
       if (p.objective) s.addText([{ text: 'We are learning to ', options: { bold: true, color: C.ink } }, { text: learnText(p.objective), options: { color: C.soft } }], { x: 0.8, y: 2.9, w, h: 0.75, fontFace: FONT, fontSize: F(20), valign: 'top', fit: 'shrink', margin: 0 });
-      if (p.successCriteria.length) {
+      if (p.successCriteria.length && !p.slides.some((x) => x.layout === 'goals')) {
         s.addShape('roundRect', { x: 0.8, y: 3.8, w, h: 2.2, rectRadius: 0.15, fill: { color: 'EAF1FA' }, line: { color: 'EAF1FA', width: 0.5 } });
         s.addText('SUCCESS CRITERIA', { x: 1.1, y: 3.95, w: 6, h: 0.4, fontFace: FONT, fontSize: 12, bold: true, color: '2C5E9E', charSpacing: 2, margin: 0 });
         s.addText(bullets(p.successCriteria, BINK), { x: 1.1, y: 4.4, w: w - 0.6, h: 1.5, fontFace: FONT, fontSize: F(18), valign: 'top', paraSpaceAfter: 5, fit: 'shrink', margin: 0 });
@@ -136,16 +307,18 @@ async function body(s, p, sl, t, vis) {
       break;
     }
     case 'concept': {
-      const w = has || sl.example ? 6.7 : W - 1.2;
-      s.addText(bullets(sl.points), { x: 0.6, y: 2.0, w, h: has && sl.example ? 3.0 : 4.5, fontFace: FONT, fontSize: F(22), valign: 'top', paraSpaceAfter: 10, fit: 'shrink', margin: 0 });
+      const w = has || sl.example ? 6.7 : W - 1.2, cH = calloutH(sl), exH = has && sl.example ? 1.1 : 0, ptsH = Math.max(1.3, 4.75 - cH - exH);
+      if (sl.points.length) s.addText(bullets(sl.points), { x: 0.6, y: 2.0, w, h: ptsH, fontFace: FONT, fontSize: F(22), valign: 'top', paraSpaceAfter: 10, fit: 'shrink', margin: 0 });
+      let y = 2.0 + (sl.points.length ? ptsH + 0.08 : 0);
       if (has) {
         await drawRight(s, vis, right, t);
-        if (sl.example) s.addText([{ text: 'Example: ', options: { bold: true, color: hex(t[1]) } }, { text: sl.example, options: { color: BINK } }], { x: 0.6, y: 5.2, w, h: 1.4, fontFace: FONT, fontSize: F(17), valign: 'top', fit: 'shrink', margin: 0.1, fill: { color: hex(t[2]) } });
+        if (sl.example) { s.addText([{ text: 'Example: ', options: { bold: true, color: hex(t[1]) } }, { text: sl.example, options: { color: BINK } }], { x: 0.6, y, w, h: 1.0, fontFace: FONT, fontSize: F(17), valign: 'middle', fit: 'shrink', margin: 0.1, fill: { color: hex(t[2]) } }); y += 1.1; }
       } else if (sl.example) {
         s.addShape('roundRect', { x: right.x, y: 2.0, w: right.w, h: 4.2, rectRadius: 0.18, fill: { color: hex(t[2]) }, line: { color: hex(t[2]), width: 0.5 } });
         s.addText('EXAMPLE', { x: right.x + 0.3, y: 2.2, w: 4, h: 0.4, fontFace: FONT, fontSize: 12, bold: true, color: hex(t[1]), charSpacing: 2, margin: 0 });
         s.addText(sl.example, { x: right.x + 0.3, y: 2.7, w: right.w - 0.6, h: 3.3, fontFace: FONT, fontSize: F(20), bold: true, color: BINK, valign: 'top', fit: 'shrink', margin: 0 });
       }
+      if (cH) callouts(s, sl, 0.6, Math.min(y, 6.9 - cH), w);
       break;
     }
     case 'guided': {
@@ -172,8 +345,9 @@ async function body(s, p, sl, t, vis) {
       await drawRight(s, vis, right, t);
       break;
     case 'plenary': {
-      s.addText(bullets(sl.points), { x: 0.6, y: 2.0, w: LW, h: 3.2, fontFace: FONT, fontSize: F(22), valign: 'top', paraSpaceAfter: 10, fit: 'shrink', margin: 0 });
-      if (sl.prompt) s.addText(sl.prompt, { x: 0.6, y: 5.4, w: LW, h: 1.0, fontFace: FONT, fontSize: F(20), bold: true, color: hex(t[1]), valign: 'middle', fit: 'shrink', margin: 0.1, fill: { color: hex(t[2]) } });
+      const n = sl.points.length, gap = 0.16, ch = Math.min(1.05, (sl.prompt ? 3.45 : 4.6) / Math.max(1, n) - gap);
+      sl.points.forEach((pt, j) => { const y = 2.0 + j * (ch + gap); card(s, 0.6, y, LW, ch, hex(t[2])); numDot(s, j + 1, 0.8, y + (ch - 0.5) / 2, 0.5, 'F5A86B', '1B2440'); s.addText(pt, { x: 1.5, y, w: LW - 1.1, h: ch, fontFace: FONT, fontSize: F(18), color: BINK, valign: 'middle', fit: 'shrink', margin: 0 }); });
+      if (sl.prompt) s.addText(sl.prompt, { x: 0.6, y: 2.0 + n * (ch + gap) + 0.1, w: LW, h: 0.9, fontFace: FONT, fontSize: F(19), bold: true, color: hex(t[1]), valign: 'middle', fit: 'shrink', margin: 0.1, fill: { color: hex(t[2]) } });
       await drawRight(s, vis, right, t);
       break;
     }
@@ -220,23 +394,26 @@ export async function buildPptx(p, o) {
   const pptx = new window.PptxGenJS(), memo = new Map(), masters = new Map();
   pptx.layout = 'LAYOUT_WIDE'; pptx.author = 'lkie.like · KS2 Lesson Engine'; pptx.title = p.title; pptx.subject = p.input.year + ' ' + p.input.subjectName;
   try {
-    for (let i = 0; i < p.slides.length; i++) {
-      const sl = p.slides[i], k = KIND[sl.layout] || KIND.concept, look = lookFor(p, sl, o.theme), L = lookInfo(look), bg = await lookForPptx(look, memo);
-      const dg = sl.diagram ? await rasterize(diagramSVG(sl.diagram, k.tone), 2) : null;
+    // every exported slide in order: a worked example one step at a time, and each question followed by its answer
+    const plan = [];
+    p.slides.forEach((sl, i) => {
+      if (sl.layout === 'guided' && sl.steps.length > 1) sl.steps.forEach((_, k) => plan.push({ sl, i, v: 'step', step: k + 1 }));
+      else plan.push({ sl, i, v: 'q' });
+      if (['recap', 'exit', 'check', 'try', 'match', 'truefalse'].includes(sl.layout) || (sl.layout === 'think' && sl.reveal.length)) plan.push({ sl, i, v: 'a' });
+    });
+    for (let n = 0; n < plan.length; n++) {
+      const { sl, i, v, step } = plan[n], k = KIND[sl.layout] || KIND.concept, look = lookFor(p, sl, o.theme), L = lookInfo(look), bg = await lookForPptx(look, memo);
+      NIGHT = L.dark && L.id !== 'pic' && L.id !== 'colour';
+      const nt = nightFor(sl.diagram, NIGHT), dg = sl.diagram ? await rasterize(diagramSVG(sl.diagram, k.tone, { night: nt }), 2, nt) : null;
       const md = safeVideo(sl.video) ? { kind: 'video', v: sl.video } : safePic(sl.pic) ? { kind: 'pic', pic: sl.pic } : null;
       C = bg.dark ? DARK : LIGHT; FS = [0.85, 1, 1.15, 1.3].includes(sl.fs) ? sl.fs : 1;
       const s = slideFor(pptx, bg, masters);
-      const t = chrome(s, p, sl, i, o.mode, L.edge);
-      await body(s, p, sl, t, { dg, md });
-      s.addNotes(notes(p, sl, i === 0));
-      if (['recap', 'exit', 'check'].includes(sl.layout)) {
-        const a = slideFor(pptx, bg, masters);
-        const ta = chrome(a, p, Object.assign({}, sl, { respond: 'none' }), i, o.mode, L.edge, 'Answers: ' + (sl.title || k.label));
-        if (sl.layout === 'check') check(a, sl, ta, true, false); else questions(a, sl, ta, true, false);
-        a.addNotes('Answer slide. ' + notes(p, sl, false));
-      }
+      const title = v === 'step' ? (sl.title || k.label) + ' (Step ' + step + ')' : v === 'a' && ['recap', 'exit', 'check', 'match'].includes(sl.layout) ? 'Answers: ' + (sl.title || k.label) : null;
+      const t = chrome(s, p, v === 'a' ? Object.assign({}, sl, { respond: 'none' }) : sl, i, o.mode, L.edge, title, [n + 1, plan.length]);
+      await bodyFor(s, p, sl, t, v === 'a' && ['recap', 'exit', 'check'].includes(sl.layout) ? {} : { dg, md }, v, step);
+      s.addNotes((v === 'a' ? 'Answer slide. ' : '') + notes(p, sl, n === 0));
     }
-  } finally { C = LIGHT; FS = 1; }
+  } finally { C = LIGHT; FS = 1; NIGHT = false; }
   return pptx.write({ outputType: 'blob' });
 }
 export const fileName = (p, ext) => (p.input.year + ' ' + p.input.subjectName + ' - ' + p.title).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 110) + ext;

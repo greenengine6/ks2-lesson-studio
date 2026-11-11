@@ -1,15 +1,15 @@
 /* Practise on the board: the whole class answers together, no devices. One question at a time, big, with a
    countdown; Reveal shows the right answer and why; the teacher taps "We got it" or "Not this time" and the class
    score moves on. Keys: Space or Enter reveals, the arrow keys move, R reads it aloud, Esc closes. */
-import { esc, icon, toast } from '../core.js?v=a277ebb7';
-import { Voice } from '../fx/voice.js?v=a277ebb7';
-import { fracWords } from '../fractions.js?v=a277ebb7';
-import { confetti } from '../fx/particles.js?v=a277ebb7';
-import { picURL, creditText } from '../pics.js?v=a277ebb7';
-import { track } from '../track.js?v=a277ebb7';
-import { playable, answerText, LETTERS, OPT_COLOURS } from './model.js?v=a277ebb7';
-import { shapeSVG, Fx } from './fx.js?v=a277ebb7';
-import { openStage } from './stage.js?v=a277ebb7';
+import { esc, icon, toast } from '../core.js?v=ceec3b96';
+import { Voice } from '../fx/voice.js?v=ceec3b96';
+import { fracWords } from '../fractions.js?v=ceec3b96';
+import { confetti } from '../fx/particles.js?v=ceec3b96';
+import { picURL, creditText } from '../pics.js?v=ceec3b96';
+import { track } from '../track.js?v=ceec3b96';
+import { playable, answerText, LETTERS, OPT_COLOURS } from './model.js?v=ceec3b96';
+import { shapeSVG, Fx } from './fx.js?v=ceec3b96';
+import { openStage } from './stage.js?v=ceec3b96';
 
 const FULL = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
 const fmt = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');

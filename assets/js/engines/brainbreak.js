@@ -1,11 +1,11 @@
 /* Engine 9: Brain Break. A timed script that Symphony leads: she grows as pupils breathe in and shrinks as they
    breathe out, over calm moving waves, with optional read-aloud and ocean, rain or forest sounds. */
-import { esc, str, arr, strs, num, clamp, icon, reduceMotion } from '../core.js?v=a277ebb7';
-import { B } from './shared.js?v=a277ebb7';
-import { buildPrompt } from './prompt.js?v=a277ebb7';
-import { Waves } from '../fx/waves.js?v=a277ebb7';
-import { Ambient, Speech } from '../fx/sound.js?v=a277ebb7';
-import { Symphony } from '../fx/symphony.js?v=a277ebb7';
+import { esc, str, arr, strs, num, clamp, icon, reduceMotion } from '../core.js?v=ceec3b96';
+import { B } from './shared.js?v=ceec3b96';
+import { buildPrompt } from './prompt.js?v=ceec3b96';
+import { Waves } from '../fx/waves.js?v=ceec3b96';
+import { Ambient, Speech } from '../fx/sound.js?v=ceec3b96';
+import { Symphony } from '../fx/symphony.js?v=ceec3b96';
 
 const CUES = { in: 'Breathe in', out: 'Breathe out', hold: 'Hold', still: 'Relax', listen: 'Listen', move: 'Move' };
 const TYPES = ['Calm breathing', 'Stretch and move', 'Focus and grounding', 'Visualisation', 'Gratitude', 'Energiser'];

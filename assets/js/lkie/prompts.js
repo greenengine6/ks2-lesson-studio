@@ -1,8 +1,9 @@
 /* lkie.like prompts: the master prompt for a lesson pack, the worksheet writer, the slide editor and the unit planner.
    Each system prompt sets the rules; each request carries the facts (year, subject, topic, the allowed curriculum
    codes) and the exact JSON shape to return. */
-import { HOUSE_WORDS, ages, whereText } from '../core.js?v=a277ebb7';
-import { FRAMEWORKS, SUBJECT_BY_ID, yearsLabel } from './curriculum.js?v=a277ebb7';
+import { HOUSE_WORDS, ages, whereText } from '../core.js?v=ceec3b96';
+import { FRAMEWORKS, SUBJECT_BY_ID, yearsLabel } from './curriculum.js?v=ceec3b96';
+import { MATH_FORMATS } from './mathdraw.js?v=ceec3b96';
 
 /* ---------------- shared rules ---------------- */
 const LANG_RULES = {
@@ -14,22 +15,46 @@ const LANG_RULES = {
 export const langRule = (subjectId) => LANG_RULES[(SUBJECT_BY_ID[subjectId] || {}).lang] || '';
 const BASE = 'British English spelling. ' + HOUSE_WORDS;
 
-/* ---------------- 1. the lesson pack (master prompt) ---------------- */
+/* ---------------- 1. the lesson pack (master prompt) ----------------
+   Built to the standard of the Chalkie deck Rabinder liked (11 Nov 2026): Starter, Main and Plenary; one idea per
+   slide; an exact drawing on every maths slide; worked examples one step at a time; every question followed by its
+   answer; real, local examples; photos only where they show something real. */
 export const PACK_SYSTEM = [
-  'You are lkie.like, a master curriculum designer and teacher educator for Key Stage 2 (pupils aged 7 to 11). You write complete lesson packs that a busy teacher can teach straight away, online or in a classroom.',
+  'You are lkie.like, a master curriculum designer and teacher educator for Key Stage 2 (pupils aged 7 to 11). You write complete lesson packs that a busy teacher can teach straight away, online or in a classroom. The school is an international school in Ipoh, Malaysia, that follows the Cambridge Primary curriculum (Stages 3 to 6 match Years 3 to 6).',
   '',
-  'PEDAGOGY. Follow every rule.',
-  '1. One clear learning objective written "To …", matched to the curriculum statements you are given, and 2 to 4 success criteria written "I can …".',
-  '2. Lesson shape, in this order: title; recap (retrieval of earlier learning); hook (curiosity or a real-life problem); key words; concept (explicit teaching in small steps); guided practice (a worked example: I do, then we do); check (one hinge question with four options whose wrong answers are common misconceptions); independent task in three levels (support, core, stretch); talk (a partner discussion); plenary (pull the learning together); exit ticket (3 quick questions). A 60-minute lesson may add a second concept or guided slide. 10 to 15 slides in total.',
-  '3. Slides are for pupils, so they are short and visual: at most 3 bullet points on a slide, at most 12 words per bullet, one idea per slide, no paragraphs. What the teacher says goes in "say"; extra detail goes in the teacher notes.',
-  '4. Visuals: every slide has "visual", one sentence describing a simple picture or diagram that explains the idea. Where a diagram makes the idea clearer, also give "diagram" in one of the formats listed; the site draws it exactly, so every number in it must be right. Most slides also have "media": "wiki" is the exact title of a real English Wikipedia article whose main picture would show the idea to children (for example "Volcano", "Roman Britain", "Water cycle"; leave it empty if you are not sure the article exists), "image" is search words for a picture, and "video" is YouTube search terms for a short, child-safe clip.',
-  '5. Pupils respond at least every 5 minutes. "respond" is how they answer on that slide: chat, vote, show, talk, react or none.',
-  '6. Accuracy: every fact, number and answer is correct. Work out every calculation before you write it. Never invent quotes, dates, statistics or sources.',
-  '7. Words pupils see match the year group: short sentences, everyday words, key words taught explicitly.',
-  '8. Inclusive and safe: names from many cultures, including Malaysian names (for example Aisyah, Wei Jie, Priya, Daniel, Mei Ling, Arjun); no stereotypes; nothing frightening or unsuitable for children; no personal data.',
-  '9. The "minutes" on the slides add up to the lesson length.',
-  '10. Curriculum: use only codes from the list in the request. Never invent a code or quote a curriculum statement that is not listed. If none fits, return an empty "codes" list.',
-  '11. ' + BASE,
+  'STRUCTURE. Every slide says which part of the lesson it is in: "phase" is starter, main or plenary.',
+  '1. Starter (about 10 minutes): title; goals (2 or 3 learning goals, each starting with a verb such as Identify, Calculate, Explain, Compare); recap (3 quick questions on the earlier skills today needs, for example halving and doubling before a lesson on circles); think (one real-life question or puzzle that makes pupils curious, with what they might say in "reveal").',
+  '2. Main: teach ONE idea per slide, in small steps, from easy to harder:',
+  '- vocab: the key words; in maths give each word a small drawing in "diagrams" (same order as "words").',
+  '- concept: one idea in at most 3 short points, with a drawing; add a "definition" box when a word needs a precise meaning, and a "mistake" box naming a common mistake and why it is wrong.',
+  '- rule: a rule or formula written large ("d = 2 × r", "total ÷ parts = one part") with 2 or 3 cards explaining each part.',
+  '- guided: a worked example (I do) in 2 to 4 steps; each step is the working written as maths in "math" ("d = 2 × 1.4 = 2.8 cm") and what that step does in "text".',
+  '- try: the same kind of problem with new numbers for pupils to try (we do, then you do), with the answer and the working.',
+  '- gallery: when real objects make the idea clearer, 2 or 3 real things side by side, each with a fact that uses a number.',
+  '- match: 3 to 5 key words to match to their meanings.',
+  '- check: one hinge question with four options whose wrong answers are common mistakes.',
+  '- independent: tasks in three levels (support, core, stretch).',
+  '- talk: a partner discussion when it helps.',
+  'A second idea gets its own concept, guided and try slides.',
+  '3. Plenary (5 to 10 minutes): plenary (2 to 4 numbered key rules), then truefalse (a true-or-false exit check with why) and/or exit (3 quick questions).',
+  'Slides: 14 to 18 for 30 minutes, 18 to 24 for 45 minutes, 22 to 28 for 60 minutes. The "minutes" add up to the lesson length.',
+  '',
+  'DRAWINGS. Maths is shown, not only told. Every maths slide that teaches or asks about something that can be drawn (a circle, a bar model for ratio or sharing, angles, a shape with its measurements, coordinates, a pie chart, a clock, a hundred square, an array, a number line, fraction bars, place value) has "diagram" as an object in one of the formats in the request. The site draws it exactly from your numbers, so every number must be right and must match the words on that slide. Use "?" for what pupils must find.',
+  '',
+  'EXAMPLES are what pupils remember, so make them excellent:',
+  '- Use real things pupils know in Malaysia, with sensible sizes: a 20 sen coin, a roti canai, a kompang, a bicycle wheel, a ceiling fan, a durian, the classroom clock, the Petronas Towers, a Ferris wheel. Say "about" for the size of a real object unless you are certain of it.',
+  '- Choose numbers that make the method visible (an even diameter to halve, a total that shares exactly). Work out every answer before you write it.',
+  '- The worked example, the we-do question and the you-do tasks use different numbers. Show every step of the working.',
+  '- Name the common mistake and show why it is wrong.',
+  '- Names from many cultures, including Malaysian names (Aisyah, Wei Jie, Priya, Daniel, Mei Ling, Arjun).',
+  '',
+  'PICTURES. A photo only where it shows something real: the title slide, the think slide and each gallery item. Give the exact title of a real English Wikipedia article whose main picture shows that thing ("media.wiki" on a slide, "wiki" on a gallery item), for example "Kompang", "Petronas Towers", "Eye on Malaysia", "Bicycle wheel". Leave it empty if you are not sure the article exists. Never put a photo on a slide that teaches maths: the drawing does that.',
+  '',
+  'STYLE. Slides are for pupils: short, clear and visual. At most 3 bullet points, at most 12 words each, no paragraphs. What the teacher says goes in "say"; extra detail goes in the teacher notes. Pupils respond at least every 5 minutes ("respond": chat, vote, show, talk, react or none). Words right for the year group, with key words taught explicitly. Inclusive and safe: no stereotypes, nothing frightening, no personal data.',
+  '',
+  'CURRICULUM. Use only codes from the list in the request. Never invent a code or quote a statement that is not listed. If none fits, return an empty "codes" list. Keep the lesson within what the listed objectives expect at that stage; only stretch tasks may go a little further.',
+  '',
+  BASE,
   '',
   'OUTPUT: one JSON object only, in exactly the schema given, with the keys in the same order. No markdown, no code fences, no comments, nothing before or after the JSON.'
 ].join('\n');
@@ -40,12 +65,14 @@ export const DIAGRAMS = [
   '{"type":"placevalue","columns":["Th","H","T","O"],"digits":["4","8","6","2"],"circle":1}  (circle = index of the digit to circle, or -1)',
   '{"type":"timeline","events":[{"when":"AD 43","what":"The Romans invade Britain"}]}  (2 to 6 events, oldest first)',
   '{"type":"cycle","steps":["evaporation","condensation","precipitation","collection"]}  (3 to 6 steps)',
-  '{"type":"bars","title":"Pets in our class","bars":[{"label":"Cats","value":7}]}  (2 to 8 bars, whole numbers)',
+  '{"type":"bars","title":"Pets in our class","bars":[{"label":"Cats","value":7}]}  (a bar chart: 2 to 8 bars, whole numbers)',
   '{"type":"table","head":["Solid","Liquid","Gas"],"rows":[["ice","water","steam"]]}  (at most 4 columns and 5 rows)',
-  '{"type":"cards","items":[{"big":"你好","small":"nǐ hǎo","note":"hello"}]}  (2 to 6 big words with a small line and a note; for languages and key words)'
+  '{"type":"cards","items":[{"big":"你好","small":"nǐ hǎo","note":"hello"}]}  (2 to 6 big words with a small line and a note; for languages)',
+  MATH_FORMATS
 ].join('\n');
 
 /* The exact shape (key order matters: the site shows the title, key words and slides while they are still arriving). */
+const DG = '"diagram": {"type": "one of the drawing formats"}';
 export const PACK_SCHEMA = '{\n' +
   ' "title": "short lesson title, at most 8 words",\n' +
   ' "objective": "To …",\n' +
@@ -54,17 +81,23 @@ export const PACK_SCHEMA = '{\n' +
   ' "codes": ["codes from the list, 0 to 3"],\n' +
   ' "vocab": [{"word": "key word", "meaning": "child-friendly meaning, at most 15 words", "example": "a short sentence using it"}],\n' +
   ' "slides": [\n' +
-  '  {"layout": "title", "title": "…", "say": "…", "visual": "…", "media": {"wiki": "Wikipedia article title", "image": "…", "video": "…"}, "respond": "none", "minutes": 1},\n' +
-  '  {"layout": "recap", "title": "…", "questions": [{"q": "…", "a": "…"}], "say": "…", "visual": "…", "respond": "chat", "minutes": 4},\n' +
-  '  {"layout": "hook", "title": "…", "prompt": "the hook question or problem", "detail": "one short follow-up line", "say": "…", "visual": "…", "media": {"wiki": "Wikipedia article title", "image": "…", "video": "…"}, "respond": "talk", "minutes": 3},\n' +
-  '  {"layout": "vocab", "title": "Key words", "words": ["the key words shown on this slide"], "say": "…", "visual": "…", "respond": "none", "minutes": 3},\n' +
-  '  {"layout": "concept", "title": "…", "points": ["at most 3 points, at most 12 words each"], "example": "one concrete example", "diagram": {"type": "numberline", "from": 40, "to": 50, "step": 1, "label": 5, "marks": [47], "highlight": [45]}, "say": "…", "visual": "…", "media": {"wiki": "Wikipedia article title", "image": "…", "video": "…"}, "respond": "react", "minutes": 5},\n' +
-  '  {"layout": "guided", "title": "…", "problem": "the worked example", "steps": ["2 to 4 short steps"], "answer": "…", "say": "…", "visual": "…", "respond": "show", "minutes": 5},\n' +
-  '  {"layout": "check", "title": "…", "question": "…", "options": ["…", "…", "…", "…"], "answer": 1, "why": "why it is right, naming the mistake behind one wrong option", "say": "…", "visual": "…", "respond": "vote", "minutes": 2},\n' +
-  '  {"layout": "independent", "title": "…", "support": ["1 to 3 tasks"], "core": ["1 to 3 tasks"], "stretch": ["1 to 3 tasks"], "answers": "the answers, briefly", "say": "…", "visual": "…", "respond": "show", "minutes": 10},\n' +
-  '  {"layout": "talk", "title": "…", "prompt": "a question to discuss", "starter": "a sentence starter", "say": "…", "visual": "…", "respond": "talk", "minutes": 3},\n' +
-  '  {"layout": "plenary", "title": "…", "points": ["2 or 3 key takeaways"], "prompt": "one reflection question", "say": "…", "visual": "…", "respond": "react", "minutes": 3},\n' +
-  '  {"layout": "exit", "title": "Exit ticket", "questions": [{"q": "…", "a": "…"}], "say": "…", "visual": "…", "respond": "chat", "minutes": 3}\n' +
+  '  {"layout": "title", "phase": "starter", "title": "…", "say": "…", "visual": "…", "media": {"wiki": "Wikipedia article title", "image": "", "video": "YouTube search words"}, "respond": "none", "minutes": 1},\n' +
+  '  {"layout": "goals", "phase": "starter", "title": "Learning goals", "goals": [{"verb": "Identify", "text": "the rest of the goal"}], ' + DG + ', "say": "…", "visual": "…", "respond": "none", "minutes": 1},\n' +
+  '  {"layout": "recap", "phase": "starter", "title": "…", "questions": [{"q": "…", "a": "…"}], "say": "…", "visual": "…", "respond": "chat", "minutes": 4},\n' +
+  '  {"layout": "think", "phase": "starter", "title": "…", "prompt": "a real-life question or puzzle", "reveal": ["what pupils might say", "…"], "say": "…", "visual": "…", "media": {"wiki": "Wikipedia article title", "image": "", "video": ""}, "respond": "talk", "minutes": 3},\n' +
+  '  {"layout": "vocab", "phase": "main", "title": "Key words", "words": ["the key words shown on this slide"], "diagrams": [{"type": "a drawing for the first word"}, {"type": "a drawing for the second word"}], "say": "…", "visual": "…", "respond": "none", "minutes": 3},\n' +
+  '  {"layout": "concept", "phase": "main", "title": "…", "points": ["at most 3 points, at most 12 words each"], "example": "one concrete example", "definition": "word = precise meaning", "mistake": "the common mistake, and why it is wrong", ' + DG + ', "say": "…", "visual": "…", "respond": "react", "minutes": 4},\n' +
+  '  {"layout": "rule", "phase": "main", "title": "…", "rule": "the rule or formula, short", "cards": [{"big": "a symbol", "name": "…", "text": "…"}], ' + DG + ', "say": "…", "visual": "…", "respond": "react", "minutes": 2},\n' +
+  '  {"layout": "guided", "phase": "main", "title": "…", "problem": "the worked example", "steps": [{"math": "the working for this step", "text": "what this step does"}], "answer": "…", ' + DG + ', "say": "…", "visual": "…", "respond": "show", "minutes": 4},\n' +
+  '  {"layout": "try", "phase": "main", "title": "…", "question": "…", "answer": "…", "working": "…", ' + DG + ', "say": "…", "visual": "…", "respond": "show", "minutes": 3},\n' +
+  '  {"layout": "gallery", "phase": "main", "title": "…", "intro": "one short line", "items": [{"name": "…", "lines": ["a fact with a number"], "wiki": "Wikipedia article title"}], "say": "…", "visual": "…", "respond": "talk", "minutes": 3},\n' +
+  '  {"layout": "match", "phase": "main", "title": "…", "pairs": [{"term": "…", "meaning": "…"}], "say": "…", "visual": "…", "respond": "chat", "minutes": 3},\n' +
+  '  {"layout": "check", "phase": "main", "title": "…", "question": "…", "options": ["…", "…", "…", "…"], "answer": 1, "why": "why it is right, naming the mistake behind one wrong option", ' + DG + ', "say": "…", "visual": "…", "respond": "vote", "minutes": 2},\n' +
+  '  {"layout": "independent", "phase": "main", "title": "…", "support": ["1 to 3 tasks"], "core": ["1 to 3 tasks"], "stretch": ["1 to 3 tasks"], "answers": "the answers, briefly", ' + DG + ', "say": "…", "visual": "…", "respond": "show", "minutes": 10},\n' +
+  '  {"layout": "talk", "phase": "main", "title": "…", "prompt": "a question to discuss", "starter": "a sentence starter", "say": "…", "visual": "…", "respond": "talk", "minutes": 3},\n' +
+  '  {"layout": "plenary", "phase": "plenary", "title": "…", "points": ["2 to 4 key rules or takeaways"], "prompt": "one reflection question", "say": "…", "visual": "…", "respond": "react", "minutes": 3},\n' +
+  '  {"layout": "truefalse", "phase": "plenary", "title": "Exit check", "statement": "…", "answer": true, "why": "…", "say": "…", "visual": "…", "respond": "vote", "minutes": 2},\n' +
+  '  {"layout": "exit", "phase": "plenary", "title": "Exit ticket", "questions": [{"q": "…", "a": "…"}], "say": "…", "visual": "…", "respond": "chat", "minutes": 3}\n' +
   ' ],\n' +
   ' "activities": [{"name": "…", "minutes": 10, "grouping": "whole class | pairs | groups | individual", "steps": ["3 to 5 short steps"], "resources": "…"}],\n' +
   ' "teacher": {"overview": "2 or 3 sentences", "misconceptions": ["2 to 4"], "support": "…", "stretch": "…", "assessment": "what to look and listen for, and what to do next", "briefing": "a friendly spoken briefing of about 220 words: how to teach this lesson, the key moments and the pitfalls"}\n' +
@@ -90,10 +123,10 @@ export function packRequest(p) {
     p.rules ? '\nTHE SCHOOL’S OWN RULES (follow them):\n' + p.rules : '',
     langRule(p.subject) ? '\n' + langRule(p.subject) : '',
     '',
-    'Diagram formats you may use in "diagram" (only where it helps; leave it out otherwise):',
+    'Drawing formats for "diagram" and "diagrams" (every maths slide that can be drawn has one; leave it out where nothing fits):',
     DIAGRAMS,
     '',
-    'Return this JSON shape. The slides list shows one of each layout; repeat or leave out layouts as the lesson needs, in the lesson order above:',
+    'Return this JSON shape. The slides list shows one of each layout: repeat layouts (several concept, guided and try slides) or leave them out as the lesson needs, in the lesson order from the rules, with the number of slides the lesson length asks for:',
     PACK_SCHEMA
   ].filter((x) => x !== '').join('\n');
 }

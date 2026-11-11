@@ -1,8 +1,8 @@
 /* lkie.like backgrounds: ready-made looks, any colour, or a picture. A pack has one, and any slide can have its own.
    Dark looks turn the free text white; boxes stay light with dark text and diagrams sit on a white card, so every
    slide stays readable. The same looks are painted into the PowerPoint download. */
-import { esc } from '../core.js?v=a277ebb7';
-import { picURL, pictureData, safePic } from '../pics.js?v=a277ebb7';
+import { esc } from '../core.js?v=ceec3b96';
+import { picURL, pictureData, safePic } from '../pics.js?v=ceec3b96';
 
 export const LOOKS = [
   { id: 'bright', name: 'Bright', bg: '#FFFFFF', sw: 'linear-gradient(90deg,#E35D5B 0 14%,#F28C38 0 31%,#F2C14E 0 42%,#4FA36B 0 58%,#2D9C9C 0 70%,#3E7CC7 0 87%,#8466C4 0) top/100% 22% no-repeat,#FFFFFF' },
@@ -19,11 +19,19 @@ export const LOOKS = [
   { id: 'sea', name: 'Under the Sea', bg: '#C9ECF8', deco: true, grad: ['#E8F8FF', '#C9ECF8', '#A7DDF2'], sw: 'radial-gradient(circle at 82% 30%,#fff 0 9%,transparent 10%),linear-gradient(165deg,#E8F8FF,#A7DDF2)' },
   { id: 'jungle', name: 'Jungle Adventure', bg: '#DDF3D2', deco: true, grad: ['#F3FCEC', '#DDF3D2', '#C4E9B5'], sw: 'radial-gradient(ellipse at 90% 15%,#3FA34D 0 22%,transparent 23%),linear-gradient(165deg,#F3FCEC,#C4E9B5)' },
   { id: 'hero', name: 'Superhero Academy', bg: '#FFF1C4', deco: true, grad: ['#FFF9E3', '#FFF1C4', '#FFE08A'], sw: 'radial-gradient(circle at 82% 28%,#E63946 0 16%,transparent 17%),radial-gradient(#F5A524 1.2px,transparent 1.6px) 0 0/6px 6px,#FFF1C4' },
+  /* Deep Sea: navy, a wave along the top and quiet sea creatures in the corners (modelled on the Chalkie reference
+     deck). The default for new lesson packs. */
+  { id: 'deepsea', name: 'Deep Sea', bg: '#24385F', dark: true, deco: true, grad: ['#2C4475', '#1C2D52'], sw: 'linear-gradient(180deg,#BFD7FF 0 8%,transparent 8%),linear-gradient(165deg,#2C4475,#1C2D52)' },
   { id: 'rainbow', name: 'Rainbow Doodle', bg: '#FFFFFF', deco: true, grad: ['#FFFFFF', '#FFF7FC'], sw: 'radial-gradient(circle at 100% 100%,transparent 30%,#E63946 31% 36%,#F5A524 37% 42%,#F5D020 43% 48%,#3FA34D 49% 54%,#3584D6 55% 60%,#8B44C2 61% 66%,transparent 67%),#FFFFFF' }
 ];
 /* The decorations, in the slide's own 160 by 90 space. */
 const SPARK4 = (x, y, s, c) => '<path d="M' + x + ' ' + (y - s) + 'Q' + (x + s * 0.18) + ' ' + (y - s * 0.18) + ' ' + (x + s) + ' ' + y + 'Q' + (x + s * 0.18) + ' ' + (y + s * 0.18) + ' ' + x + ' ' + (y + s) + 'Q' + (x - s * 0.18) + ' ' + (y + s * 0.18) + ' ' + (x - s) + ' ' + y + 'Q' + (x - s * 0.18) + ' ' + (y - s * 0.18) + ' ' + x + ' ' + (y - s) + 'z" fill="' + c + '"/>';
 const DECO = {
+  deepsea: '<path d="M0 0H160V2.4c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0c2 1.5 4.7 1.5 6.7 0s4.7-1.5 6.7 0V0z" fill="#BFD7FF"/>' +
+    '<path d="M2 20c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0" fill="none" stroke="#FFFFFF" stroke-opacity=".07" stroke-width=".5"/><path d="M110 32c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0" fill="none" stroke="#FFFFFF" stroke-opacity=".07" stroke-width=".5"/><path d="M4 52c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0" fill="none" stroke="#FFFFFF" stroke-opacity=".07" stroke-width=".5"/><path d="M112 62c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0" fill="none" stroke="#FFFFFF" stroke-opacity=".07" stroke-width=".5"/><path d="M60 84c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0" fill="none" stroke="#FFFFFF" stroke-opacity=".07" stroke-width=".5"/><path d="M118 86c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0c3 -1.4 6 -1.4 9 0s6 1.4 9 0" fill="none" stroke="#FFFFFF" stroke-opacity=".07" stroke-width=".5"/>' +
+    '<g fill="#7FA2DA" fill-opacity=".26"><path d="M3 85c3-7 12-10 22-8 6 1 10 4 13 7l5-4.5 1.2 7.5-6.2 2c-4 3.6-10 5.4-17.6 5.4-8.6 0-14.6-3-17.4-9.4z"/><path d="M38 84l4-6 1 3z"/></g>' +
+    '<g fill="#9DB8E6" fill-opacity=".4"><path d="M131 13c2.6-2.6 7-2.6 9.6 0-2.6 2.6-7 2.6-9.6 0z"/><path d="M140.6 13l3.6-2.8v5.6z"/></g>' +
+    '<g fill="none" stroke="#CFE0FF" stroke-opacity=".35" stroke-width=".5"><circle cx="150" cy="72" r="1.6"/><circle cx="153" cy="66" r="1"/><circle cx="149" cy="61" r=".7"/></g>',
   blastoff: '<circle cx="146" cy="13" r="8" fill="#F08A3C"/><circle cx="143.5" cy="10.5" r="3.2" fill="#FFC48A" fill-opacity=".7"/><ellipse cx="146" cy="13" rx="13" ry="3" fill="none" stroke="#FFD9A8" stroke-width="1.1" transform="rotate(-18 146 13)"/><circle cx="128" cy="7" r="2" fill="#B9C2FF"/>' +
     '<g transform="translate(13 76) rotate(-40)"><path d="M0-11c3 3 4 7 4 12v6h-8v-6c0-5 1-9 4-12z" fill="#E9EEF8"/><circle cx="0" cy="-3" r="1.6" fill="#5B8DEF"/><path d="M-4 3l-3 4h3zM4 3l3 4h-3z" fill="#E63946"/><path d="M-2.6 7.4q2.6 7 5.2 0z" fill="#F5A524"/><path d="M-1.4 7.4q1.4 4 2.8 0z" fill="#FFF3B0"/></g>' +
     SPARK4(118, 20, 1.6, '#FFFFFF') + SPARK4(30, 62, 1.3, '#FFE08A') + SPARK4(152, 70, 1.4, '#C9D2FF'),

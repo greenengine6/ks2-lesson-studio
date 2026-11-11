@@ -1,10 +1,10 @@
 /* How it works: every rule on the site in one place, in plain words. It opens from the header's "How it works",
    Help page, the "?" next to Online / In class, and the Join screen. The numbers come
    from the same settings the rules themselves use (guard.js), so they are always right. */
-import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=a277ebb7';
-import { LIMITS } from './guard.js?v=a277ebb7';
-import { ENGINES } from './engines/registry.js?v=a277ebb7';
-import { RESPOND } from './engines/shared.js?v=a277ebb7';
+import { $, $$, esc, icon, bus, prefs, CONFIG } from './core.js?v=ceec3b96';
+import { LIMITS } from './guard.js?v=ceec3b96';
+import { ENGINES } from './engines/registry.js?v=ceec3b96';
+import { RESPOND } from './engines/shared.js?v=ceec3b96';
 
 const SCRIPT = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{20,}\/exec$/;
 const schoolOn = () => SCRIPT.test(String(CONFIG.inbox || ''));
@@ -47,7 +47,7 @@ function body(id) {
     b('A new version:') + ' when the site has been updated, a small bar offers Reload. A tab left open keeps its old version until then.'
   ]);
   if (id === 'make') return '<p class="howm-lede">Create has a maker for each thing. Each one takes about a minute and files what it makes by itself.</p>' + li([
-    b('Lesson slides') + ' (lkie.like): one topic in, a whole lesson out, for any KS2 subject: slides with a picture or an exact diagram on every slide, key words, activities, teacher notes and a worksheet in three levels. Five themes for younger classes (Space, Under the Sea, Jungle, Superhero and Rainbow). PowerPoint and Word.',
+    b('Lesson slides') + ' (lkie.like): one topic in, a whole lesson out, for any KS2 subject: a Starter, Main and Plenary with exact drawings for maths, worked examples one step at a time, photos only where they show something real, key words, activities, teacher notes and a worksheet in three levels. New packs use the Deep Sea look; five themes for younger classes (Space, Under the Sea, Jungle, Superhero and Rainbow). PowerPoint and Word.',
     b('Worksheet') + ': from a topic, from one of your lessons, or from a sample you upload (a photo, a PDF or a Word file). Symphony keeps the skills and the layout and writes new questions, checks that none were copied, and checks the answers. Support, Core and Challenge levels, and an answer sheet, in Word.',
     b('Quiz') + ': write it yourself, or let Symphony draft it from a topic or a lesson. Play it as a team board game on the big screen (with surprise tiles), practise it together on the board, or turn it into a worksheet.',
     b('Game') + ': describe a game in your own words. Symphony builds it from a template (balloon pop, match pairs, sort it, quiz race or memory) or as something new. Play it on the board. Games made from scratch run in a locked box that cannot see anything else on the site.',

@@ -1,12 +1,16 @@
 /* lkie.like data: tidying what the engine returns into a safe, predictable pack (slides, key words, activities,
    worksheet, unit plan), the automatic checks on a unit plan, the cache key, and reading slides out of a reply
    while it is still arriving. */
-import { str, arr, houseFix } from '../core.js?v=a277ebb7';
-import { keepCodes, objective } from './curriculum.js?v=a277ebb7';
+import { str, arr, houseFix } from '../core.js?v=ceec3b96';
+import { keepCodes, objective } from './curriculum.js?v=ceec3b96';
+import { MATH_TYPES, normMath } from './mathdraw.js?v=ceec3b96';
 
-export const LAYOUTS = ['title', 'recap', 'hook', 'vocab', 'concept', 'guided', 'check', 'independent', 'talk', 'plenary', 'exit'];
+export const LAYOUTS = ['title', 'goals', 'recap', 'hook', 'think', 'vocab', 'concept', 'rule', 'guided', 'try', 'gallery', 'match', 'check', 'independent', 'talk', 'plenary', 'truefalse', 'exit'];
+/* Starter, Main, Plenary: where each kind of slide sits in the lesson unless the engine says otherwise. */
+export const PHASES = ['starter', 'main', 'plenary'];
+const DEF_PHASE = { title: 'starter', goals: 'starter', recap: 'starter', hook: 'starter', think: 'starter', vocab: 'main', concept: 'main', rule: 'main', guided: 'main', try: 'main', gallery: 'main', match: 'main', check: 'main', independent: 'main', talk: 'main', plenary: 'plenary', truefalse: 'plenary', exit: 'plenary' };
 const RESPONDS = ['chat', 'vote', 'show', 'talk', 'react', 'none'];
-const DEF_RESPOND = { title: 'none', recap: 'chat', hook: 'talk', vocab: 'none', concept: 'react', guided: 'show', check: 'vote', independent: 'show', talk: 'talk', plenary: 'react', exit: 'chat' };
+const DEF_RESPOND = { title: 'none', goals: 'none', recap: 'chat', hook: 'talk', think: 'talk', vocab: 'none', concept: 'react', rule: 'react', guided: 'show', try: 'show', gallery: 'talk', match: 'chat', check: 'vote', independent: 'show', talk: 'talk', plenary: 'react', truefalse: 'vote', exit: 'chat' };
 const num = (v, d) => { const n = Number(v); return Number.isFinite(n) ? n : d; };
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const strs = (v, n, max) => arr(v).map((x) => str(x).slice(0, max || 240)).filter(Boolean).slice(0, n);
@@ -16,6 +20,7 @@ const qa = (v, n) => arr(v).map((x) => ({ q: str(x && x.q).slice(0, 240), a: str
 export function normDiagram(d) {
   if (!d || typeof d !== 'object') return null;
   const t = str(d.type).toLowerCase();
+  if (MATH_TYPES.includes(t)) return normMath(Object.assign({}, d, { type: t }));
   if (t === 'numberline') {
     const from = num(d.from, NaN), to = num(d.to, NaN), step = Math.abs(num(d.step, NaN));
     if (![from, to, step].every(Number.isFinite) || to <= from || step <= 0 || (to - from) / step > 40 || (to - from) / step < 1) return null;
@@ -65,14 +70,53 @@ export function normSlide(s) {
     layout, title: str(s.title).slice(0, 90), say: str(s.say).slice(0, 700), visual: str(s.visual).slice(0, 220), media,
     respond: RESPONDS.includes(str(s.respond)) ? str(s.respond) : DEF_RESPOND[layout], minutes: clamp(Math.round(num(s.minutes, 0)), 0, 30)
   };
+  o.phase = PHASES.includes(str(s.phase).toLowerCase()) ? str(s.phase).toLowerCase() : DEF_PHASE[layout];
   const dg = normDiagram(s.diagram);
-  if (dg && ['hook', 'concept', 'guided', 'recap', 'plenary'].includes(layout)) o.diagram = dg;
+  if (dg && !['title', 'vocab', 'match', 'gallery'].includes(layout)) o.diagram = dg;          // a maths drawing can go on any teaching or asking slide
   switch (layout) {
+    case 'goals': {
+      o.goals = arr(s.goals).map((g) => (typeof g === 'string' ? { verb: '', text: str(g) } : { verb: str(g && g.verb).slice(0, 24), text: str(g && g.text).slice(0, 200) })).filter((g) => g.text).slice(0, 4);
+      if (!o.goals.length) return null; break;
+    }
+    case 'think': o.prompt = str(s.prompt).slice(0, 300); o.reveal = strs(s.reveal, 4, 160); o.lead = str(s.lead).slice(0, 60) || 'You might have said…'; if (!o.prompt) return null; break;
+    case 'rule': {
+      o.rule = str(s.rule).slice(0, 60);
+      o.cards = arr(s.cards).map((c) => ({ big: str(c && c.big).slice(0, 12), name: str(c && c.name).slice(0, 40), text: str(c && c.text).slice(0, 200) })).filter((c) => c.name || c.text).slice(0, 3);
+      if (!o.rule) return null; break;
+    }
+    case 'try': o.question = str(s.question).slice(0, 300); o.answer = str(s.answer).slice(0, 120); o.working = str(s.working).slice(0, 240); if (!o.question || !o.answer) return null; break;
+    case 'gallery': {
+      o.intro = str(s.intro).slice(0, 200);
+      o.items = arr(s.items).map((x) => ({ name: str(x && x.name).slice(0, 40), lines: strs(x && x.lines, 3, 80), wiki: str(x && x.wiki).replace(/_/g, ' ').slice(0, 100), image: str(x && x.image).slice(0, 100) })).filter((x) => x.name).slice(0, 3);
+      arr(s.items).forEach((x, i) => { if (o.items[i] && x && x.pic && typeof x.pic === 'object') o.items[i].pic = x.pic; });       // pictures the site already found stay
+      if (o.items.length < 2) return null; break;
+    }
+    case 'match': {
+      o.pairs = arr(s.pairs).map((x) => ({ term: str(x && x.term).slice(0, 30), meaning: str(x && x.meaning).slice(0, 120) })).filter((x) => x.term && x.meaning).slice(0, 5);
+      if (o.pairs.length < 3) return null; break;
+    }
+    case 'truefalse': {
+      o.statement = str(s.statement).slice(0, 260); const a = s.answer;
+      o.answer = a === true || /^true$/i.test(str(a)) ? true : a === false || /^false$/i.test(str(a)) ? false : null; o.why = str(s.why).slice(0, 300);
+      if (!o.statement || o.answer === null) return null; break;
+    }
     case 'recap': case 'exit': o.questions = qa(s.questions, 5); if (!o.questions.length) return null; break;
     case 'hook': o.prompt = str(s.prompt).slice(0, 260); o.detail = str(s.detail).slice(0, 200); if (!o.prompt) return null; break;
-    case 'vocab': o.words = strs(s.words, 8, 40); break;
-    case 'concept': o.points = strs(s.points, 4, 160); o.example = str(s.example).slice(0, 260); if (!o.points.length && !o.example) return null; break;
-    case 'guided': o.problem = str(s.problem).slice(0, 260); o.steps = strs(s.steps, 5, 200); o.answer = str(s.answer).slice(0, 160); if (!o.problem) return null; break;
+    case 'vocab': {
+      o.words = strs(s.words, 8, 40);
+      const dgs = arr(s.diagrams).slice(0, 6).map((x) => normDiagram(x));                    // one small drawing per word (maths), in the same order
+      if (dgs.some(Boolean)) o.diagrams = dgs;
+      break;
+    }
+    case 'concept':
+      o.points = strs(s.points, 4, 160); o.example = str(s.example).slice(0, 260);
+      o.definition = str(s.definition).slice(0, 200); o.mistake = str(s.mistake).slice(0, 220);           // the callouts: a definition, a common mistake
+      if (!o.points.length && !o.example && !o.definition) return null; break;
+    case 'guided':
+      o.problem = str(s.problem).slice(0, 260); o.answer = str(s.answer).slice(0, 160);
+      // a step is a line of working ("d = 2 × 1.4 = 2.8 cm") and what it means, or (older packs) one sentence
+      o.steps = arr(s.steps).map((x) => (x && typeof x === 'object' ? { math: str(x.math).slice(0, 80), text: str(x.text).slice(0, 200) } : str(x).slice(0, 200))).filter((x) => (typeof x === 'string' ? x : x.math || x.text)).slice(0, 5);
+      if (!o.problem) return null; break;
     case 'check': {
       o.question = str(s.question).slice(0, 260); o.options = strs(s.options, 4, 120);
       let a = s.answer;
@@ -109,7 +153,7 @@ export function normPack(raw, input, allowed) {
     title: str(raw.title).slice(0, 100) || input.topic, objective: str(raw.objective).slice(0, 240), successCriteria: strs(raw.successCriteria, 4, 160), bigQuestion: str(raw.bigQuestion).slice(0, 200),
     codes: codes.map((c) => ({ code: c, text: (objective(c) || {}).text || '' })),
     vocab: arr(raw.vocab).map((v) => ({ word: str(v && v.word).slice(0, 60), meaning: str(v && v.meaning).slice(0, 200), example: str(v && v.example).slice(0, 200), gloss: str(v && v.gloss).slice(0, 80), pinyin: str(v && v.pinyin).slice(0, 60) })).filter((v) => v.word).slice(0, 10),
-    slides: arr(raw.slides).map(normSlide).filter(Boolean).slice(0, 16),
+    slides: arr(raw.slides).map(normSlide).filter(Boolean).slice(0, 30),
     activities: arr(raw.activities).map((a) => ({ name: str(a && a.name).slice(0, 80), minutes: clamp(Math.round(num(a && a.minutes, 10)), 1, 60), grouping: str(a && a.grouping).slice(0, 40), steps: strs(a && a.steps, 6, 200), resources: str(a && a.resources).slice(0, 200) })).filter((a) => a.name && a.steps.length).slice(0, 4),
     teacher: { overview: str(t.overview).slice(0, 600), misconceptions: strs(t.misconceptions, 5, 260), support: str(t.support).slice(0, 400), stretch: str(t.stretch).slice(0, 400), assessment: str(t.assessment).slice(0, 500), briefing: str(t.briefing).slice(0, 2400) },
     worksheet: raw.worksheet ? normSheet(raw.worksheet) : null

@@ -1,7 +1,7 @@
 /* Help: How it works (every rule, howto.js), short guides for the jobs teachers do most, keyboard shortcuts, privacy
    and feedback. Kept off the everyday pages (Rabinder's point 4). */
-import { esc, icon } from './core.js?v=a277ebb7';
-import { soon } from './library.js?v=a277ebb7';
+import { esc, icon } from './core.js?v=ceec3b96';
+import { soon } from './library.js?v=ceec3b96';
 
 const GUIDES = [
   ['Make a lesson in a minute', 'pack', ['On Today, type the topic, pick the year and subject, and leave Lesson slides selected.', 'Press Make it, then Make on the next page.', 'Tap any slide to change it in plain words, for example “Make this simpler”.', 'Press Present, or download the PowerPoint.']],

@@ -1,11 +1,12 @@
 /* lkie.like drawing: slides (with diagrams drawn exactly from the numbers), key words, activities, the worksheet in
    three tiers, and the teacher notes. Everything is plain HTML and SVG, so it works offline and on old laptops. */
-import { esc, icon, normAnswer } from '../core.js?v=a277ebb7';
-import { fractify } from '../fractions.js?v=a277ebb7';
-import { TIERS, totalMinutes, sheetBalance } from './model.js?v=a277ebb7';
-import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=a277ebb7';
-import { picURL, creditText, ytThumb, safePic, safeVideo } from '../pics.js?v=a277ebb7';
-import { lookInfo, lookFor } from './looks.js?v=a277ebb7';
+import { esc, icon, normAnswer } from '../core.js?v=ceec3b96';
+import { fractify } from '../fractions.js?v=ceec3b96';
+import { TIERS, totalMinutes, sheetBalance } from './model.js?v=ceec3b96';
+import { objective, yearsLabel, FRAMEWORKS, SUBJECT_BY_ID } from './curriculum.js?v=ceec3b96';
+import { picURL, creditText, ytThumb, safePic, safeVideo } from '../pics.js?v=ceec3b96';
+import { lookInfo, lookFor } from './looks.js?v=ceec3b96';
+import { MATH_TYPES, mathSVG } from './mathdraw.js?v=ceec3b96';
 
 /* ---------------- slide kinds ---------------- */
 export const KIND = {
@@ -19,8 +20,47 @@ export const KIND = {
   independent: { label: 'Your turn', tone: 'green', icon: 'wand' },
   talk: { label: 'Talk time', tone: 'teal', icon: 'chat' },
   plenary: { label: 'Plenary', tone: 'violet', icon: 'star' },
-  exit: { label: 'Exit ticket', tone: 'gold', icon: 'check' }
+  exit: { label: 'Exit ticket', tone: 'gold', icon: 'check' },
+  goals: { label: 'Learning goals', tone: 'blue', icon: 'target' },
+  think: { label: 'Think', tone: 'violet', icon: 'chat' },
+  rule: { label: 'The rule', tone: 'indigo', icon: 'bulb' },
+  try: { label: 'Try it', tone: 'orange', icon: 'wand' },
+  gallery: { label: 'In real life', tone: 'green', icon: 'image' },
+  match: { label: 'Match up', tone: 'teal', icon: 'layers' },
+  truefalse: { label: 'True or false?', tone: 'gold', icon: 'check' }
 };
+/* Starter, Main, Plenary: shown before the kind of slide, as in "Starter · Recap". */
+export const PHASE_LABEL = { starter: 'Starter', main: 'Main', plenary: 'Plenary' };
+export const kindLabel = (s) => { const k = KIND[s.layout] || KIND.concept; return (PHASE_LABEL[s.phase] ? PHASE_LABEL[s.phase] + ' · ' : '') + k.label; };
+/* A worked-example step: a line of working and what it means, or (older packs) one sentence. */
+export const stepLine = (st) => (typeof st === 'string' ? st : st.math && st.text ? st.math + ' | ' + st.text : st.math || st.text || '');
+/* Maths written as maths: single letters (d, r, C) in italics, the rest as it is. */
+/* Lone letters in maths are set in italics (d = 2 × r), as in a textbook. Not a unit after a number or a degree sign
+   (5 m, 3 g, 25 °C), not a letter inside a word (Priya's, e.g.), and in sentences not "a", "A" or "I". */
+export function mathParts(t, prose) {
+  const s = String(t == null ? '' : t), out = [];
+  let last = 0;
+  for (let at = 0; at < s.length; at++) {
+    const c = s[at], prev = s[at - 1] || '', next = s[at + 1] || '';
+    if (!/[A-Za-z]/.test(c) || /[A-Za-z'’.]/.test(prev) || /[A-Za-z'’]/.test(next) || (next === '.' && /[A-Za-z]/.test(s[at + 2] || ''))) continue;
+    const before = s.slice(Math.max(0, at - 3), at);
+    if ((/[mglLsh]/.test(c) && /\d\s*$/.test(before)) || /°\s*$/.test(before) || (prose && /[aAI]/.test(c))) continue;
+    if (at > last) out.push({ t: s.slice(last, at) });
+    out.push({ t: c, i: true }); last = at + 1;
+  }
+  if (last < s.length) out.push({ t: s.slice(last) });
+  return out;
+}
+export const mathText = (t, prose) => mathParts(t, prose).map((x) => (x.i ? '<i>' + esc(x.t) + '</i>' : esc(x.t))).join('');
+/* The meanings of a matching task in a fixed, mixed order where no meaning sits next to its own word. */
+export function matchOrder(s) {
+  const n = s.pairs.length, idx = Array.from({ length: n }, (_, i) => i);
+  let h = 7;
+  s.pairs.forEach((x) => { for (const c of x.term) h = (h * 31 + c.charCodeAt(0)) >>> 0; });
+  for (let i = n - 1; i > 0; i--) { h = (h * 1103515245 + 12345) >>> 0; const j = h % (i + 1); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  for (let i = 0; i < n; i++) if (idx[i] === i) { const j = (i + 1) % n; [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  return idx;
+}
 export const TONE = {
   blue: ['#3E7CC7', '#2C5E9E', '#EAF1FA'], red: ['#E35D5B', '#B8403E', '#FCECEC'], green: ['#4FA36B', '#357A4D', '#EAF5EE'], teal: ['#2D9C9C', '#1F7676', '#E6F4F4'],
   violet: ['#8466C4', '#6648A8', '#F1EDFA'], orange: ['#F28C38', '#B9621C', '#FDF0E4'], pink: ['#D9628F', '#A8436C', '#FBEAF1'], indigo: ['#4C5FD5', '#3445A8', '#ECEFFC'], gold: ['#E0A526', '#8F6A12', '#FBF3DD']
@@ -36,7 +76,8 @@ const EDGE = '<div class="sl-edge" aria-hidden="true">' + [['red', 14], ['orange
 export const learnText = (o) => { const t = String(o || '').trim().replace(/^(to|i can)\s+/i, '').replace(/\.$/, ''); return t ? t.charAt(0).toLowerCase() + t.slice(1) : ''; };
 /* How many reveal steps a slide has in Present mode. */
 export function maxReveal(s) {
-  if (s.layout === 'recap' || s.layout === 'exit' || s.layout === 'check' || s.layout === 'independent') return 1;
+  if (['recap', 'exit', 'check', 'independent', 'try', 'match', 'truefalse'].includes(s.layout)) return 1;
+  if (s.layout === 'think') return s.reveal && s.reveal.length ? 1 : 0;
   if (s.layout === 'guided') return s.steps.length + (s.answer ? 1 : 0);
   return 0;
 }
@@ -55,8 +96,10 @@ function wrap(text, max) {
 const T = (x, y, s, o) => '<text x="' + x + '" y="' + y + '" font-size="' + (o.size || 16) + '" fill="' + (o.fill || '#1B2440') + '" text-anchor="' + (o.anchor || 'middle') + '"' + (o.bold ? ' font-weight="700"' : '') + ' font-family="Century Gothic, Avenir Next, Trebuchet MS, Arial, sans-serif">' + esc(s) + '</text>';
 function TL(x, y, lines, o) { return lines.map((l, i) => T(x, y + i * (o.lh || (o.size || 16) * 1.25), l, o)).join(''); }
 const svg = (w, h, inner) => '<svg class="lk-dg" viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg" role="img" preserveAspectRatio="xMidYMid meet">' + inner + '</svg>';
-export function diagramSVG(d, tone) {
+/* o: { night, bare } for the maths drawings (light colours on a dark slide; no labels on a word card) */
+export function diagramSVG(d, tone, o) {
   if (!d) return '';
+  if (MATH_TYPES.includes(d.type)) return mathSVG(d, TONE[tone] || TONE.blue, o);      // exact maths drawings (mathdraw.js)
   const [k, kd, kt] = TONE[tone] || TONE.blue, ink = '#1B2440', soft = '#4A5468';
   switch (d.type) {
     case 'numberline': {
@@ -171,16 +214,20 @@ function videoHTML(v, present) {
   return '<figure class="lk-pic lk-vid"' + (present ? ' data-vid="' + v.id + '" data-start="' + (Number(v.start) || 0) + '"' : '') + '><img src="' + ytThumb(v.id) + '" alt="" decoding="async"' + (present ? '' : ' loading="lazy"') + '>' +
     '<span class="lk-play"' + (present ? ' role="button" tabindex="0" aria-label="Play the video: ' + esc(name) + '"' : ' aria-hidden="true"') + '>' + icon('play') + '</span><figcaption>' + icon('video') + '<span>' + esc(name) + '</span></figcaption></figure>';
 }
-function visHTML(s, tone, present) {
-  const dg = s.diagram ? '<div class="lk-dgw">' + diagramSVG(s.diagram, tone) + '</div>' : '';
+/* night: a dark ready-made look, where maths drawings go straight onto the slide in light colours (other diagrams keep
+   their white card) */
+export const nightFor = (d, night) => !!(night && d && MATH_TYPES.includes(d.type));
+function visHTML(s, tone, present, night) {
+  const nt = nightFor(s.diagram, night);
+  const dg = s.diagram ? '<div class="lk-dgw' + (nt ? ' night' : '') + '">' + diagramSVG(s.diagram, tone, { night: nt }) + '</div>' : '';
   const md = s.video ? videoHTML(s.video, present) : s.pic ? picHTML(s.pic, '', present) : '';
   return dg && md ? '<div class="lk-stack">' + dg + md + '</div>' : dg || md;
 }
-function bodyHTML(p, s, rv, tone, present) {
-  const vis = visHTML(s, tone, present), split = (inner) => (vis ? '<div class="lk-split">' + inner + vis + '</div>' : inner);
+function bodyHTML(p, s, rv, tone, present, night) {
+  const vis = visHTML(s, tone, present, night), split = (inner) => (vis ? '<div class="lk-split">' + inner + vis + '</div>' : inner);
   switch (s.layout) {
     case 'title': {
-      const crit = Array.isArray(p.successCriteria) ? p.successCriteria : [];
+      const crit = Array.isArray(p.successCriteria) && !(p.slides || []).some((x) => x.layout === 'goals') ? p.successCriteria : [];   // a goals slide shows them instead
       const sc = crit.length ? '<div class="t-sc"><span>Success criteria</span><ul>' + crit.map((c) => '<li><i class="box"></i><span>' + esc(c) + '</span></li>').join('') + '</ul></div>' : '';
       const t = '<div class="t-wrap"><p class="t-eyebrow">' + esc(p.input.year) + ' · ' + esc(p.input.subjectName) + '</p><h3 class="t-title">' + esc(p.title) + '</h3>' +
         (p.objective ? '<p class="t-obj"><b>We are learning to</b> ' + esc(learnText(p.objective)) + '</p>' : '') + sc + (p.bigQuestion ? '<p class="lk-bq">' + icon('spark') + '<span>' + esc(p.bigQuestion) + '</span></p>' : '') + '</div>';
@@ -189,28 +236,68 @@ function bodyHTML(p, s, rv, tone, present) {
     case 'recap': case 'exit':
       return '<div class="' + (vis ? 'lk-split' : '') + '"><ol class="qs' + (s.questions.length > 3 && !vis ? ' two' : '') + '">' + s.questions.map((q, j) => '<li><span class="qn">' + (j + 1) + '</span><span class="qt">' + esc(q.q) + '</span><span class="qa' + (rv ? ' on' : '') + '">' + esc(q.a) + '</span></li>').join('') + '</ol>' + vis + '</div>';
     case 'hook': return '<div class="' + (vis ? 'lk-split' : '') + '"><div><p class="hook-p">' + esc(s.prompt) + '</p>' + (s.detail ? '<p class="hook-d">' + esc(s.detail) + '</p>' : '') + '</div>' + vis + '</div>';
-    case 'vocab': return split('<div class="vocab' + (vis ? ' one' : '') + '">' + vocabFor(p, s).map((w) => '<div class="vw"><b>' + esc(w.word) + (w.pinyin ? ' <small>' + esc(w.pinyin) + '</small>' : '') + '</b><span>' + esc(w.meaning) + (w.gloss ? ' · ' + esc(w.gloss) : '') + '</span></div>').join('') + '</div>');
+    case 'vocab': {
+      if (s.diagrams && s.diagrams.some(Boolean)) {                  // maths: a small exact drawing above each word
+        const ws = vocabFor(p, s).slice(0, 4), nt = !!night && s.diagrams.every((d) => !d || MATH_TYPES.includes(d.type));
+        return '<div class="lk-vdg n' + ws.length + (nt ? ' night' : '') + '">' + ws.map((w, j) => '<div class="lk-vcard">' + (s.diagrams[j] ? '<div class="lk-vpic">' + diagramSVG(s.diagrams[j], tone, { night: nt, bare: true }) + '</div>' : '') + '<b>' + esc(w.word) + '</b><span>' + esc(w.meaning) + '</span></div>').join('') + '</div>';
+      }
+      return split('<div class="vocab' + (vis ? ' one' : '') + '">' + vocabFor(p, s).map((w) => '<div class="vw"><b>' + esc(w.word) + (w.pinyin ? ' <small>' + esc(w.pinyin) + '</small>' : '') + '</b><span>' + esc(w.meaning) + (w.gloss ? ' · ' + esc(w.gloss) : '') + '</span></div>').join('') + '</div>');
+    }
     case 'concept': {
       const ex = s.example ? '<div class="ex-box"><span>Example</span><p>' + esc(s.example) + '</p></div>' : '';
-      return '<div class="' + (vis ? 'lk-split' : 'teach' + (s.example ? '' : ' solo')) + '"><div class="lk-col"><ul class="pts">' + s.points.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' + (vis ? ex : '') + '</div>' + (vis || ex) + '</div>';
+      const call = (s.definition ? '<div class="lk-callout def">' + icon('pin') + '<div><b>Definition</b><p>' + esc(s.definition) + '</p></div></div>' : '') +
+        (s.mistake ? '<div class="lk-callout warn">' + icon('info') + '<div><b>Common mistake</b><p>' + esc(s.mistake) + '</p></div></div>' : '');
+      const pts = s.points.length ? '<ul class="pts">' + s.points.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '';
+      return '<div class="' + (vis ? 'lk-split' : 'teach' + (s.example ? '' : ' solo')) + '"><div class="lk-col">' + pts + (vis ? ex : '') + call + '</div>' + (vis || ex) + '</div>';
     }
     case 'guided':
-      return '<div class="' + (vis ? 'lk-split' : '') + '"><div class="lk-col"><div class="prob">' + esc(s.problem) + '</div><ol class="steps">' + s.steps.map((st, j) => '<li class="' + (rv > j ? 'on' : '') + '">' + esc(st) + '</li>').join('') + '</ol>' +
+      return '<div class="' + (vis ? 'lk-split' : '') + '"><div class="lk-col"><div class="prob"><span class="lk-plab">Problem</span>' + esc(s.problem) + '</div><ol class="steps lk-msteps">' +
+        s.steps.map((st, j) => '<li class="' + (rv > j ? 'on' : '') + '">' + (typeof st === 'string' ? '<span class="lk-why">' + esc(st) + '</span>' : (st.math ? '<span class="lk-math">' + mathText(st.math) + '</span>' : '') + (st.text ? '<span class="lk-why">' + esc(st.text) + '</span>' : '')) + '</li>').join('') + '</ol>' +
         (s.answer ? '<div class="wans' + (rv > s.steps.length ? ' on' : '') + '">Answer: ' + esc(s.answer) + '</div>' : '') + '</div>' + vis + '</div>';
+    case 'goals': {
+      const g = '<ol class="lk-goals">' + s.goals.map((x, j) => '<li><span class="qn">' + (j + 1) + '</span><span>' + (x.verb ? '<b>' + esc(x.verb) + '</b> ' : '') + esc(x.text) + '</span></li>').join('') + '</ol>';
+      return vis ? '<div class="lk-split">' + g + vis + '</div>' : g;
+    }
+    case 'think': {
+      const inner = '<div class="lk-think"><p class="lk-bubble">' + esc(s.prompt) + '</p>' + (rv && s.reveal.length ? '<div class="lk-reveal"><b>' + esc(s.lead) + '</b><ul>' + s.reveal.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul></div>' : '') + '</div>';
+      return vis ? split(inner) : inner;
+    }
+    case 'rule': {
+      const inner = '<div class="lk-rule"><p class="lk-formula">' + mathText(s.rule) + '</p>' + (s.cards.length ? '<div class="lk-rcards n' + s.cards.length + '">' + s.cards.map((c) => '<div class="lk-rcard">' + (c.big ? '<i class="lk-rbig">' + mathText(c.big) + '</i>' : '') + '<b>' + esc(c.name) + '</b><span>' + mathText(c.text, true) + '</span></div>').join('') + '</div>' : '') + '</div>';
+      return vis ? split(inner) : inner;
+    }
+    case 'try': {
+      const inner = '<div class="lk-try"><p class="lk-tq">' + esc(s.question) + '</p>' + (rv ? '<div class="lk-tans"><b>' + mathText(s.answer, true) + '</b>' + (s.working ? '<span>' + mathText(s.working, true) + '</span>' : '') + '</div>' : '<div class="lk-tbox">Work it out on your own, then check your answer.</div>') + '</div>';
+      return vis ? split(inner) : inner;
+    }
+    case 'gallery':
+      return (s.intro ? '<p class="lk-gintro">' + esc(s.intro) + '</p>' : '') + '<div class="lk-gallery n' + s.items.length + '">' + s.items.map((it) => '<figure class="lk-gitem">' + (safePic(it.pic) ? picHTML(it.pic, 'lk-gpic', present) : '<div class="lk-gpic lk-gph">' + icon('image') + '</div>') +
+        '<figcaption><b>' + esc(it.name) + '</b>' + it.lines.map((l) => '<span>' + mathText(l, true) + '</span>').join('') + '</figcaption></figure>').join('') + '</div>';
+    case 'match': {
+      const order = matchOrder(s), L = 'ABCDE';
+      return '<p class="lk-mhint">Match each word to its meaning.</p><div class="lk-terms">' + s.pairs.map((x, j) => '<span class="lk-term' + (rv ? ' on' : '') + '">' + esc(x.term) + '<b>' + (rv ? L[order.indexOf(j)] : '') + '</b></span>').join('') + '</div>' +
+        '<div class="lk-defs">' + order.map((pi, j) => '<div class="lk-def"><b>' + L[j] + '</b><span>' + esc(s.pairs[pi].meaning) + '</span></div>').join('') + '</div>';
+    }
+    case 'truefalse': {
+      const inner = '<p class="lk-tf-s">' + esc(s.statement) + '</p><div class="lk-tf">' + [true, false].map((v) => '<span class="lk-tfb' + (rv ? (v === s.answer ? ' right' : ' dim') : '') + '">' + icon(v ? 'check' : 'close') + (v ? 'True' : 'False') + '</span>').join('') + '</div>' +
+        (rv && s.why ? '<div class="lk-callout key">' + icon('bulb') + '<div><b>Why is that?</b><p>' + mathText(s.why, true) + '</p></div></div>' : '');
+      return vis ? split('<div class="lk-col">' + inner + '</div>') : inner;
+    }
     case 'check': {
       const inner = '<p class="hq">' + esc(s.question) + '</p><div class="opts' + (vis ? ' one' : '') + '">' + s.options.map((o, j) => '<div class="opt' + (rv ? (j === s.answer ? ' right' : ' dim') : '') + '"><b>' + 'ABCD'[j] + '</b><span>' + esc(o) + '</span></div>').join('') + '</div>' + (rv && s.why ? '<p class="why"><b>Why:</b> ' + esc(s.why) + '</p>' : '');
       return vis ? split('<div class="lk-col">' + inner + '</div>') : inner;
     }
     case 'independent': {
-      const inner = '<div class="tiers' + (vis ? ' one' : '') + '">' + [['support', 'Support', 'green', 1], ['core', 'Core', 'orange', 2], ['stretch', 'Stretch', 'red', 3]].map(([k, lab, t, n]) => '<div class="tier" style="' + toneVars(t) + '"><div class="tier-h">' + icon('star').repeat(n) + '<span>' + lab + '</span></div><ul>' + (s[k] || []).map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul></div>').join('') + '</div>' +
+      const v = rv && s.answers ? '' : vis;                          // with the answers showing, the tiers take the whole width
+      const inner = '<div class="tiers' + (v ? ' one' : '') + '">' + [['support', 'Support', 'green', 1], ['core', 'Core', 'orange', 2], ['stretch', 'Stretch', 'red', 3]].map(([k, lab, t, n]) => '<div class="tier" style="' + toneVars(t) + '"><div class="tier-h">' + icon('star').repeat(n) + '<span>' + lab + '</span></div><ul>' + (s[k] || []).map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul></div>').join('') + '</div>' +
         (rv && s.answers ? '<p class="why lk-ans"><b>Answers:</b> ' + esc(s.answers) + '</p>' : '');
-      return vis ? split('<div class="lk-col">' + inner + '</div>') : inner;
+      return v ? split('<div class="lk-col">' + inner + '</div>') : inner;
     }
     case 'talk': {
       const inner = '<p class="talk-p">' + esc(s.prompt) + '</p>' + (s.starter ? '<div class="sbub">' + esc(s.starter) + '</div>' : '');
       return vis ? split('<div>' + inner + '</div>') : inner;
     }
-    case 'plenary': return '<div class="' + (vis ? 'lk-split' : '') + '"><div><ul class="pts">' + s.points.map((x) => '<li>' + esc(x) + '</li>').join('') + '</ul>' + (s.prompt ? '<p class="lk-reflect">' + icon('chat') + '<span>' + esc(s.prompt) + '</span></p>' : '') + '</div>' + vis + '</div>';
+    case 'plenary': return '<div class="' + (vis ? 'lk-split' : '') + '"><div><ol class="lk-sum">' + s.points.map((x, j) => '<li><span class="qn">' + (j + 1) + '</span><span>' + esc(x) + '</span></li>').join('') + '</ol>' + (s.prompt ? '<p class="lk-reflect">' + icon('chat') + '<span>' + esc(s.prompt) + '</span></p>' : '') + '</div>' + vis + '</div>';
     default: return '';
   }
 }
@@ -220,7 +307,9 @@ export function momentInfo(p, s) {
   const o = { title: s.title || (KIND[s.layout] || KIND.concept).label, lesson: p.title };
   if (s.layout === 'check') Object.assign(o, { q: s.question, opts: s.options, answer: s.answer });
   else if (s.layout === 'recap' || s.layout === 'exit') o.qs = s.questions.map((q) => ({ q: q.q, a: q.a }));
-  else if (s.layout === 'hook' || s.layout === 'talk') o.q = s.prompt;
+  else if (s.layout === 'hook' || s.layout === 'talk' || s.layout === 'think') o.q = s.prompt;
+  else if (s.layout === 'truefalse') Object.assign(o, { q: s.statement, opts: ['True', 'False'], answer: s.answer ? 0 : 1 });
+  else if (s.layout === 'try') o.qs = [{ q: s.question, a: s.answer }];
   else if (s.layout === 'plenary' && s.prompt) o.q = s.prompt;
   return o;
 }
@@ -232,11 +321,11 @@ function respondPill(p, s, rt, present) {
 /* o: { reveal, mode, theme (the default look), present } */
 export function slideHTML(p, s, i, o) {
   o = o || {};
-  const k = KIND[s.layout] || KIND.concept, rt = respondText(s.respond, o.mode), L = lookInfo(lookFor(p, s, o.theme)), fs = FS_OK.includes(s.fs) ? s.fs : 1;
+  const k = KIND[s.layout] || KIND.concept, rt = respondText(s.respond, o.mode), L = lookInfo(lookFor(p, s, o.theme)), fs = FS_OK.includes(s.fs) ? s.fs : 1, night = L.dark && L.id !== 'pic' && L.id !== 'colour';
   return '<div class="sl lk-sl lk--' + s.layout + ' ' + L.cls + '" style="' + toneVars(k.tone) + L.style + (fs !== 1 ? ';--ts:' + fs : '') + '"' + (fs !== 1 ? ' data-fs="' + fs + '"' : '') + '>' + L.layer + (L.edge ? EDGE : '') +
-    '<div class="sl-head"><span class="sl-kind">' + icon(k.icon) + esc(k.label) + '</span>' + respondPill(p, s, rt, o.present) + '</div>' +
+    '<div class="sl-head"><span class="sl-kind">' + icon(k.icon) + esc(kindLabel(s)) + '</span>' + respondPill(p, s, rt, o.present) + '</div>' +
     (s.layout === 'title' ? '' : '<h3 class="sl-title">' + esc(s.title || k.label) + '</h3>') +
-    '<div class="sl-body">' + bodyHTML(p, s, o.reveal || 0, k.tone, o.present) + '</div>' +
+    '<div class="sl-body">' + bodyHTML(p, s, o.reveal || 0, k.tone, o.present, night) + '</div>' +
     '<div class="sl-foot"><span>' + esc(p.input.year) + ' · ' + esc(p.input.subjectName) + ' · ' + esc(p.title) + '</span><span>' + (i + 1) + ' / ' + p.slides.length + '</span></div></div>';
 }
 export function fitSlide(el) {
@@ -249,6 +338,10 @@ export function fitSlide(el) {
 }
 /* What the teacher sees under each thumbnail: what to say, answers, the picture idea and where to find media. */
 export function answersOf(s) {
+  if (s.layout === 'try') return s.answer + (s.working ? ' (' + s.working + ')' : '');
+  if (s.layout === 'truefalse') return (s.answer ? 'True' : 'False') + (s.why ? '. ' + s.why : '');
+  if (s.layout === 'match') { const o = matchOrder(s); return s.pairs.map((x, j) => x.term + ' ' + 'ABCDE'[o.indexOf(j)]).join(', '); }
+  if (s.layout === 'think') return (s.reveal || []).join('; ');
   if (s.layout === 'recap' || s.layout === 'exit') return s.questions.map((q, j) => (j + 1) + '. ' + q.a).join('; ');
   if (s.layout === 'check') return 'ABCD'[s.answer] + ', ' + (s.options[s.answer] || '') + (s.why ? '. ' + s.why : '');
   if (s.layout === 'guided') return s.answer;
@@ -292,7 +385,7 @@ export function notesHTML(p) {
     '<section class="two">' + (t.misconceptions.length ? '<div class="psec"><h3>Watch out for</h3>' + L(t.misconceptions) + '</div>' : '') + (t.assessment ? '<div class="psec"><h3>Assessment for learning</h3><p>' + esc(t.assessment) + '</p></div>' : '') + '</section>' +
     '<section class="two">' + (t.support ? '<div class="psec"><h3>Support</h3><p>' + esc(t.support) + '</p></div>' : '') + (t.stretch ? '<div class="psec"><h3>Stretch</h3><p>' + esc(t.stretch) + '</p></div>' : '') + '</section>' +
     '<section class="psec"><h3>Lesson flow</h3><div class="tbl-wrap"><table><thead><tr><th>Slide</th><th>Part</th><th>Time</th><th>What happens</th></tr></thead><tbody>' +
-    p.slides.map((s, i) => '<tr><td class="num">' + (i + 1) + '</td><td>' + esc((KIND[s.layout] || {}).label || s.layout) + '</td><td class="num">' + (s.minutes ? s.minutes + ' min' : '') + '</td><td>' + esc(s.title || '') + '</td></tr>').join('') +
+    p.slides.map((s, i) => '<tr><td class="num">' + (i + 1) + '</td><td>' + esc(kindLabel(s)) + '</td><td class="num">' + (s.minutes ? s.minutes + ' min' : '') + '</td><td>' + esc(s.title || '') + '</td></tr>').join('') +
     '</tbody><tfoot><tr><td></td><td>Total</td><td class="num">' + totalMinutes(p) + ' min</td><td></td></tr></tfoot></table></div></section>' +
     '<section class="psec"><h3>Curriculum link</h3>' + alignmentHTML(p) + '</section>' +
     (bal ? '<section class="psec"><h3>Worksheet balance</h3><ul class="lk-bal">' + bal.map((b) => '<li><b>' + esc(b.label) + '</b><span>' + b.n + ' questions · ' + b.types + ' question types · demand ' + b.demand.toFixed(1) + ' of 3</span><i style="--d:' + (b.demand / 3) + '"></i></li>').join('') + '</ul><p class="fine">Demand: recall 1, apply 2, reason 3. Scaffolded should sit lowest and Stretch highest.</p></section>' : '') +
