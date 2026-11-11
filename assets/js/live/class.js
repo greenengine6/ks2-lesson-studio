@@ -11,15 +11,15 @@
    - End class: a summary with no names (how many came, what was covered, the quiz average, what Symphony spotted,
      the class mood, the homework set, and Symphony's idea for the next lesson's starter), saved in My subjects and
      shown at #/class/<id>. */
-import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, askJSON, CONFIG, HOUSE_WORDS, YEARS } from '../core.js?v=ceec3b96';
-import { sfx } from '../fx/audio.js?v=ceec3b96';
-import { confetti } from '../fx/particles.js?v=ceec3b96';
-import { chatState, chatStart, chatEnd } from '../guard.js?v=ceec3b96';
-import { SUBJECT_LIST, subjectName, subjectColor, yearOf, subjectOf, takeClass, pickItem, getItem, openItem, findItem, putItem, startMaking, startClass } from '../library.js?v=ceec3b96';
-import { Live, startLive, endLive, onLive, allPupils, setLock, setEyes, asks, setDeviceLock, awayAll, awayCount } from './session.js?v=ceec3b96';
-import { openJoin } from './panel.js?v=ceec3b96';
-import { startQuizLive, sendSheetLive, sendGameLive, sendHomework, taskLog, logStep, pushGroups, pushTimer, stopTimerLive, classPupils } from './tasks.js?v=ceec3b96';
-import { openMoment } from '../moments.js?v=ceec3b96';
+import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, askJSON, CONFIG, HOUSE_WORDS, YEARS } from '../core.js?v=1c26eb56';
+import { sfx } from '../fx/audio.js?v=1c26eb56';
+import { confetti } from '../fx/particles.js?v=1c26eb56';
+import { chatState, chatStart, chatEnd } from '../guard.js?v=1c26eb56';
+import { SUBJECT_LIST, subjectName, subjectColor, yearOf, subjectOf, takeClass, pickItem, getItem, openItem, findItem, putItem, startMaking, startClass } from '../library.js?v=1c26eb56';
+import { Live, startLive, endLive, onLive, allPupils, setLock, setEyes, asks, setDeviceLock, awayAll, awayCount } from './session.js?v=1c26eb56';
+import { openJoin } from './panel.js?v=1c26eb56';
+import { startQuizLive, sendSheetLive, sendGameLive, sendHomework, taskLog, logStep, pushGroups, pushTimer, stopTimerLive, classPupils } from './tasks.js?v=1c26eb56';
+import { openMoment } from '../moments.js?v=1c26eb56';
 
 const SS = 'ks2-engine.class.v1';
 let C = null, view = null, tick = 0, unsub = null, picked = new Set();
@@ -347,7 +347,7 @@ function makeGroups() {
   logStep({ kind: 'check', title: 'Groups of ' + size });
 }
 async function tryDock() {
-  try { const m = await import('../tools/tools.js?v=ceec3b96'); if (m.openToolDock) { m.openToolDock(document.body); return; } } catch (e) { /* not there yet */ }
+  try { const m = await import('../tools/tools.js?v=1c26eb56'); if (m.openToolDock) { m.openToolDock(document.body); return; } } catch (e) { /* not there yet */ }
   location.hash = '#/tools';
 }
 function copyRegister() {
@@ -459,7 +459,7 @@ async function onClick(e) {
   else if (a === 'start') begin();
   else if (a === 'join') openJoin(document.body, C.title);
   else if (a === 'lock') { setLock(!Live.locked); toast(Live.locked ? 'The door is locked. Nobody new can join.' : 'The door is open again.'); }
-  else if (a === 'cv') import('./classview.js?v=ceec3b96').then((m) => m.openClassView({ host: document.body }));
+  else if (a === 'cv') import('./classview.js?v=1c26eb56').then((m) => m.openClassView({ host: document.body }));
   else if (a === 'end') endClass(b);
   else if (a === 'register') copyRegister();
   else if (a === 'pick') pickName();
@@ -468,7 +468,7 @@ async function onClick(e) {
   else if (a === 'dock') tryDock();
   else if (a === 'eyes') { setEyes(!Live.eyes); toast(Live.eyes ? 'Every pupil’s screen says “Eyes on the board”.' : 'Pupils can see their screens again.'); }
   else if (a === 'dlock') { setDeviceLock(!Live.dl); paintToggles(); toast(Live.dl ? 'Devices locked. You will see here who leaves the class page.' : 'Devices unlocked.'); }
-  else if (a === 'readq') { const q = Live.tk && Live.tk.q ? Live.tk.q : Live.mo && Live.mo.q ? Live.mo.q : ''; if (q) import('../fx/voice.js?v=ceec3b96').then((m) => m.Voice.say(q, { lang: 'en-GB', style: 'chat' })); else toast('There is no question on pupils’ devices right now.'); }
+  else if (a === 'readq') { const q = Live.tk && Live.tk.q ? Live.tk.q : Live.mo && Live.mo.q ? Live.mo.q : ''; if (q) import('../fx/voice.js?v=1c26eb56').then((m) => m.Voice.say(q, { lang: 'en-GB', style: 'chat' })); else toast('There is no question on pupils’ devices right now.'); }
   else if (a === 'step-done') { if (C.cur >= 0 && !C.done.includes(C.cur)) C.done.push(C.cur); C.cur = -1; save(); renderRun(); confetti(view, { count: 40, y: 0.2 }); }
   else if (a === 'again') { const o = JSON.parse(view.dataset.sum || '{}'); startClass({ title: o.title, subject: o.subject, year: o.year }); }
 }

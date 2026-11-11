@@ -5,9 +5,9 @@
    The board is the whole class's screen, so while something is on it (a full screen, Present mode, a class tool or a
    live task on the board, the class view's "Show it on the board") a pop-up does not name the pupil, the same rule as
    a pupil's question shown on the board. The names are on the Classroom page and in the class view. */
-import { esc, icon } from '../core.js?v=ceec3b96';
-import { sfx } from '../fx/audio.js?v=ceec3b96';
-import { Live, onLive, awayOf, nameOf } from './session.js?v=ceec3b96';
+import { esc, icon } from '../core.js?v=1c26eb56';
+import { sfx } from '../fx/audio.js?v=1c26eb56';
+import { Live, onLive, awayOf, nameOf } from './session.js?v=1c26eb56';
 
 const BOARD = '#present:not([hidden]), #spresent:not([hidden]), #lpresent:not([hidden]), .tl-board, .qstage, .ltask, .cv-board, .cal-qrbig, .kg-overlay';
 const onBoard = () => !!(document.fullscreenElement || document.webkitFullscreenElement || document.querySelector(BOARD));

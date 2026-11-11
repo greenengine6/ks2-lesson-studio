@@ -2,7 +2,7 @@
    pages that keep their own AudioContext: the pupils' page and the games. Imports only the sound bank (data), so
    those pages stay small. Fetched once after the first sound; until it has arrived (or offline), play() returns
    false and the page plays its own live-made sound instead. */
-import { KITS } from './soundbank.js?v=ceec3b96';
+import { KITS } from './soundbank.js?v=1c26eb56';
 
 const K = KITS.ui;
 const URL_UI = new URL('../../sounds/' + K.f + (K.h ? '?h=' + K.h : ''), import.meta.url).href;

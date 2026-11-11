@@ -2,11 +2,11 @@
    Names come from "Our class" (first names kept on this device only, pupils.js), or, during a live class, from the
    pupils who have actually joined. Picking is fair: nobody is picked twice until everyone has had a turn. The name is
    said by the device's own voice (pupils' names never go to the voice service). */
-import { $, $$, esc, icon, bus, reduceMotion } from '../core.js?v=ceec3b96';
-import { Voice } from '../fx/voice.js?v=ceec3b96';
-import { pickPupil, setPupils, namesIn, pupils } from '../pupils.js?v=ceec3b96';
-import { Alarm } from './alarm.js?v=ceec3b96';
-import { prefs, setPrefs, fairPick, bagLeft, shuffle, randInt, nameSource, liveCall, layer, ti, COLOURS, boardOverlay } from './shared.js?v=ceec3b96';
+import { $, $$, esc, icon, bus, reduceMotion } from '../core.js?v=1c26eb56';
+import { Voice } from '../fx/voice.js?v=1c26eb56';
+import { pickPupil, setPupils, namesIn, pupils } from '../pupils.js?v=1c26eb56';
+import { Alarm } from './alarm.js?v=1c26eb56';
+import { prefs, setPrefs, fairPick, bagLeft, shuffle, randInt, nameSource, liveCall, layer, ti, COLOURS, boardOverlay } from './shared.js?v=1c26eb56';
 
 const CLASS_BAG = 'ks2-engine.pupils.bag.v1', HERE_BAG = 'ks2-engine.tools.bag.here', GROUPS = 'ks2-engine.tools.groups.v1';
 const P = { last: '', left: 0 };

@@ -395,13 +395,13 @@ export default {
    "intro": "In every circle, the diameter is double the radius.",
    "items": [
     {
-     "name": "20 sen coin",
+     "name": "CD",
      "lines": [
-      "Diameter: about 2 cm",
-      "Radius: about 1 cm"
+      "Diameter: 12 cm",
+      "Radius: 6 cm"
      ],
-     "wiki": "",
-     "image": "20 sen coin Malaysia"
+     "wiki": "Compact disc",
+     "image": "compact disc"
     },
     {
      "name": "Roti canai",
@@ -423,7 +423,7 @@ export default {
     }
    ],
    "say": "Which of these have you seen today? Each diameter is double its radius.",
-   "visual": "A coin, a roti canai and a bicycle wheel.",
+   "visual": "A CD, a roti canai and a bicycle wheel.",
    "respond": "talk",
    "minutes": 2
   },

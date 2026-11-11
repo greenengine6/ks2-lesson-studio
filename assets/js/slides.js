@@ -1,15 +1,15 @@
 /* Slide Studio: the original KS2 Lesson Studio, kept whole. Topic → two-way lesson slides with answers,
    teacher notes, a lesson plan, Adapt, unit planning, copying, presenting and a PowerPoint download. */
-import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=ceec3b96';
-import { track } from './track.js?v=ceec3b96';
-import { fractify, fracSlide } from './fractions.js?v=ceec3b96';
-import EXAMPLE_RAW from './slides-example.js?v=ceec3b96';
-import { Ribbons } from './fx/ribbons.js?v=ceec3b96';
-import { sfx } from './fx/audio.js?v=ceec3b96';
-import { timesUp } from './fx/timesup.js?v=ceec3b96';
-import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=ceec3b96';
-import { presentKit } from './presentkit.js?v=ceec3b96';
-import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=ceec3b96';
+import { $, $$, esc, str, arr, store, bus, prefs, hasKey, askJSON, errorCopy, toast, copyOut, CONFIG, MAIL_WRAP, HOUSE_WORDS, houseFix } from './core.js?v=1c26eb56';
+import { track } from './track.js?v=1c26eb56';
+import { fractify, fracSlide } from './fractions.js?v=1c26eb56';
+import EXAMPLE_RAW from './slides-example.js?v=1c26eb56';
+import { Ribbons } from './fx/ribbons.js?v=1c26eb56';
+import { sfx } from './fx/audio.js?v=1c26eb56';
+import { timesUp } from './fx/timesup.js?v=1c26eb56';
+import { LIMITS, makeState, makeStart, makeEnd, deliberate, enterMovesOn, watch, waitText, repaint } from './guard.js?v=1c26eb56';
+import { presentKit } from './presentkit.js?v=1c26eb56';
+import { isPinned, togglePin, unpin, takeOpen } from './shelf.js?v=1c26eb56';
 
 const I = {
   flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',

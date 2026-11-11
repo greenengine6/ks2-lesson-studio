@@ -1,9 +1,9 @@
 /* lkie.like data: tidying what the engine returns into a safe, predictable pack (slides, key words, activities,
    worksheet, unit plan), the automatic checks on a unit plan, the cache key, and reading slides out of a reply
    while it is still arriving. */
-import { str, arr, houseFix } from '../core.js?v=ceec3b96';
-import { keepCodes, objective } from './curriculum.js?v=ceec3b96';
-import { MATH_TYPES, normMath } from './mathdraw.js?v=ceec3b96';
+import { str, arr, houseFix } from '../core.js?v=1c26eb56';
+import { keepCodes, objective } from './curriculum.js?v=1c26eb56';
+import { MATH_TYPES, normMath } from './mathdraw.js?v=1c26eb56';
 
 export const LAYOUTS = ['title', 'goals', 'recap', 'hook', 'think', 'vocab', 'concept', 'rule', 'guided', 'try', 'gallery', 'match', 'check', 'independent', 'talk', 'plenary', 'truefalse', 'exit'];
 /* Starter, Main, Plenary: where each kind of slide sits in the lesson unless the engine says otherwise. */

@@ -7,14 +7,14 @@
    only and gone when the lesson ends) and Remove. For the class: the hands-up queue, pupils' private questions (reply
    privately, or show one on the board with no name), "Eyes on the board", and "Symphony spotted": the answers, with
    no names, go to the engine to find the likely misconception. Nothing about pupils is saved. */
-import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, errorCopy, askJSON, CONFIG, HOUSE_WORDS } from '../core.js?v=ceec3b96';
-import { sfx } from '../fx/audio.js?v=ceec3b96';
-import { chatState, chatStart, chatEnd } from '../guard.js?v=ceec3b96';
-import { Live, onLive, allPupils, pupilsIn, nameOf, answersFor, expectFor, helpQueue, asks, replyAsk, doneAsk, ack, sendTo, setEyes, kick, setDeviceLock, awayOf, setSpot } from './session.js?v=ceec3b96';
-import { openJoin } from './panel.js?v=ceec3b96';
-import { matches } from '../moments.js?v=ceec3b96';
-import { strokesSVG, unpackStrokes } from '../draw.js?v=ceec3b96';
-import { STICKERS } from './shapes.js?v=ceec3b96';
+import { $, $$, esc, str, icon, toast, copyOut, bus, hasKey, errorCopy, askJSON, CONFIG, HOUSE_WORDS } from '../core.js?v=1c26eb56';
+import { sfx } from '../fx/audio.js?v=1c26eb56';
+import { chatState, chatStart, chatEnd } from '../guard.js?v=1c26eb56';
+import { Live, onLive, allPupils, pupilsIn, nameOf, answersFor, expectFor, helpQueue, asks, replyAsk, doneAsk, ack, sendTo, setEyes, kick, setDeviceLock, awayOf, setSpot } from './session.js?v=1c26eb56';
+import { openJoin } from './panel.js?v=1c26eb56';
+import { matches } from '../moments.js?v=1c26eb56';
+import { strokesSVG, unpackStrokes } from '../draw.js?v=1c26eb56';
+import { STICKERS } from './shapes.js?v=1c26eb56';
 
 let V = null;
 const NOTES = () => 'ks2-live.notes.' + Live.sid;
@@ -22,7 +22,7 @@ const PRAISE = ['Great work!', 'Brilliant thinking!', 'Keep going, you’re near
 const ago = (t) => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? s + ' s ago' : Math.round(s / 60) + ' min ago'; };
 function notes() { try { return JSON.parse(sessionStorage.getItem(NOTES()) || '{}') || {}; } catch (e) { return {}; } }
 function setNote(pid, text) { const n = notes(); if (text) n[pid] = text.slice(0, 600); else delete n[pid]; try { sessionStorage.setItem(NOTES(), JSON.stringify(n)); } catch (e) { /* this view only */ } }
-const tasks = () => import('./tasks.js?v=ceec3b96').catch(() => null);
+const tasks = () => import('./tasks.js?v=1c26eb56').catch(() => null);
 
 /* ---------------- what is on the board now, and each pupil's answer to it ---------------- */
 function nowItem(T) {

@@ -5,11 +5,11 @@
    magnifying circle). Metre lines, and a measuring arrow on the one in focus, give the sizes; tap anything to go to it
    and hear what it is; drag to look along the line. The speed race lines up a diving falcon, a car, a cheetah, an
    ostrich, Usain Bolt, a fast Year 5 runner and a snail, and lets them all go for the same few seconds. */
-import { TAU, rnd, clamp, layer, view, FONT } from './util.js?v=ceec3b96';
-import { drawCreature, creatureOf } from './fauna.js?v=ceec3b96';
-import { Fx } from './music.js?v=ceec3b96';
-import { reduceMotion } from '../core.js?v=ceec3b96';
-import { ART, wonderArt, drawWater, drawRoad } from './lineup.js?v=ceec3b96';
+import { TAU, rnd, clamp, layer, view, FONT } from './util.js?v=1c26eb56';
+import { drawCreature, creatureOf } from './fauna.js?v=1c26eb56';
+import { Fx } from './music.js?v=1c26eb56';
+import { reduceMotion } from '../core.js?v=1c26eb56';
+import { ART, wonderArt, drawWater, drawRoad } from './lineup.js?v=1c26eb56';
 
 const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
 const lerp = (a, b, f) => a + (b - a) * f;

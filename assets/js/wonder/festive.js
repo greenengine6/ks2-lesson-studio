@@ -5,10 +5,10 @@
    Hanukkah, wheat fields for Vaisakhi, marigolds and papel picado for the Day of the Dead, samba confetti in Rio,
    water fights for Songkran, mooncake-night lanterns for Mid-Autumn and a bonfire with fireworks for the 5th of
    November. Tapping the scene joins in: a firework, a lantern let go, a puff of colour, a splash, a candle lit. */
-import { TAU, rnd, clamp, layer, view } from './util.js?v=ceec3b96';
-import { drawCreature } from './fauna.js?v=ceec3b96';
-import { Fx } from './music.js?v=ceec3b96';
-import { glow, dotGlow, seeded, hash, hills, ground, houses, palm, tree, mountain, flame, lantern, burstParticles, FW_COLS, drawParticles, stepParticles } from './scenery.js?v=ceec3b96';
+import { TAU, rnd, clamp, layer, view } from './util.js?v=1c26eb56';
+import { drawCreature } from './fauna.js?v=1c26eb56';
+import { Fx } from './music.js?v=1c26eb56';
+import { glow, dotGlow, seeded, hash, hills, ground, houses, palm, tree, mountain, flame, lantern, burstParticles, FW_COLS, drawParticles, stepParticles } from './scenery.js?v=1c26eb56';
 
 /* ---------------- the settings (drawn once into the background) ---------------- */
 function gopuram(g, cx, y0, hh, col) {                              // a South Indian temple tower
