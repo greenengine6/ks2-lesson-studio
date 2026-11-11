@@ -1,7 +1,7 @@
 /* KS2 Lesson Engine: shared helpers, Claude connection, copying and small UI pieces. */
-import { sfx } from './fx/audio.js?v=af1c9ebd';
-import { fracNorm, fracHTML, fracText } from './fractions.js?v=af1c9ebd';
-import { setVoiceKey } from './fx/human.js?v=af1c9ebd';
+import { sfx } from './fx/audio.js?v=e5cf7b70';
+import { fracNorm, fracHTML, fracText } from './fractions.js?v=e5cf7b70';
+import { setVoiceKey } from './fx/human.js?v=e5cf7b70';
 
 export const $ = (s, r) => (r || document).querySelector(s);
 export const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
@@ -177,20 +177,36 @@ export function forgetKey() { memKey = ''; memAccess = ''; store.set(KEY_STORE, 
 
 export class AiError extends Error { constructor(code, message) { super(message || code); this.code = code; } }
 
+/* The 5.5 engines think before they write (adaptive thinking is on by default), and the thinking counts toward the
+   token limit; their tokenizer also counts the same text as about 30% more tokens than before. A worksheet asked for
+   in 6,000 tokens was being cut off after the thinking ("It came back incomplete"). So each caller's number is the size
+   of answer it expects, and the limit sent leaves room for both. Only the tokens actually written are paid for.
+   Effort keeps the thinking short: a teacher is waiting, and lesson writing does not need long thought. If an engine
+   ever turns the effort setting down, the same request goes again without it. */
+const roomFor = (want) => Math.min(64000, Math.ceil((want || 4000) * 1.4) + 8000);
+const effortFor = (o) => o.effort || ((o.maxTokens || 4000) <= 600 ? 'low' : 'medium');
+
 export async function askClaude(prompt, o) {
   o = o || {};
   if (!o.key && !hasKey()) throw new AiError('no_key');
   const link = viaLink();
   const key = o.key || memKey;
-  let res;
+  let res, effort = effortFor(o);
   try {
-    res = await fetch(link && !o.key ? CONFIG.proxy : CONFIG.api, {
-      method: 'POST', signal: o.signal,
-      headers: link && !o.key
-        ? { 'content-type': 'application/json', 'x-access-code': memAccess }
-        : { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify(Object.assign({ model: o.model || CONFIG.mainModel, max_tokens: o.maxTokens || 4000, stream: true, messages: o.messages || [{ role: 'user', content: prompt }] }, o.system ? { system: o.system } : {}, o.tools && o.tools.length ? { tools: o.tools } : {}))
-    });
+    for (let again = 0; ; again++) {
+      res = await fetch(link && !o.key ? CONFIG.proxy : CONFIG.api, {
+        method: 'POST', signal: o.signal,
+        headers: link && !o.key
+          ? { 'content-type': 'application/json', 'x-access-code': memAccess }
+          : { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify(Object.assign({ model: o.model || CONFIG.mainModel, max_tokens: roomFor(o.maxTokens), stream: true, messages: o.messages || [{ role: 'user', content: prompt }] }, o.system ? { system: o.system } : {}, o.tools && o.tools.length ? { tools: o.tools } : {}, effort ? { output_config: { effort } } : {}))
+      });
+      if (res.ok || res.status !== 400 || !effort || again) break;
+      let peek = '';
+      try { const b = await res.clone().json(); peek = (b && b.error && b.error.message) || ''; } catch (e) { /* not JSON */ }
+      if (!/effort|output_config/i.test(peek)) break;
+      effort = '';                                                    // this engine does not take the setting: ask again without it
+    }
   } catch (e) { throw new AiError(e && e.name === 'AbortError' ? 'cancelled' : 'network'); }
   if (!res.ok) {
     let body = {};
@@ -202,6 +218,8 @@ export async function askClaude(prompt, o) {
     if (link && res.status === 404) throw new AiError('no_proxy', msg);
     if (res.status === 401) throw new AiError('bad_key', msg);
     if (res.status === 403) throw new AiError('forbidden', msg);
+    // the account's own monthly spend limit is used up: a top-up does not lift it, only Settings → Limits does
+    if (/usage limit|spend limit|regain access/i.test(msg)) throw new AiError('spend_limit', msg);
     if (res.status === 429) throw new AiError('rate_limited', msg);
     if (res.status === 529 || res.status === 503) throw new AiError('overloaded', msg);
     if (/credit balance|billing/i.test(msg)) throw new AiError('no_credit', msg);
@@ -247,6 +265,11 @@ export async function askClaude(prompt, o) {
             o.onTool({ phase: 'result', type: b.type, id: b.tool_use_id, results: Array.isArray(c) ? c.map((r) => ({ url: r.url, title: r.title })) : [], error: !Array.isArray(c) && c && c.error_code ? c.error_code : '' });
           }
           prev = b.type;
+        } else if (ev.type === 'content_block_delta' && (d.type === 'thinking_delta' || d.type === 'signature_delta')) {
+          // the engine's thinking (its text is left out by default): kept whole, so a paused turn can be handed back
+          const b = blocks[ev.index];
+          if (b && d.type === 'thinking_delta') b.thinking = (b.thinking || '') + (d.thinking || '');
+          if (b && d.type === 'signature_delta') b.signature = (b.signature || '') + (d.signature || '');
         } else if (ev.type === 'content_block_delta' && d.type === 'input_json_delta') {
           const b = blocks[ev.index]; if (b && '_json' in b) b._json += d.partial_json || '';
         } else if (ev.type === 'content_block_delta' && d.type === 'citations_delta' && d.citation) {
@@ -268,7 +291,8 @@ export async function askClaude(prompt, o) {
     if (e instanceof AiError) throw e;
     throw new AiError(e && e.name === 'AbortError' ? 'cancelled' : 'network');
   }
-  if (!text.trim() && stop !== 'pause_turn') throw new AiError('empty');
+  if (stop === 'refusal') throw new AiError('refusal');             // the engine's safety check turned this one down
+  if (!text.trim() && stop !== 'pause_turn') throw new AiError(stop === 'max_tokens' ? 'truncated' : 'empty');
   return { text, stop, blocks: blocks.filter(Boolean), usage };
 }
 export function parseJSON(text) {
@@ -331,6 +355,7 @@ export function errorCopy(code, what) {
     case 'bad_key': return 'That key did not work. Paste it again, or ask for a new setup link.';
     case 'forbidden': return 'This key is not allowed to do that. Ask the person who manages the key to check it.';
     case 'no_credit': return 'The engine account is out of credit. Ask the person who manages the key to top it up, then try again.';
+    case 'spend_limit': return 'The engine account has reached its monthly spend limit, so adding credit will not help. The person who manages the key can raise the limit at console.anthropic.com (Settings, Limits), then try again.';
     case 'rate_limited': return 'Too many requests at once. Wait a minute, then try again.';
     case 'overloaded': return 'The engine is very busy right now. Please try again in a minute.';
     case 'network': return 'Could not reach the engine. Check the internet connection and try again.';
@@ -339,6 +364,7 @@ export function errorCopy(code, what) {
     case 'server_setup': return 'The site is not fully set up yet: its key is missing or wrong on the server.';
     case 'no_proxy': return 'Private links only work on the main site address. Open the link exactly as it was sent.';
     case 'invalid_json': case 'truncated': case 'empty': return 'It came back incomplete. Please press the button again.';
+    case 'refusal': return 'The engine would not write ' + thing + '. Try again with different words for the topic.';
     default: return 'Something went wrong while making ' + thing + '. Please try again.';
   }
 }

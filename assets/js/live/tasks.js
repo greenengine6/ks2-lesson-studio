@@ -9,16 +9,16 @@
    pushTimer, stopTimerLive, pushGroups, pushSign, pushPoints, plus sendHomework (Add to my calendar on every device).
    Each one starts a live lesson first if none is running. Pupils' names stay on this screen; the class summary only
    ever gets counts and averages (taskLog). */
-import { $, $$, esc, str, arr, icon, toast, copyOut, bus, uid } from '../core.js?v=af1c9ebd';
-import { sfx } from '../fx/audio.js?v=af1c9ebd';
-import { Voice } from '../fx/voice.js?v=af1c9ebd';
-import { confetti } from '../fx/particles.js?v=af1c9ebd';
-import { picURL, creditText, safePic } from '../pics.js?v=af1c9ebd';
-import { Live, startLive, onLive, pupilsIn, allPupils, nameOf, answersFor, setTask, updateTask, clearTask, setResults, setTools, setHomework, sendBlob, budget, estimate } from './session.js?v=af1c9ebd';
-import { openJoin, closeJoin } from './panel.js?v=af1c9ebd';
-import { qrSVG } from './qr.js?v=af1c9ebd';
-import { SHAPES, shapeSVG } from './shapes.js?v=af1c9ebd';
-import { matches } from '../moments.js?v=af1c9ebd';
+import { $, $$, esc, str, arr, icon, toast, copyOut, bus, uid } from '../core.js?v=e5cf7b70';
+import { sfx } from '../fx/audio.js?v=e5cf7b70';
+import { Voice } from '../fx/voice.js?v=e5cf7b70';
+import { confetti } from '../fx/particles.js?v=e5cf7b70';
+import { picURL, creditText, safePic } from '../pics.js?v=e5cf7b70';
+import { Live, startLive, onLive, pupilsIn, allPupils, nameOf, answersFor, setTask, updateTask, clearTask, setResults, setTools, setHomework, sendBlob, budget, estimate } from './session.js?v=e5cf7b70';
+import { openJoin, closeJoin } from './panel.js?v=e5cf7b70';
+import { qrSVG } from './qr.js?v=e5cf7b70';
+import { SHAPES, shapeSVG } from './shapes.js?v=e5cf7b70';
+import { matches } from '../moments.js?v=e5cf7b70';
 
 const int = (x, d) => { const n = Math.round(Number(x)); return Number.isFinite(n) ? n : d; };
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -53,7 +53,7 @@ function boardEl(cls, label, host) {
   return el;
 }
 const fullscreen = (el) => { try { if (document.fullscreenElement) document.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); } catch (e) { /* not allowed */ } };
-const classView = (host) => import('./classview.js?v=af1c9ebd').then((m) => m.openClassView({ host: host || document.body })).catch(() => toast('The class view could not open.'));
+const classView = (host) => import('./classview.js?v=e5cf7b70').then((m) => m.openClassView({ host: host || document.body })).catch(() => toast('The class view could not open.'));
 let Q = null, S = null, G = null;
 function closeAll() { if (Q) closeQuiz(true); if (S) closeSheet(true); if (G) closeGame(true); }
 

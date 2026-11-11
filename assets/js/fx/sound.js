@@ -3,9 +3,9 @@
    files have arrived (the first time, or offline) a live-made version plays, and the recording fades in over it.
    Scenes: rain, ocean, beach, wind, river, forest, birds, night, city, market, jungle, mangrove, cave, storm,
    mountain, hurricane, fire. Crossfades between scenes. */
-import { Voice } from './voice.js?v=af1c9ebd';
-import { Sound } from './audio.js?v=af1c9ebd';
-import { Samples } from './samples.js?v=af1c9ebd';
+import { Voice } from './voice.js?v=e5cf7b70';
+import { Sound } from './audio.js?v=e5cf7b70';
+import { Samples } from './samples.js?v=e5cf7b70';
 
 let ctx = null;
 function ac() { ctx = Sound.ctx(); return ctx; }          // the site's one sound engine (audio.js): one switch, quiet while Symphony speaks

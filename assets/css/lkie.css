@@ -34,6 +34,18 @@
 
 /* ---------- making it: the live build ---------- */
 .lk-busy{border-radius:22px;padding:18px 20px;box-shadow:var(--in-sm)}
+/* a pack that was not made says so, and the example (or an older pack) stays out of sight so it is never mistaken for it */
+.lk-pack.failed > :not(.lk-fail):not(.lk-busy){display:none!important}
+.lk-fail{display:grid;gap:12px;border-radius:22px;padding:22px 22px 20px;box-shadow:var(--in-sm);scroll-margin-top:84px}
+.lk-fail-h{display:flex;align-items:center;gap:10px;margin:0;font-size:max(9px,calc(19px * var(--m,1)));line-height:1.25}
+.lk-fail-h .i{width:22px;height:22px;flex:none;color:#B03A48}
+.lk-fail .chips{margin:0}
+.lk-fail-why{margin:0;font-size:max(9px,calc(15px * var(--m,1)));line-height:1.5;font-weight:600;color:#B03A48}
+.lk-fail-note{margin:0;font-size:max(9px,calc(13.5px * var(--m,1)));line-height:1.5;color:var(--muted)}
+.lk-fail .actions{margin:4px 0 0}
+[data-theme="night"] .lk-fail-why,[data-theme="night"] .lk-fail-h .i{color:#FCA5A5}
+/* side by side, the card stays in view next to the Make button, however far down the page she is */
+@media (min-width:1061px){ .ss.lk .lk-pack.failed{position:sticky;top:96px} }
 .lk-steps{list-style:none;margin:0;padding:0;display:grid;gap:7px}
 .lk-steps li{display:flex;align-items:center;gap:10px;font-size:max(9px,calc(14px * var(--m,1)));color:var(--muted)}
 .lk-steps li > i{width:16px;height:16px;border-radius:50%;box-shadow:var(--in-sm);flex:none}

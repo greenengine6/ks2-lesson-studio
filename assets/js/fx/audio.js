@@ -15,9 +15,9 @@
    - class feedback: a bubble pop for each face (higher for happier faces) and a chime when it is saved
    - messages: a tiny blip for each notice; a glassy tick when moving between engines
    - Wonder Window: a soft breath of wind between scenes; Escape Room: a click and fanfare when a lock opens */
-import { Voice } from './voice.js?v=af1c9ebd';
-import { haptic } from './haptics.js?v=af1c9ebd';
-import { Samples } from './samples.js?v=af1c9ebd';
+import { Voice } from './voice.js?v=e5cf7b70';
+import { haptic } from './haptics.js?v=e5cf7b70';
+import { Samples } from './samples.js?v=e5cf7b70';
 
 const KEY = 'ks2-engine.sound.v1';
 const DUCKED = 0.12;                                   // how loud everything is while Symphony speaks

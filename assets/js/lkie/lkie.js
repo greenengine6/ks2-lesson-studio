@@ -3,24 +3,24 @@
    the curriculum with checked codes. Slides change in plain English with undo; a unit planner sequences up to 25
    lessons with recaps and assessments; packs open instantly from this device; PowerPoint and Word downloads.
    Every engine button goes through the shared guard (guard.js). */
-import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=af1c9ebd';
-import { track } from '../track.js?v=af1c9ebd';
-import { sfx } from '../fx/audio.js?v=af1c9ebd';
-import { Voice } from '../fx/voice.js?v=af1c9ebd';
-import { evAll } from '../idb.js?v=af1c9ebd';
-import { moodOf } from '../report.js?v=af1c9ebd';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=af1c9ebd';
-import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=af1c9ebd';
-import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=af1c9ebd';
-import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=af1c9ebd';
-import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=af1c9ebd';
-import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=af1c9ebd';
-import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=af1c9ebd';
-import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=af1c9ebd';
-import { takeMaking, takePresent } from '../library.js?v=af1c9ebd';
-import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=af1c9ebd';
-import EXAMPLE from './example.js?v=af1c9ebd';
-import { presentKit, kitButtons } from '../presentkit.js?v=af1c9ebd';
+import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=e5cf7b70';
+import { track } from '../track.js?v=e5cf7b70';
+import { sfx } from '../fx/audio.js?v=e5cf7b70';
+import { Voice } from '../fx/voice.js?v=e5cf7b70';
+import { evAll } from '../idb.js?v=e5cf7b70';
+import { moodOf } from '../report.js?v=e5cf7b70';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=e5cf7b70';
+import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=e5cf7b70';
+import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=e5cf7b70';
+import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=e5cf7b70';
+import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks } from './render.js?v=e5cf7b70';
+import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=e5cf7b70';
+import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=e5cf7b70';
+import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=e5cf7b70';
+import { takeMaking, takePresent } from '../library.js?v=e5cf7b70';
+import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=e5cf7b70';
+import EXAMPLE from './example.js?v=e5cf7b70';
+import { presentKit, kitButtons } from '../presentkit.js?v=e5cf7b70';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', UNITS = 'ks2-engine.lkie.units.v1', RULES = 'ks2-engine.lkie.rules.v1', THEME = 'ks2-engine.lkie.theme.v1', FORM = 'ks2-engine.lkie.form.v1';
 const YEARS = ['Year 3', 'Year 4', 'Year 5', 'Year 6'];
@@ -55,7 +55,7 @@ const isExample = (p) => !p || p.id === 'example';
 /* ---------------- state ---------------- */
 const S = {
   view: null, pack: EX, origin: 'example', tab: 'slides', sel: -1, tier: 'standard', answers: false, theme: store.get(THEME) === 'calm' ? 'calm' : 'bright',
-  list: [], chosen: [], busy: null, live: null, editing: false, sheetBusy: false, unit: null, unitBusy: false, briefing: false, hist: new Map(),
+  list: [], chosen: [], busy: null, live: null, fail: null, editing: false, sheetBusy: false, unit: null, unitBusy: false, briefing: false, hist: new Map(),
   pr: { open: false, i: 0, reveal: 0, notes: false, t0: 0, seen: 0 }, rec: null,
   ed: 'ai', drawer: '', pq: '', pres: null, pbusy: false, perr: '', ptarget: '', pfor: '', vq: '', vres: null, vbusy: false, auto: null
 };
@@ -121,6 +121,7 @@ function pageHTML() {
     '<section class="lesson card lk-pack" id="lk-pack" aria-label="Lesson pack">' +
     '<div class="busy lk-busy" id="lk-busy" hidden role="status" aria-live="polite"><div class="busy-top"><b>Making your lesson pack</b><button type="button" class="btn small" id="lk-stop">' + icon('stop') + 'Stop</button></div>' +
     '<ol class="lk-steps" id="lk-steps"></ol><div class="meter"><i id="lk-bar"></i></div><p class="lk-tip" id="lk-tip"></p></div>' +
+    '<div class="lk-fail" id="lk-fail" hidden></div>' +
     '<div class="lhead" id="lk-head"></div>' +
     '<div class="actions" id="lk-actions"><button type="button" class="btn primary" data-lk="present">' + icon('play') + 'Present</button><button type="button" class="btn" data-lk="ppt">' + icon('download') + '<span>PowerPoint</span></button>' +
     '<button type="button" class="btn" data-lk="word">' + icon('notes') + '<span>Worksheet (Word)</span></button><button type="button" class="btn" data-lk="brief">' + icon('volume') + '<span>Listen</span></button>' +
@@ -156,6 +157,14 @@ function paintTry() {
   $('#lk-try', S.view).innerHTML = t.length ? '<span>Try:</span>' + t.map((x) => '<button type="button" data-try="' + esc(x) + '">' + esc(x) + '</button>').join('') : '';
 }
 let matchT = 0;
+/* The best matches, each statement in full: the top 3, plus any that fit as well as the third, up to 6. So a topic
+   that names a whole strand shows all of it: "Ratio" in Year 6 shows all 4 ratio and proportion statements (only the
+   first 3 used to show, which hid "unequal sharing and grouping", the heart of ratio). */
+function shownMatches(list) {
+  if (list.length <= 3) return list;
+  const cut = list[2].score;
+  return list.filter((o, i) => i < 3 || o.score >= cut).slice(0, 6);
+}
 function updateMatch() {
   const topic = str($('#lk-topic', S.view).value);
   S.list = topic ? match(subjectNow(), yearNow(), topic, 8) : [];
@@ -164,7 +173,7 @@ function updateMatch() {
   if (!topic) { box.innerHTML = ''; return; }
   if (!S.list.length) { box.innerHTML = '<p class="fine">No close curriculum match yet. Keep typing, or make it anyway: the pack follows the subject’s KS2 programme.</p>'; return; }
   box.innerHTML = '<p class="lk-cur-h">' + icon('target') + 'Curriculum match <span>(tap to choose; none chosen means the best fit)</span></p>' +
-    S.list.slice(0, 3).map((o) => '<button type="button" class="lk-cchip" data-code="' + o.code + '" aria-pressed="' + S.chosen.includes(o.code) + '"><b class="mono">' + o.code + '</b><span>' + esc(o.text.length > 92 ? o.text.slice(0, 90) + '…' : o.text) + '</span></button>').join('');
+    shownMatches(S.list).map((o) => '<button type="button" class="lk-cchip" data-code="' + o.code + '" aria-pressed="' + S.chosen.includes(o.code) + '"><b class="mono">' + o.code + '</b><span>' + esc(o.text) + '</span></button>').join('');
 }
 function readInput(o) {
   o = o || {};
@@ -204,6 +213,7 @@ async function makePack(o) {
   o = o || {};
   if (S.busy) return;
   notice('');
+  if (S.fail) { S.fail = null; renderPack(); }
   const input = readInput(o);
   if (!input.topic) { notice('Type a topic first, for example “Rounding off”.', true); $('#lk-topic', S.view).focus(); return; }
   const key = packKey(input);
@@ -268,8 +278,15 @@ async function makePack(o) {
     code = (e && e.code) || 'error';
     S.live = null;
     track('deck', { eng: 'lkie', title: input.topic, year: input.year, subject: input.subjectName, ok: 0, err: code, ms: Date.now() - t0 });
-    if (code !== 'cancelled') { sfx('error'); notice(errorCopy(code, 'the lesson pack'), true); }
+    if (code !== 'cancelled') {
+      sfx('error');
+      const why = errorCopy(code, 'the lesson pack');
+      notice(why, true);
+      // the pack pane says so plainly, instead of going back to the example (a Year 4 lesson that looked like the result)
+      S.fail = { input, why, ask: Object.assign({}, o, { year: input.year, subject: input.subject, topic: input.topic, minutes: input.minutes, codes: input.codes, fresh: true }) };
+    }
     renderPack();
+    if (S.fail && window.matchMedia('(max-width: 1060px)').matches) { const f = $('#lk-fail', S.view); if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   } finally {
     S.busy = null; showBusy(false);
     makeEnd(ticket, outcome === 'ok' ? 'ok' : code === 'cancelled' ? 'stopped' : 'error');
@@ -277,6 +294,7 @@ async function makePack(o) {
   }
 }
 function openPack(p, origin) {
+  S.fail = null;
   S.pack = p; S.origin = origin || 'saved'; S.sel = -1; S.tab = 'slides'; S.ed = 'ai'; S.drawer = ''; S.pres = null; S.pfor = ''; S.vres = null;
   if (S.briefing) { Voice.stop(); S.briefing = false; }
   renderPack(); renderRecent();
@@ -289,9 +307,25 @@ function headHTML(p, live) {
   return '<p class="kicker">' + esc(eyebrow) + '</p><h2 class="ltitle">' + esc(p.title) + '</h2>' + (p.objective ? '<p class="lobj">We are learning to ' + esc(learnText(p.objective)) + '.</p>' : '') +
     '<div class="chips">' + chips.filter(Boolean).map((c) => '<span class="chip">' + esc(c) + '</span>').join('') + (p.codes || []).map((c) => '<span class="chip lk-code" title="' + esc(c.text) + '">' + esc(c.code) + '</span>').join('') + '</div>';
 }
+/* A pack that was not made: what was asked for, why, and Try again. The example (or an older pack) stays out of
+   sight until the teacher asks for it, so it is never mistaken for the lesson she asked for. */
+function failHTML(f) {
+  const i = f.input;
+  return '<h2 class="lk-fail-h">' + icon('info') + 'This lesson pack was not made</h2>' +
+    '<div class="chips"><span class="chip">' + esc(i.year) + '</span><span class="chip">' + esc(i.subjectName) + '</span><span class="chip">' + esc(i.topic) + '</span></div>' +
+    '<p class="lk-fail-why">' + esc(f.why) + '</p>' +
+    '<p class="lk-fail-note">Nothing was made for this topic, so there is nothing to check yet. Once it is fixed, press Try again.</p>' +
+    '<div class="actions"><button type="button" class="btn primary" data-lk-fail="retry">' + icon('refresh') + 'Try again</button>' +
+    '<button type="button" class="btn" data-lk-fail="hide">' + icon('eye') + '<span>' + (isExample(S.pack) ? 'Show the example lesson' : 'Back to “' + esc(S.pack.title) + '”') + '</span></button></div>';
+}
 function renderPack() {
   if (!S.view) return;
   const live = !!S.live, p = live ? livePack() : S.pack;
+  const fail = !live && S.fail, fb = $('#lk-fail', S.view);
+  $('#lk-pack', S.view).classList.toggle('failed', !!fail);
+  fb.hidden = !fail;
+  fb.innerHTML = fail ? failHTML(fail) : '';
+  if (fail) return;
   $('#lk-head', S.view).innerHTML = headHTML(p, live);
   $('#lk-actions', S.view).hidden = live;
   paintActions(p, live);
@@ -1021,6 +1055,12 @@ function wire() {
     else if (d) { dropPack(d.dataset.drop); if (S.pack && S.pack.id === d.dataset.drop) openPack(EX, 'example'); else renderRecent(); }
   });
   $('#lk-pack', v).addEventListener('click', (e) => {
+    const fl = e.target.closest('[data-lk-fail]');
+    if (fl) {
+      if (fl.dataset.lkFail === 'retry') { if (deliberate(e, fl) && S.fail) makePack(S.fail.ask); }
+      else { S.fail = null; renderPack(); }
+      return;
+    }
     const tab = e.target.closest('[data-lk-tab]'); if (tab) { S.tab = tab.dataset.lkTab; renderPack(); return; }
     const pres = e.target.closest('[data-present]'); if (pres) { openPresent(Number(pres.dataset.present)); return; }
     const sel = e.target.closest('[data-sel]');

@@ -1,8 +1,8 @@
 /* Engine 7: Step-by-Step (SEND and EAL). Breaks any task into small timed steps with a Now / Next / Then strip,
    tick-off checklist, word bank (with home-language words for EAL), sentence starters and support ideas. */
-import { esc, str, arr, strs, num, clamp, icon, toast, $ } from '../core.js?v=af1c9ebd';
-import { B, chime } from './shared.js?v=af1c9ebd';
-import { buildPrompt } from './prompt.js?v=af1c9ebd';
+import { esc, str, arr, strs, num, clamp, icon, toast, $ } from '../core.js?v=e5cf7b70';
+import { B, chime } from './shared.js?v=e5cf7b70';
+import { buildPrompt } from './prompt.js?v=e5cf7b70';
 
 const NEEDS = ['Attention (ADHD)', 'Dyslexia', 'Autism', 'Working memory', 'EAL', 'Anxiety', 'Fine motor'];
 
