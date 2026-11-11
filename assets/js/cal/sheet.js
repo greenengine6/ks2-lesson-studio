@@ -1,13 +1,13 @@
 /* The calendar's side sheet (a bottom sheet on phones): a lesson, an event, homework or a holiday, and every form
    (a lesson, an event, homework, term dates, school holidays, settings). */
-import { $, $$, esc, icon, toast, uid } from '../core.js?v=1c26eb56';
-import { SUBJECT_LIST, subjectName, subjectColor, findItem, pickItem, openItem, startMaking, startClass, yearOf, soon } from '../library.js?v=1c26eb56';
-import { isDate, isTime, isHttps, addDays, toMin, fromMin } from '../ics.js?v=1c26eb56';
+import { $, $$, esc, icon, toast, uid } from '../core.js?v=542cda14';
+import { SUBJECT_LIST, subjectName, subjectColor, findItem, pickItem, openItem, startMaking, startClass, yearOf, soon } from '../library.js?v=542cda14';
+import { isDate, isTime, isHttps, addDays, toMin, fromMin } from '../ics.js?v=542cda14';
 import {
   data, daySchedule, planFor, setPlan, lessonById, eventById, homeworkById, addLesson, updateLesson, removeLesson, overrideLesson, addEvent, updateEvent, removeEvent,
   addHomework, updateHomework, removeHomework, setTerms, setSchoolHolidays, setSettings, nextDateOf, dateWords, fmtTime, span, today, isoDay, DAY_NAMES, EVENT_KINDS, lessonTitle, planKey
-} from './store.js?v=1c26eb56';
-import { ci, kindIcon } from './views.js?v=1c26eb56';
+} from './store.js?v=542cda14';
+import { ci, kindIcon } from './views.js?v=542cda14';
 
 let wrap = null, back = null, onShare = null;
 export function setShareHandler(fn) { onShare = fn; }

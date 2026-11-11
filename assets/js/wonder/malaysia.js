@@ -6,13 +6,13 @@
    hornbill · the two monsoons on the east coast · Sang Kancil the mouse-deer.
    Static scenery is painted once into the background (far, mon in metres, near); animals and weather move every
    frame (LIVE); a tap starts an ACT. Tap captions come in English and Bahasa Melayu (say.text / say.bm). */
-import { TAU, rnd, clamp, view, layer } from './util.js?v=1c26eb56';
-import { WONDER_SCENES as W, LIVE, ACTS, poly, rect, disc, ease } from './wonders.js?v=1c26eb56';
-import { seeded, tint, hills, burstParticles } from './scenery.js?v=1c26eb56';
-import { drawCreature } from './fauna.js?v=1c26eb56';
-import { Fx } from './music.js?v=1c26eb56';
+import { TAU, rnd, clamp, view, layer } from './util.js?v=542cda14';
+import { WONDER_SCENES as W, LIVE, ACTS, poly, rect, disc, ease } from './wonders.js?v=542cda14';
+import { seeded, tint, hills, burstParticles } from './scenery.js?v=542cda14';
+import { drawCreature } from './fauna.js?v=542cda14';
+import { Fx } from './music.js?v=542cda14';
 import { rgba, lin, rad, E, C, P, smoothPath, curve, haze, leafMass, treeline, giantTree, fern, bigLeaf, vine, coconut, casuarina, mangrove, berembang, pitcher, karst, cloudRow,
-  longboat, sampan, perahu, stiltHouse, orangutan, proboscis, tiger, hornbill, leatherback, hatchling, kancil, crocHead, rafflesia, batTiny, glowDot } from './mydraw.js?v=1c26eb56';
+  longboat, sampan, perahu, stiltHouse, orangutan, proboscis, tiger, hornbill, leatherback, hatchling, kancil, crocHead, rafflesia, batTiny, glowDot } from './mydraw.js?v=542cda14';
 
 const small = () => view.small;
 const sound = (S, name) => { if (S.soundOn) Fx.play(name); };

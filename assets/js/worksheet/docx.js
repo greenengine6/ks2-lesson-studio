@@ -2,7 +2,7 @@
    Real Office Open XML in a small zip made here (stored, no compression), so they open in Word, Google Docs, Pages
    and on phones, and can be changed like any document. Fractions: the numerator raised, a fraction slash and the
    denominator lowered, as in the site's other files; a missing number (□) becomes a blank to write on. */
-import { LEVELS, sectionsFor, eachLevel } from './prompts.js?v=1c26eb56';
+import { LEVELS, sectionsFor, eachLevel } from './prompts.js?v=542cda14';
 
 const te = new TextEncoder();
 /* ---------------- a stored zip ---------------- */

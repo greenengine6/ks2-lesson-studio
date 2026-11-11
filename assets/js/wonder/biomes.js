@@ -2,9 +2,9 @@
    a coral reef and the polar lands). Animals walk, fly, swim, swing and hop; tap one for its card with a real photo.
    The rainforest shows its four layers (tap a layer's name), in English or Bahasa Melayu. The polar lands are split
    in two, because polar bears (the Arctic) and penguins (Antarctica) never meet. */
-import { BIOMES } from './data.js?v=1c26eb56';
-import { TAU, rnd, clamp, noise, layer, view, FONT } from './util.js?v=1c26eb56';
-import { drawCreature, creatureOf } from './fauna.js?v=1c26eb56';
+import { BIOMES } from './data.js?v=542cda14';
+import { TAU, rnd, clamp, noise, layer, view, FONT } from './util.js?v=542cda14';
+import { drawCreature, creatureOf } from './fauna.js?v=542cda14';
 
 /* long, low creatures are drawn a little smaller, so they take about the room their emoji did */
 const FIT = { whale: 0.5, shark: 0.62, seal: 0.6, lizard: 0.7, scorpion: 0.8, reeffish: 0.85, butterfly: 0.75, hornbill: 0.8, falcon: 0.8 };

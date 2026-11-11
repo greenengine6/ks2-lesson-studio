@@ -2,23 +2,45 @@
    them) with the diagrams, pictures, backgrounds and text sizes as on screen, each video as its picture with a link,
    and the teacher notes and picture credits in the speaker notes; and the worksheet as an editable Word document
    (opens in Word and Google Docs). */
-import { esc } from '../core.js?v=1c26eb56';
-import { fracSlide, fracHTML } from '../fractions.js?v=1c26eb56';
-import { KIND, TONE, diagramSVG, answersOf, learnText, respondText, kindLabel, matchOrder, stepLine, mathParts, nightFor } from './render.js?v=1c26eb56';
-import { TIERS } from './model.js?v=1c26eb56';
-import { lookFor, lookInfo, lookForPptx } from './looks.js?v=1c26eb56';
-import { pictureData, urlData, creditText, safePic, safeVideo, ytThumb, ytWatch, ytShort } from '../pics.js?v=1c26eb56';
+import { esc } from '../core.js?v=542cda14';
+import { fracSlide, fracHTML } from '../fractions.js?v=542cda14';
+import { KIND, TONE, diagramSVG, answersOf, learnText, respondText, kindLabel, matchOrder, stepLine, mathParts, nightFor } from './render.js?v=542cda14';
+import { TIERS } from './model.js?v=542cda14';
+import { lookFor, lookInfo, lookForPptx } from './looks.js?v=542cda14';
+import { pictureData, urlData, creditText, safePic, safeVideo, ytThumb, ytWatch, ytShort } from '../pics.js?v=542cda14';
 
 /* ---------------- diagrams as pictures ---------------- */
 export function svgSize(svg) { const m = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg); return m ? [Number(m[1]), Number(m[2])] : [640, 200]; }
-/* clear: keep the background see-through (a night drawing sits straight on a dark slide) */
-export function rasterize(svg, scale, clear) {
+/* The part of a drawing that has ink (not see-through, or not white): its box in canvas pixels, or null. */
+function inkBox(g, cw, ch, clear) {
+  const d = g.getImageData(0, 0, cw, ch).data;
+  let x0 = cw, y0 = ch, x1 = -1, y1 = -1;
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      const i = (y * cw + x) * 4, ink = clear ? d[i + 3] > 10 : d[i] < 245 || d[i + 1] < 245 || d[i + 2] < 245;
+      if (ink) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    }
+  }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+/* clear: keep the background see-through (a night drawing sits straight on a dark slide).
+   crop: trim the empty margin, so the drawing fills its place on the slide (the main drawing; word cards keep the
+   whole drawing, so their circles stay the same size side by side). */
+export function rasterize(svg, scale, clear, crop) {
   return new Promise((resolve) => {
     const [w, h] = svgSize(svg), k = scale || 2, img = new Image();
     img.onload = () => {
       try {
         const c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
         const g = c.getContext('2d'); if (!clear) { g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, c.width, c.height); } g.drawImage(img, 0, 0, c.width, c.height);
+        const box = crop ? inkBox(g, c.width, c.height, clear) : null;
+        if (box) {
+          const pad = Math.round(Math.max(box.w, box.h) * (clear ? 0.04 : 0.07)), x = Math.max(0, box.x - pad), y = Math.max(0, box.y - pad);
+          const out = document.createElement('canvas'); out.width = Math.min(c.width, box.x + box.w + pad) - x; out.height = Math.min(c.height, box.y + box.h + pad) - y;
+          const o = out.getContext('2d'); if (!clear) { o.fillStyle = '#FFFFFF'; o.fillRect(0, 0, out.width, out.height); } o.drawImage(c, x, y, out.width, out.height, 0, 0, out.width, out.height);
+          resolve({ data: out.toDataURL('image/png'), w: out.width / k, h: out.height / k });
+          return;
+        }
         resolve({ data: c.toDataURL('image/png'), w, h });
       } catch (e) { resolve(null); }
     };
@@ -312,7 +334,11 @@ async function body(s, p, sl, t, vis) {
       let y = 2.0 + (sl.points.length ? ptsH + 0.08 : 0);
       if (has) {
         await drawRight(s, vis, right, t);
-        if (sl.example) { s.addText([{ text: 'Example: ', options: { bold: true, color: hex(t[1]) } }, { text: sl.example, options: { color: BINK } }], { x: 0.6, y, w, h: 1.0, fontFace: FONT, fontSize: F(17), valign: 'middle', fit: 'shrink', margin: 0.1, fill: { color: hex(t[2]) } }); y += 1.1; }
+        if (sl.example) {                                             // the example in a box like the callouts
+          card(s, 0.6, y, w, 1.0, hex(t[2])); tag(s, 'EXAMPLE', 0.85, y + 0.1, w - 0.5, hex(t[1]));
+          s.addText(sl.example, { x: 0.85, y: y + 0.4, w: w - 0.5, h: 0.54, fontFace: FONT, fontSize: F(15), color: BINK, valign: 'top', fit: 'shrink', margin: 0 });
+          y += 1.1;
+        }
       } else if (sl.example) {
         s.addShape('roundRect', { x: right.x, y: 2.0, w: right.w, h: 4.2, rectRadius: 0.18, fill: { color: hex(t[2]) }, line: { color: hex(t[2]), width: 0.5 } });
         s.addText('EXAMPLE', { x: right.x + 0.3, y: 2.2, w: 4, h: 0.4, fontFace: FONT, fontSize: 12, bold: true, color: hex(t[1]), charSpacing: 2, margin: 0 });
@@ -404,7 +430,7 @@ export async function buildPptx(p, o) {
     for (let n = 0; n < plan.length; n++) {
       const { sl, i, v, step } = plan[n], k = KIND[sl.layout] || KIND.concept, look = lookFor(p, sl, o.theme), L = lookInfo(look), bg = await lookForPptx(look, memo);
       NIGHT = L.dark && L.id !== 'pic' && L.id !== 'colour';
-      const nt = nightFor(sl.diagram, NIGHT), dg = sl.diagram ? await rasterize(diagramSVG(sl.diagram, k.tone, { night: nt }), 2, nt) : null;
+      const nt = nightFor(sl.diagram, NIGHT), dg = sl.diagram ? await rasterize(diagramSVG(sl.diagram, k.tone, { night: nt }), 2, nt, true) : null;
       const md = safeVideo(sl.video) ? { kind: 'video', v: sl.video } : safePic(sl.pic) ? { kind: 'pic', pic: sl.pic } : null;
       C = bg.dark ? DARK : LIGHT; FS = [0.85, 1, 1.15, 1.3].includes(sl.fs) ? sl.fs : 1;
       const s = slideFor(pptx, bg, masters);

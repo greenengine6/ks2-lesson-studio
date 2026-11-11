@@ -3,24 +3,24 @@
    the curriculum with checked codes. Slides change in plain English with undo; a unit planner sequences up to 25
    lessons with recaps and assessments; packs open instantly from this device; PowerPoint and Word downloads.
    Every engine button goes through the shared guard (guard.js). */
-import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=1c26eb56';
-import { track } from '../track.js?v=1c26eb56';
-import { sfx } from '../fx/audio.js?v=1c26eb56';
-import { Voice } from '../fx/voice.js?v=1c26eb56';
-import { evAll } from '../idb.js?v=1c26eb56';
-import { moodOf } from '../report.js?v=1c26eb56';
-import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=1c26eb56';
-import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=1c26eb56';
-import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=1c26eb56';
-import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=1c26eb56';
-import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks, stepLine } from './render.js?v=1c26eb56';
-import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=1c26eb56';
-import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=1c26eb56';
-import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=1c26eb56';
-import { takeMaking, takePresent } from '../library.js?v=1c26eb56';
-import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=1c26eb56';
-import EXAMPLE from './example.js?v=1c26eb56';
-import { presentKit, kitButtons } from '../presentkit.js?v=1c26eb56';
+import { $, $$, esc, str, icon, store, bus, prefs, hasKey, askClaude, askJSON, parseJSON, errorCopy, toast, copyOut, CONFIG, needKeyText } from '../core.js?v=542cda14';
+import { track } from '../track.js?v=542cda14';
+import { sfx } from '../fx/audio.js?v=542cda14';
+import { Voice } from '../fx/voice.js?v=542cda14';
+import { evAll } from '../idb.js?v=542cda14';
+import { moodOf } from '../report.js?v=542cda14';
+import { LIMITS, makeState, makeStart, makeEnd, editState, editStart, editEnd, deliberate, enterMovesOn, watch, waitText, repaint, clockAt } from '../guard.js?v=542cda14';
+import { SUBJECTS, SUBJECT_BY_ID, match, objective } from './curriculum.js?v=542cda14';
+import { PACK_SYSTEM, packRequest, SHEET_SYSTEM, sheetRequest, EDIT_SYSTEM, editRequest, INTENTS, intentOf, UNIT_SYSTEM, unitRequest, unitContext } from './prompts.js?v=542cda14';
+import { normPack, normSlide, normSheet, normUnit, checkUnit, packKey, itemsSoFar, stringSoFar, TIERS, totalMinutes, carryExtras, TEXT_SIZES } from './model.js?v=542cda14';
+import { KIND, slideHTML, fitSlide, thumbMeta, vocabHTML, activitiesHTML, notesHTML, sheetHTML, wireSheet, maxReveal, answersOf, learnText, mediaLinks, stepLine } from './render.js?v=542cda14';
+import { LOOKS, normLook, lookInfo, swatchOf } from './looks.js?v=542cda14';
+import { picURL, creditText, keepPic, safePic, safeVideo, searchPictures, findPicture, creditFor, savePicture, hydrate, forgetUploads, youTube, ytThumb, ytWatch, ytEmbed, ytFind, ytKey, ytSearch, mmss, seconds, QUALITY } from '../pics.js?v=542cda14';
+import { isPinned, togglePin, unpin, takeOpen, coverOfPack } from '../shelf.js?v=542cda14';
+import { takeMaking, takePresent } from '../library.js?v=542cda14';
+import { buildPptx, sheetDoc, sheetText, fileName } from './export.js?v=542cda14';
+import EXAMPLE from './example.js?v=542cda14';
+import { presentKit, kitButtons } from '../presentkit.js?v=542cda14';
 
 const PACKS = 'ks2-engine.lkie.packs.v1', UNITS = 'ks2-engine.lkie.units.v1', RULES = 'ks2-engine.lkie.rules.v1', THEME = 'ks2-engine.lkie.theme.v1', FORM = 'ks2-engine.lkie.form.v1';
 const YEARS = ['Year 3', 'Year 4', 'Year 5', 'Year 6'];

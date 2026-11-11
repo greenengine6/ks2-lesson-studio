@@ -60,7 +60,7 @@ function drawCircle(d, k, kd, kt) {
   if (has('circumference')) {                                    // an arrow running round the outside, lower right, clear of the radius
     const ca = night ? PART.circumference : kd;
     s += '<path d="' + arcPath(cx, cy, R + 16, 290, 345) + '" fill="none" stroke="' + ca + '" stroke-width="' + 3 * B + '"/>' + arrowHead(P(cx, cy, R + 16, 345), 75, ca);
-    lab += T(P(cx, cy, R + 22, 318)[0] + 6, P(cx, cy, R + 22, 318)[1] + 22, 'circumference', { size: 17, anchor: 'start', fill: ca });
+    lab += T(W - 4, H - 12, 'circumference', { size: 17, anchor: 'end', fill: ca });   // bottom right, inside the drawing
   }
   if (has('arc')) { const ac = night ? PART.arc : hi === 'arc' ? k : kd; s += '<path d="' + arcPath(cx, cy, R, 118, 168) + '" fill="none" stroke="' + ac + '" stroke-width="9" stroke-linecap="round"/>'; lab += T(P(cx, cy, R + 26, 150)[0] - 10, P(cx, cy, R + 26, 150)[1], 'arc', { size: 17, anchor: 'end', fill: night ? ac : kd }); }
   if (has('chord')) { const a = P(cx, cy, R, 205), b = P(cx, cy, R, 335); s += line(a, b, { c: col('chord'), w: wid('chord') }) + dot(a, col('chord'), 4.5) + dot(b, col('chord'), 4.5); lab += T(cx, (a[1] + b[1]) / 2 + (has('diameter') ? 24 : -10), 'chord', { size: 17, fill: labCol('chord') }); }   // under the chord when a diameter label sits above it

@@ -9,8 +9,8 @@
       websites around the world, and only for questions about teaching and school subjects. Her answer shows the
       pages she used. If the school's engine account has web search switched off, she answers from what she knows and
       tries searching again later. */
-import { HOUSE_WORDS, store } from './core.js?v=1c26eb56';
-import { COMMANDS_HELP } from './commands.js?v=1c26eb56';
+import { HOUSE_WORDS, store } from './core.js?v=542cda14';
+import { COMMANDS_HELP } from './commands.js?v=542cda14';
 
 /* Encyclopedias, museums, science agencies, children's news, curriculum and teaching bodies, and Malaysian sources.
    A domain covers its subdomains (bbc.co.uk covers Bitesize and Newsround; nasa.gov covers NASA Space Place). */
@@ -80,7 +80,7 @@ The site is laid out for everyday teaching, one calm page at a time. Today is th
 
 /* The curriculum, compact: subject, then strand, then each statement with its year group. */
 async function curriculumText() {
-  const m = await import('./lkie/curriculum.js?v=1c26eb56');
+  const m = await import('./lkie/curriculum.js?v=542cda14');
   let out = 'THE KEY STAGE 2 CURRICULUM\nThe school follows the Cambridge Primary curriculum. Maths: the Cambridge Primary Mathematics learning objectives for Stages 3 to 6 (Stage 3 to 6 match Years 3 to 6), word for word with their official codes. Other subjects: the statements this site maps them to, the Relationships and Health Education guidance, the RE Council national framework, the KS2 languages programme of study, and the KSSR skill areas for Bahasa Melayu.\n';
   m.SUBJECTS.forEach((s) => {
     const f = m.FRAMEWORKS[s.fw];
